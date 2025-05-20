@@ -1,0 +1,80 @@
+@import "colors-wallust.css";
+
+
+* {
+  font-family: "JetBrainsMono Nerd Font", monospace;
+  font-size: 14px;
+  border: none;
+  border-radius: 20px;
+  padding: 0 10px;
+  margin: 0;
+  min-height: 0;
+  box-shadow: none;
+}
+
+window#waybar {
+  background-color: alpha(@background,0.5);
+  color: @foreground;
+  border-radius: 40px;
+  margin: 10px 20px;
+  padding: 6px 10px;
+  border: 2px solid alpha(@foreground, 1);
+  box-shadow: 0px 4px 12px 2px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+/* Modules */
+#workspaces button {
+  padding: 4px 10px;
+  margin: 6px 4px;
+  background-color: transparent;
+  color: @foreground;
+  border-radius: 15px;
+  transition: background-color 0.3s;
+}
+
+#workspaces button.active {
+  background-color: @color2;
+  color: @color14;
+}
+
+#workspaces button:hover {
+  background-color: alpha(@color2, 0.3);
+}
+
+#window,
+#mpris,
+#cpu,
+#memory,
+#pulseaudio,
+#clock,
+#tray,
+#custom-notification,
+#custom-power {
+  background-color: alpha(@color2, 1);
+  color: @foreground;
+  padding: 4px 10px;
+  margin: 6px 4px;
+  border-radius: 20px;
+}
+
+#clock {
+  font-weight: bold;
+}
+
+#tray {
+  padding: 0 6px;
+}
+
+/* Optional hover animations */
+#cpu:hover,
+#memory:hover,
+#pulseaudio:hover,
+#clock:hover,
+#custom-notification:hover,
+#custom-power:hover
+#custom-appmenu:hover {
+  background-color: alpha(@color2, 0.2);
+  color: @color4;
+  transition: all 0.2s ease-in-out;
+}

@@ -1,0 +1,31 @@
+/* colors-rofi.rasi - Wallust theme */
+
+* {
+    /* Background colors */
+    background:      {{background}}AA;
+    background-alt:  {{background}}AA;
+
+    /* Foreground and text */
+    foreground:      {{foreground}}FF;
+    normal-text:     {{color15}}FF;
+
+    /* Selection colors */
+    selected:        {{color4}}FF;
+    selected-background: {{color7}}FF;
+
+    /* Active and urgent states */
+    active:          {{color8}}FF;
+    urgent:          {{color9}}FF;
+
+    /* Window styling */
+    window-border:   {{color10}}FF;
+    window-background: {{color6}}0D;
+
+    /* Scrollbar colors */
+    scrollbar-filled: {{color4}}FF;
+    scrollbar-empty:  {{color0}}FF;
+
+    /* Error messages */
+    error-message:        {{color7}}FF;
+    error-message-border: {{color15}}FF;
+}

@@ -1,0 +1,21 @@
+# Ignore everything
+*
+
+# Allow only tracked config files
+!.gitignore
+!hypr/
+!hypr/hyprland.conf
+!hypr/config/
+!hypr/config/*.conf
+!waybar/
+!waybar/config
+!waybar/style.css
+!rofi/
+!rofi/**
+!rofi/config.rasi
+!scripts/
+!scripts/*
+!wallust/
+!wallust/**
+!kitty/
+!kitty/*

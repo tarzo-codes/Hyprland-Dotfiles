@@ -1,0 +1,25 @@
+{
+  "height": 40,
+  "modules-left": ["custom/appmenu", "hyprland/workspaces", "hyprland/window"],
+  "modules-center": ["clock"],
+  "modules-right": ["cpu", "memory", "network", "battery", "pulseaudio", "tray", "custom/power"],
+
+  "pulseaudio" : {
+    "on-click":"pavucontrol"
+  },
+  "custom/appmenu": {
+      "format": "",
+      "tooltip": "Launch Application Menu",
+      "on-click": "~/.config/rofi/launchers/launcher.sh",
+      "interval": 0
+    },
+
+  "custom/power": {
+      "format": "",
+      "tooltip": "Power Menu",
+      "on-click": "~/.config/rofi/applets/bin/powermenu.sh",
+      "on-click-right": "reboot",
+      "interval": 0
+    }
+  
+}
