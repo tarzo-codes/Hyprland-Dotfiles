@@ -1,0 +1,64 @@
+// @import "~/.config/rofi/shared/fonts.rasi"
+@import "~/.config/rofi/shared/wallust.rasi"
+
+window {
+  fullscreen: true;
+  location: center;
+  anchor: center;
+  border: 0;
+  border-radius: 20px;
+  background-color: var(background);  // dark with opacity
+  transparency: "real";
+}
+
+mainbox {
+    background-color: transparent;
+  orientation: horizontal;
+
+  spacing: 15px;
+  padding: 20px;
+  children: [message, listview];
+}
+
+message {
+    background-color:transparent;
+  padding: 10px;
+  text-color: var(foreground);
+  horizontal-align: 0.5;
+}
+
+listview {
+    background-color:transparent;
+  columns: 3;
+  lines: 5;
+  spacing: 12px;
+  layout: horizontal;
+  fixed-height: true;
+  dynamic: true;
+  horizontal-align: 0.5;
+  vertical-align: 0.5;
+  
+}
+
+element {
+  width:200px;
+  height:200px;
+  padding: 5;
+  border-radius: 5px;
+  background-color: var(background);
+  text-color: var(foreground);
+  horizontal-align: 0;
+  vertical-align: 0;
+  
+}
+
+element selected {
+  background-color: #89b4fa;
+  text-color: #1e1e2e;
+}
+
+textbox {
+    background-color:transparent;
+  text-color: var(foreground);
+
+}

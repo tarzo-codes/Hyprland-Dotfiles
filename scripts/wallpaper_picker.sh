@@ -21,3 +21,10 @@ if pgrep -x waybar > /dev/null; then
 else
   echo "Waybar is not running."
 fi
+
+kill -USR1 $(pidof mako)
+mako --config ~/.config/mako/config;
+
+~/.config/scripts/dynamic-icon.sh
+
+notify-send "Theme Changed" "Your Whole theme just changed"

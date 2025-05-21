@@ -10,16 +10,21 @@
   "custom/appmenu": {
       "format": "",
       "tooltip": "Launch Application Menu",
-      "on-click": "~/.config/rofi/launchers/launcher.sh",
+      "on-click": "~/.config/scripts/rofi-launcher.sh",
       "interval": 0
     },
 
   "custom/power": {
-      "format": "",
-      "tooltip": "Power Menu",
-      "on-click": "~/.config/rofi/applets/bin/powermenu.sh",
-      "on-click-right": "reboot",
-      "interval": 0
+        "format" : "⏻ ",
+		"tooltip": false,
+		"menu": "on-click",
+		"menu-file": "/home/tarzo/.config/waybar/custom-modules/power_menu.xml",
+		"menu-actions": {
+			"shutdown": "shutdown",
+			"reboot": "reboot",
+			"suspend": "systemctl suspend",
+			"hibernate": "systemctl hibernate"
+		}
     }
   
 }

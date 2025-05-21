@@ -4,9 +4,7 @@
 # Allow only tracked config files
 !.gitignore
 !hypr/
-!hypr/hyprland.conf
-!hypr/config/
-!hypr/config/*.conf
+!hypr/**
 !waybar/
 !waybar/config
 !waybar/style.css
@@ -19,3 +17,11 @@
 !wallust/**
 !kitty/
 !kitty/*
+!waypapper/
+!waypapper/*
+!mako/
+!mako/**
+!hypr-gtk-tool/
+!hypr-gtk-tool/**
+!~/.zshrc
+!~/.ohmyzsh
