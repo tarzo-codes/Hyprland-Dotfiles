@@ -4,7 +4,8 @@ Welcome to my personal **Hyprland dotfiles** setup — built for a clean, modula
 Check out my Youtube for Video updates: http://youtube.com/@techressolve
 > ⚠️ **Note:** This setup is a **Work in Progress**. Configs will change frequently, some features may break, and structure is still being finalized.
 
-[Current Update](https://youtu.be/3j1-W1-3kJg)
+[![Watch the video](https://img.youtube.com/vi/3j1-W1-3kJg/hqdefault.jpg)](https://www.youtube.com/watch?v=3j1-W1-3kJg)
+
 
 ---
 
