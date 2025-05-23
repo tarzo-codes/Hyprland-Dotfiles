@@ -30,7 +30,7 @@ apps=(
 
 ```bash
 yay_apps=(
-  wallust hyperls-git eww-git
+  wallust hyperls-git 
 )
 ```
 
