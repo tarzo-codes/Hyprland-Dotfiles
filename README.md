@@ -22,7 +22,7 @@ apps=(
   ttf-jetbrains-mono ttf-jetbrains-mono-mono nwg-look
   gtk-engine-murrine gnome-themes-extra hyprpolkitagent mako
   gtk-menu-meta hyprsunset python-gobject brightnessctl pamixer
-  ffmpeg mpd mpv mpv-uosc-git fastfetch
+  ffmpeg mpd mpv mpv-uosc-git fastfetch swww
 )
 ```
 
@@ -30,7 +30,7 @@ apps=(
 
 ```bash
 yay_apps=(
-  wallust hyperls-git 
+  wallust hyperls-git waypaper
 )
 ```
 
