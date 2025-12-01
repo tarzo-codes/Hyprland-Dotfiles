@@ -17,3 +17,9 @@ dynamic-color.template = 'dynamic-color.sh'
 dynamic-color.target = '~/.config/scripts/shared/dynamic-color.sh'
 mako.template = 'colors-mako'
 mako.target = '~/.config/mako/config'
+firefox.template = 'colors-firefox.css'
+firefox.target = '~/.config/firefox/colors-firefox.css'
+userFirefox.template = 'userColors.css'
+userFirefox.target = '~/.mozilla/firefox/d2hzuyk2.default-release/chrome/userColor.css'
+
+
