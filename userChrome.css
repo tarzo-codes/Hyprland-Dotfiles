@@ -1,0 +1,223 @@
+/* ---------------------------------------------------
+   WALLUST DYNAMIC THEME INTEGRATION
+   @import wallust-generated color variables
+--------------------------------------------------- */
+@import url("userColor.css");
+
+/* ---------------------------------------------------
+   1. HIDE HORIZONTAL TAB BAR COMPLETELY & BASE COLORS
+--------------------------------------------------- */
+
+/* Base background for the entire browser frame and nav bars */
+#navigator-toolbox,
+#nav-bar,
+#PersonalToolbar,
+.browserContainer,
+#main-window:not([inFullscreen]) {
+    background-color: var(--uc-background) !important;
+}
+
+#TabsToolbar,
+#titlebar,
+#tabs-newtab-button,
+#new-tab-button
+ {
+    visibility: collapse !important;
+    display: none !important;
+}
+
+/* Remove space where tabs used to be */
+#nav-bar {
+    margin-top: 0 !important;
+}
+
+/* Stops hidden tabs from producing animations/glitches */
+.tab-background,
+.tabbrowser-tab {
+    animation: none !important;
+}
+
+/* Hide the thin line between the navigation bar and the webpage content */
+#nav-bar-splitter {
+    visibility: collapse !important;
+}
+
+/* ---------------------------------------------------
+   2. FROSTED GLASS URL BAR (with glow on focus)
+--------------------------------------------------- */
+#urlbar,
+#urlbar-background {
+    background-color: color-mix(in srgb, var(--uc-background) 5%, transparent) !important; 
+    backdrop-filter: blur(25px) brightness(105%) !important;
+    border: 1px solid var(--uc-accent-color) !important; 
+    box-shadow: none !important;
+    transition: background-color 150ms ease, box-shadow 200ms ease !important;
+}
+
+/* Hover effect: Subtle change using background/accent mix */
+#urlbar:hover > #urlbar-background {
+    
+    background-color: color-mix(in srgb, var(--uc-background) 80%, var(--uc-accent-color)) !important;
+}
+
+/* Focus effect — Adds soft glow using the dynamic shadow variable */
+#urlbar[focused="true"] > #urlbar-background {
+    background-color: color-mix(in srgb, var(--uc-background) 75%, var(--uc-accent-color)) !important;
+    box-shadow: var(--uc-urlbar-focus-shadow) !important;
+}
+
+/* ---------------------------------------------------
+   3. URL BAR INPUT & SUGGESTIONS FIXES
+--------------------------------------------------- */
+/* Increase URL Bar Height with padding */
+
+
+#urlbar-input-container {
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+}
+
+#urlbar-input {
+    text-align: center !important;
+    color: var(--uc-foreground) !important; 
+}
+
+/* Center placeholder text using a robust selector */
+#urlbar-input::placeholder {
+    text-align: center !important;
+    opacity: 0 !important;
+}
+
+/* Base style for the dropdown panel */
+#urlbar-results {
+    padding: 10px;
+    text-align: left !important;
+    /* background-color: var(--uc-background) !important; */
+}
+.urlbar-input-box {
+    color: var(--uc-foreground) !important; 
+}
+
+
+
+/* 2. Target individual elements within the row to force transparent backgrounds */
+.urlbar-result-row > .urlbar-result-row-inner,
+.urlbar-result-row > .urlbar-result-box {
+    background-color: transparent !important;
+}
+
+/* 3. Style the currently selected suggestion result */
+.urlbar-result-row[selected="true"] {
+    background-color: color-mix(in srgb, var(--uc-background) 80%, var(--uc-accent-color)) !important;
+}
+
+/* Ensure the text and icons inside the selected row are clearly visible */
+.urlbar-result-row[selected="true"] .urlbar-icon {
+    fill: var(--uc-accent-color) !important; 
+}
+.urlbar-result-row[selected="true"] .urlbar-title,
+.urlbar-result-row[selected="true"] .urlbar-url {
+    color: var(--uc-foreground) !important; 
+}
+
+
+/* ---------------------------------------------------
+   4. AUTO-HIDE ENTIRE TOP BROWSER UI
+--------------------------------------------------- */
+
+/* Hide the entire top browser UI by default */
+#navigator-toolbox:not(:focus-within):not(:hover) {
+    max-height: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: max-height 180ms ease, opacity 160ms ease !important;
+}
+
+/* Show the UI when focused (e.g., Ctrl+L) or hovered (moving mouse up) */
+#navigator-toolbox:focus-within,
+#navigator-toolbox:hover {
+    max-height: 200px !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transition: max-height 200ms ease, opacity 160ms ease !important;
+}
+
+/* Remove leftover empty padding/margin */
+#navigator-toolbox {
+    margin-bottom: -1px !important;
+}
+
+/* ---------------------------------------------------
+   5. DYNAMIC VISUAL POLISH (Icon/Accent Theming)
+--------------------------------------------------- */
+
+/* Force all text and general icons to the dynamic foreground color */
+#navigator-toolbox toolbarbutton,
+#navigator-toolbox label,
+#navigator-toolbox button,
+#urlbar-input-container {
+    color: var(--uc-foreground) !important;
+    fill: var(--uc-foreground) !important;
+}
+
+/* Make icons use the accent color */
+toolbarbutton .toolbarbutton-icon,
+toolbarbutton .toolbarbutton-badge-stack image,
+button,
+/* Sidebar icons: Bookmarks, History, etc. */
+.sidebar-placesTree treechildren::-moz-tree-image,
+#sidebar-box toolbarbutton .toolbarbutton-icon,
+#sidebar-header toolbarbutton .toolbarbutton-icon {
+  fill: var(--uc-accent-color) !important;
+  color: var(--uc-accent-color) !important;
+  stroke: var(--uc-accent-color) !important;
+}
+
+/* Fix padding/spacing around icons that may retain white backgrounds */
+toolbarbutton:not([disabled]):not([type="menu-button"]):hover > .toolbarbutton-icon,
+toolbarbutton:not([disabled]):not([type="menu-button"]) > .toolbarbutton-icon {
+    background-color: transparent !important; 
+    border-radius: 3px !important; 
+}
+
+/* For monochrome SVG icons in sidebars (Uses filter approximation for the accent color) */
+.sidebar-placesTree treechildren::-moz-tree-image {
+  filter: hue-rotate(-20deg) saturate(200%) brightness(90%); 
+}
+
+/* For PNG icons that do not respect fill/color */
+.sidebar-placesTree treechildren::-moz-tree-image {
+  filter: sepia(100%) saturate(500%) hue-rotate(-10deg);
+}
+
+/* ---------------------------------------------------
+   6. URL BAR SHOWS ONLY WHEN FOCUSED (Ctrl+L)
+--------------------------------------------------- */
+#urlbar:not([focused]):not([open]) {
+    max-width: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: max-width 180ms ease, opacity 160ms ease !important;
+}
+
+#urlbar[focused],
+#urlbar[open] {
+    max-width: 600px !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/* Keeps nav elements centered when URL bar is hidden */
+#nav-bar-customization-target {
+    justify-content: center !important;
+    width: 100% !important;
+    display: flex !important;
+}
+
+/* ---------------------------------------------------
+   7. FINAL ANIMATION CLEANUP
+--------------------------------------------------- */
+toolbarbutton,
+#PersonalToolbar {
+    transition: none !important;
+}
