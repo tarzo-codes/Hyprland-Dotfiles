@@ -9,7 +9,7 @@
 !waybar/config
 !waybar/style.css
 !rofi/
-!firefox/**
+!firefox/*
 !rofi/**
 !rofi/config.rasi
 !scripts/

@@ -21,5 +21,3 @@ firefox.template = 'colors-firefox.css'
 firefox.target = '~/.config/firefox/colors-firefox.css'
 userFirefox.template = 'userColors.css'
 userFirefox.target = '~/.mozilla/firefox/d2hzuyk2.default-release/chrome/userColor.css'
-
-
