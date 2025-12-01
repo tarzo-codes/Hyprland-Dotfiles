@@ -26,3 +26,4 @@
 !hypr-gtk-tool/**
 !~/.zshrc
 !~/.ohmyzsh
+!fish/*
