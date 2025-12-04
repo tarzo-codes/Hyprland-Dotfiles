@@ -1,27 +1,27 @@
 /* WALLUST GENERATED THEME */
 :root {
     /* Special Colors */
-    --background: #161517;
-    --foreground: #DCE8EA;
-    --cursor: #95AAB4;
+    --background: #202226;
+    --foreground: #E5EFF3;
+    --cursor: #92A3BE;
 
     /* Standard Colors (0-7) */
-    --color0: #3E3C3E;
-    --color1: #73101A;
-    --color2: #4D6B7D;
-    --color3: #78626F;
-    --color4: #E0586B;
-    --color5: #B8A4B4;
-    --color6: #9CBEC4;
-    --color7: #C5D6D9;
+    --color0: #46484D;
+    --color1: #1D4141;
+    --color2: #3E5889;
+    --color3: #836892;
+    --color4: #5F8CAA;
+    --color5: #A7A1BD;
+    --color6: #B6D0DE;
+    --color7: #D2DFE6;
 
     /* Bright Colors (8-15) */
-    --color8: #8A9698;
-    --color9: #73101A;
-    --color10: #4D6B7D;
-    --color11: #78626F;
-    --color12: #E0586B;
-    --color13: #B8A4B4;
-    --color14: #9CBEC4;
-    --color15: #C5D6D9;
+    --color8: #939CA1;
+    --color9: #1D4141;
+    --color10: #3E5889;
+    --color11: #836892;
+    --color12: #5F8CAA;
+    --color13: #A7A1BD;
+    --color14: #B6D0DE;
+    --color15: #D2DFE6;
 }
