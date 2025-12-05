@@ -2,30 +2,30 @@
 
 * {
     /* Background colors */
-    background:      #202226AA;
-    background-alt:  #202226AA;
+    background:      #161517AA;
+    background-alt:  #161517AA;
 
     /* Foreground and text */
-    foreground:      #E5EFF3FF;
-    normal-text:     #D2DFE6FF;
+    foreground:      #DCE8EAFF;
+    normal-text:     #C5D6D9FF;
 
     /* Selection colors */
-    selected:        #5F8CAAFF;
-    selected-background: #D2DFE6FF;
+    selected:        #E0586BFF;
+    selected-background: #C5D6D9FF;
 
     /* Active and urgent states */
-    active:          #939CA1FF;
-    urgent:          #1D4141FF;
+    active:          #8A9698FF;
+    urgent:          #73101AFF;
 
     /* Window styling */
-    window-border:   #3E5889FF;
-    window-background: #B6D0DE0D;
+    window-border:   #4D6B7DFF;
+    window-background: #9CBEC40D;
 
     /* Scrollbar colors */
-    scrollbar-filled: #5F8CAAFF;
-    scrollbar-empty:  #46484DFF;
+    scrollbar-filled: #E0586BFF;
+    scrollbar-empty:  #3E3C3EFF;
 
     /* Error messages */
-    error-message:        #D2DFE6FF;
-    error-message-border: #D2DFE6FF;
+    error-message:        #C5D6D9FF;
+    error-message-border: #C5D6D9FF;
 }
