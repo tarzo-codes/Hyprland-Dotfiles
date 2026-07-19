@@ -6,3 +6,5 @@
 !starship.toml
 !hypr
 !hypr/**
+!packages.txt
+!README.md

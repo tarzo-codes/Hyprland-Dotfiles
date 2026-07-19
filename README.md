@@ -1,54 +1,46 @@
-# 🚧 Hyprland Dotfiles (Work in Progress)
+# 🔧 Hyprland Dotfiles
 
-Welcome to my personal **Hyprland dotfiles** — built for a clean, modular, and terminal-focused Arch Linux experience using **Hyprland** as the Wayland compositor.
+Welcome to my personal **Hyprland dotfiles** — a clean, modular, and aesthetic Wayland environment for **CachyOS** / **Arch Linux** featuring **Quickshell**, **Vicinae**, **Mako**, and **Wallust**.
 
-📹 **Watch Setup Overview on YouTube:**
-👉 [youtube.com/@techressolve](http://youtube.com/@techressolve)
+📹 **Watch Setup Overview on YouTube:**  
+👉 [youtube.com/@techressolve](http://youtube.com/@techressolve)  
 [![Watch the video](https://img.youtube.com/vi/3j1-W1-3kJg/hqdefault.jpg)](https://www.youtube.com/watch?v=3j1-W1-3kJg)
 
-> ⚠️ **Work in Progress:**
-> This setup is under active development. Expect frequent changes, occasional breakage, and evolving file structures.
+> ⚠️ **Work in Progress:**  
+> This setup is actively maintained and modularized.
 
 ---
 
 ## 📦 Required Applications
 
 ### 🛠️ Official Repositories
-
 ```bash
-apps=(
-  hyprland rofi-wayland waybar kitty gtk3 gtk4
-  xdg-desktop-portal-hyprland polkit uwsm zsh hyprlock
-  ttf-jetbrains-mono ttf-jetbrains-mono-mono nwg-look
-  gtk-engine-murrine gnome-themes-extra hyprpolkitagent mako
-  gtk-menu-meta hyprsunset python-gobject brightnessctl pamixer
-  ffmpeg mpd mpv mpv-uosc-git fastfetch swww
-)
+sudo pacman -S hyprland kitty waybar mako brightnessctl pamixer \
+               pipewire pipewire-pulse wireplumber nautilus dolphin \
+               grim slurp hyprpicker ttf-jetbrains-mono-nerd nwg-look
 ```
 
 ### 🧬 AUR (via `yay`)
-
 ```bash
-yay_apps=(
-  wallust hyperls-git waypaper
-)
+yay -S quickshell vicinae wallust awww waypaper tela-icon-theme-git
 ```
 
-### 📅 Manual Install
-
-* [`Orchis Theme`](https://github.com/vinceliuice/Orchis-theme) (`orchis-theme-git`)
-* [`Tela Icon Theme`](https://github.com/vinceliuice/Tela-icon-theme) (`tela-icon-theme-git`)
+Refer to [`packages.txt`](./packages.txt) for the complete list of system dependencies.
 
 ---
 
-## ✨ Features (In Progress)
+## ✨ Features
 
-* 🪩 Modular config structure (`hypr`, `waybar`, `rofi`, `lockscreen`, etc.)
-* 🩼 Minimalist and clean design with sensible defaults
-* 🖼️ Wallpaper management via `swww` and `wallust`
-* ⌘️ Smart keybindings and productive workflows
-* 📦 Terminal-first UX with minimal dependencies
-* 🔄 Git-syncable and portable across machines
+* 🎨 **Quickshell Desktop Bar & OSD**: Includes 18 customizable themes (`z0mbi3`, `melissa`, `emilia`, `andrea`, `cynthia`, etc.) with dynamic OS name detection, workspace symbols, active workspace badges, and volume/brightness OSD.
+* 🔄 **Automated Mako & Vicinae Theme Syncing**: Switching Quickshell themes or Wallust palettes automatically updates and reloads Mako notification styles and Vicinae launcher themes on the fly.
+* 🖼️ **Dynamic Wallpapers**: Managed via `waypaper` / `awww` and colorized dynamically using `wallust`.
+* ⚡ **Modular Hyprland Structure**: Clean separation of `monitors`, `autostart`, `env`, `animations`, `keybinds`, `appearance`, `windowrules`, and `misc`.
+* ⌨️ **Keybindings**:
+  * `SUPER + Enter` → Open Terminal (`kitty`)
+  * `SUPER` (Release) / `SUPER + Space` → Open Launcher (`vicinae`)
+  * `SUPER + T` → Open Quickshell Theme Selector
+  * `SUPER + W` → Open Wallpaper Switcher
+  * `SUPER + Q` → Close Active Window
 
 ---
 
@@ -56,78 +48,35 @@ yay_apps=(
 
 ```bash
 Hyprland-Dotfiles/
-├── hypr-gtk-tool/
 ├── hypr/
 │   ├── hyprland.conf
 │   ├── hyprlock.conf
-│   └── config/
-│       ├── animations.conf
-│       ├── appearance.conf
-│       ├── autostart.conf
-│       ├── env.conf
-│       ├── keybinds.conf
-│       ├── misc.conf
-│       ├── monitors.conf
-│       └── windowrules.conf
-├── kitty/
-│   └── kitty.conf
-├── mako/
-│   └── config
-├── rofi/
-│   ├── applets/
-│   │   └── power_menu.rasi
-│   └── shared/
-│       ├── config.rasi
-│       ├── fonts.rasi
-│       ├── style.rasi
-│       └── wallust.rasi
-├── scripts/
-│   ├── dynamic-icon.sh
-│   ├── rofi-launcher.sh
-│   ├── rofi-powermenu.sh
-│   ├── wallpaper_cycle.sh
-│   └── wallpaper_picker.sh
-├── themes/
-├── wallust/
-│   ├── wallust.toml
-│   ├── dynamic-color.sh
-│   ├── kitty.conf
-│   └── templates/
-│       ├── colors-hypr.conf
-│       ├── colors-mako
-│       ├── colors-rofi.rasi
-│       ├── colors-waybar.css
-│       └── colors-zsh.zsh
-├── waybar/
-│   ├── config
-│   └── style.css
+│   ├── config/
+│   │   ├── animations.conf
+│   │   ├── appearance.conf
+│   │   ├── autostart.conf
+│   │   ├── env.conf
+│   │   ├── keybinds.conf
+│   │   ├── misc.conf
+│   │   ├── monitors.conf
+│   │   └── windowrules.conf
+│   └── scripts/
+│       └── wallpaper-switcher.sh
 ├── .gitignore
+├── packages.txt
 └── README.md
 ```
 
 ---
 
-## 🔧 Notes
+## 🚀 Installation & Symlinking
 
-* `wallust` is used to sync wallpaper colors across `rofi`, `waybar`, `mako`, `zsh`, and `kitty`.
-* Scripts are designed to be modular and follow XDG spec where possible.
-* `hypr-gtk-tool/` will manage GTK theme and icons automatically (planned).
+To link this configuration to your user config directory:
 
----
-
-## ✅ To Do
-
-* [ ] Add setup script
-* [ ] Split `scripts/` into functional subdirs
-* [ ] Rofi styles switcher
-* [ ] Add theme preview images
-* [ ] Create install guide (`install.md`)
-
----
-
-## 🙌 Contributing
-
-This is a personal dotfiles setup. If you're inspired, feel free to fork or open issues/discussions.
+```bash
+git clone https://github.com/tarzo-codes/Hyprland-Dotfiles.git ~/Hyprland-Dotfiles
+ln -s ~/Hyprland-Dotfiles/hypr ~/.config/hypr
+```
 
 ---
 
