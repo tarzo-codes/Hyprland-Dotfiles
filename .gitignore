@@ -1,4 +1,8 @@
 *
 !fastfetch
+!fastfetch/**
 !firefox
+!firefox/**
 !starship.toml
+!hypr
+!hypr/**
