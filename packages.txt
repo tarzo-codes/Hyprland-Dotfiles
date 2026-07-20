@@ -8,38 +8,27 @@
 
 ## Core Desktop
 hyprland
-hyprlock
 hyprpicker
-waybar
-wallust (AUR)
 kitty
 mako
 fish
 fastfetch
+starship
+fzf
+
+## Bar
+quickshell
 
 ## Launcher
 vicinae-bin (AUR)
 
-## Shell & Prompt
-starship
-fzf
+## Dynamic Colors
+wallust (AUR)
 
-## Wallpaper & Theme
-imv
-python-pip
-tela-icon-theme (AUR)
-
-## Waybar Custom Modules
-playerctl
-pulseaudio
-pavucontrol
-networkmanager
-bluez
-bluez-utils
-tailscale (AUR)          # for WOL/Tailscale module
-python
-python-defusedxml
-python-packaging
+## Wallpaper
+waypaper
+awww
+wallust (AUR)
 
 ## Screenshot
 grim
@@ -53,43 +42,28 @@ noto-fonts
 noto-fonts-emoji
 ttf-bitstream-vera
 
-## GTK Theme Support
+## GTK Theme
 nwg-look
 gtk-engine-murrine
 breeze-gtk
+tela-icon-theme (AUR)
 
-## XDG Desktop Portal
+## XDG Portal
 xdg-desktop-portal-hyprland
 xdg-desktop-portal-wlr
 xdg-user-dirs
 
-## Development (for scripts)
-git
-github-cli
-neovim
-nodejs
-npm
-python-pip
-
-## Media (for wallust templates)
-obs-studio
-firefox
-vlc
-mpv
+## Media
+playerctl
+mpd
 
 ## Utilities
-wl-clip-persist
-polkit-gnome
+git
+github-cli
+python-pip
+wget
+curl
 ripgrep
 btop
 unzip
-wget
-curl
-openssh
-
-## AUR Only
-wallust (AUR)
-vicinae-bin (AUR)
-tela-icon-theme (AUR)
-visual-studio-code-bin (AUR)
-
+polkit-gnome

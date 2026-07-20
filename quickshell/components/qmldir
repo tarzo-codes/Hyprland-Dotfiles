@@ -1,0 +1,18 @@
+# Components module for Quickshell
+CPU 1.0 CPU.qml
+Memory 1.0 Memory.qml
+Volume 1.0 Volume.qml
+Time 1.0 Time.qml
+Knob 1.0 Knob.qml
+PowerMenuWindow 1.0 PowerMenuWindow.qml
+SettingsPanel 1.0 SettingsPanel.qml
+Network 1.0 Network.qml
+SlantSeparator 1.0 SlantSeparator.qml
+ThemeSelectorWindow 1.0 ThemeSelectorWindow.qml
+WorkspaceOSD 1.0 WorkspaceOSD.qml
+VolumePanel 1.0 VolumePanel.qml
+NetworkPanel 1.0 NetworkPanel.qml
+CheatSheet 1.0 CheatSheet.qml
+BackgroundApps 1.0 BackgroundApps.qml
+Brightness 1.0 Brightness.qml
+MediaPlayerWindow 1.0 MediaPlayerWindow.qml
