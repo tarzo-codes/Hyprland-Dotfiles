@@ -92,4 +92,4 @@ wallust (AUR)
 vicinae-bin (AUR)
 tela-icon-theme (AUR)
 visual-studio-code-bin (AUR)
-discord-canary (AUR)
+
