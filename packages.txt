@@ -1,45 +1,138 @@
-# Hyprland Dotfiles - Required & Recommended Package List
+# Hyprland Dotfiles — Required Packages
+# Generated from active system on 2026-07-21
+# Install: sudo pacman -S --needed - < packages.txt
+# AUR: yay -S --needed - < <(grep -v '^#' packages.txt | grep -v '^$')
 
-# Core Compositor & Terminal
+## Core Desktop
 hyprland
-kitty
-
-# Status Bar & Desktop Shell
-quickshell
-waybar
-
-# Launcher & App Menu
-vicinae
-
-# Notifications
-mako
-
-# Wallpaper & Color Generation
-awww
-waypaper
-wallust
-
-# Screen Lock
 hyprlock
-
-# Screenshots & Color Picker
-grim
-slurp
 hyprpicker
+waybar
+wallust (AUR)
+kitty
+mako
+fish
+fastfetch
 
-# Media & Volume Controls
-playerctl
-brightnessctl
-pamixer
-pipewire
+## Shell & Prompt
+starship
+fzf
+ripgrep
+bash-completion
+
+## GTK / Theme
+gtk-engine-murrine (if needed)
+nwg-look
+breeze-gtk
+kde-gtk-config
+
+## Development
+neovim
+git
+github-cli
+nodejs
+npm
+python
+python-pip
+cmake
+ninja
+gcc
+clang
+
+## Media & Graphics
+obs-studio
+vlc
+vlc-plugins-all
+ffmpegthumbnailer
+ffmpegthumbs
+firefox
+spotify-launcher
+mpv
+
+## System
+pipewire-alsa
 pipewire-pulse
 wireplumber
+pavucontrol
+polkit-gnome
+networkmanager
+openssh
+iwd
+wpa_supplicant
+bluez
+bluez-utils
 
-# File Management
-nautilus
-dolphin
+## Virtualization
+qemu-full
+virt-manager
+virt-viewer
+libguestfs
 
-# Appearance & Icons
-nwg-look
-tela-icon-theme-git
-ttf-jetbrains-mono-nerd
+## CachyOS Specific
+linux-cachyos
+linux-cachyos-headers
+linux-cachyos-lts
+cachyos-settings
+cachyos-keyring
+cachyos-mirrorlist
+cachyos-hooks
+cachyos-fish-config
+cachyos-zsh-config
+
+## Intel
+intel-ucode
+intel-media-sdk
+vulkan-intel
+lib32-vulkan-intel
+libva-intel-driver-irql
+
+## AMD (present on system)
+vulkan-radeon
+lib32-vulkan-radeon
+xf86-video-amdgpu
+mesa-utils
+opencl-mesa
+lib32-mesa
+lib32-opencl-mesa
+
+## Utilities
+btop
+unzip
+unrar
+wget
+curl
+xdg-desktop-portal-hyprland
+xdg-desktop-portal-wlr
+xdg-user-dirs
+wl-clip-persist
+polkit-gnome
+plasma-desktop (KDE fallback)
+kdeconnect
+dolphin (if using KDE)
+
+## Communication
+discord
+telegram-desktop
+signal-desktop
+
+## Networking
+tailscale (if using)
+cloudflare-warp-bin (AUR)
+networkmanager-openvpn
+
+## AUR Packages
+antigravity
+discord-canary
+superpaper
+tela-icon-theme
+tlauncher-installer
+ttf-ms-fonts
+unified-media-studio
+vicinae-bin
+visual-studio-code-bin
+wallust
+
+## Fonts (recommended)
+ttf-bitstream-vera
+cantarell-fonts
+nerd-fonts (various - JetBrainsMono, Meslo, etc.)

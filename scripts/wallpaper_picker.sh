@@ -1,30 +1,272 @@
 #!/bin/bash
 
-# Launch waypaper and capture output
-input=$(waypaper --backend swww)
+# Wallpaper picker script with wallust color generation and Tela dark icon theme matching
+# Usage: ./wallpaper_picker.sh [path-to-image] [--span] [--verbose]
+#   --span: Span the wallpaper across all monitors (awww only)
+#   --verbose: Enable debug output
+# If no path is given, opens waypaper GUI
 
-# Extract the full wallpaper path
-full_path=$(echo "$input" | grep -oP '(?<=Selected file: )[^ ]+')
+set -e
 
-# Check if a valid path was extracted
-if [[ -z "$full_path" ]]; then
-  echo "No file selected or path could not be extracted."
-  exit 1
-fi
+WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
+CACHE_DIR="$HOME/.cache/wallust"
+TELA_BASE="Tela-dark"
+VERBOSE="${VERBOSE:-false}"
 
-# Apply color scheme using wallust
-wallust run "$full_path"
+# Debug output function
+debug() {
+  if [ "$VERBOSE" = "true" ]; then
+    echo "[DEBUG] $1" >&2
+  fi
+}
 
-# Reload waybar if running
-if pgrep -x waybar > /dev/null; then
-  killall -SIGUSR2 waybar
+# Color name mapping for Tela dark variants
+declare -A TELA_COLORS
+TELA_COLORS=(
+  ["Tela-dark"]="#5297e0"
+  ["Tela-blue-dark"]="#5297e0"
+  ["Tela-green-dark"]="#4caf50"
+  ["Tela-red-dark"]="#e53935"
+  ["Tela-purple-dark"]="#9c27b0"
+  ["Tela-pink-dark"]="#e91e63"
+  ["Tela-orange-dark"]="#ff9800"
+  ["Tela-yellow-dark"]="#ffeb3b"
+  ["Tela-brown-dark"]="#795548"
+  ["Tela-grey-dark"]="#607d8b"
+  ["Tela-black-dark"]="#212121"
+  ["Tela-dracula-dark"]="#bd93f9"
+  ["Tela-nord-dark"]="#88c0d0"
+  ["Tela-manjaro-dark"]="#16a085"
+  ["Tela-ubuntu-dark"]="#e95420"
+)
+
+# Find the closest Tela dark icon theme based on a hex color
+find_closest_tela() {
+  local target_color="$1"
+  local best_match="Tela-blue-dark"
+  local best_distance=999999
+
+  # Remove # if present
+  target_color="${target_color#\#}"
+
+  # Extract RGB
+  local tr=$((16#${target_color:0:2}))
+  local tg=$((16#${target_color:2:2}))
+  local tb=$((16#${target_color:4:2}))
+
+  for theme in "${!TELA_COLORS[@]}"; do
+    local theme_color="${TELA_COLORS[$theme]}"
+    theme_color="${theme_color#\#}"
+
+    local mr=$((16#${theme_color:0:2}))
+    local mg=$((16#${theme_color:2:2}))
+    local mb=$((16#${theme_color:4:2}))
+
+    # Calculate Euclidean distance in RGB space
+    local dr=$((tr - mr))
+    local dg=$((tg - mg))
+    local db=$((tb - mb))
+    local distance=$((dr * dr + dg * dg + db * db))
+
+    if (( distance < best_distance )); then
+      best_distance=$distance
+      best_match="$theme"
+    fi
+  done
+
+  debug "Closest Tela theme: $best_match (distance: $best_distance)"
+  echo "$best_match"
+}
+
+# Set GTK and Qt icon theme
+set_icon_theme() {
+  local icon_theme="$1"
+
+  debug "Setting icon theme to: $icon_theme"
+
+  # GTK settings
+  if command -v gsettings &> /dev/null; then
+    gsettings set org.gnome.desktop.interface icon-theme "$icon_theme" 2>/dev/null || true
+  fi
+
+  # GTK3 settings.ini
+  local gtk3_config="$HOME/.config/gtk-3.0/settings.ini"
+  if [ -f "$gtk3_config" ]; then
+    sed -i "s/gtk-icon-theme-name=.*/gtk-icon-theme-name=$icon_theme/" "$gtk3_config"
+  fi
+
+  # GTK4 settings.ini
+  local gtk4_config="$HOME/.config/gtk-4.0/settings.ini"
+  if [ -f "$gtk4_config" ]; then
+    sed -i "s/gtk-icon-theme-name=.*/gtk-icon-theme-name=$icon_theme/" "$gtk4_config"
+  fi
+
+  # Qt/KDE config via kwriteconfig6
+  if command -v kwriteconfig6 &> /dev/null; then
+    kwriteconfig6 --file kdeglobals --group Icons --key Theme "$icon_theme" 2>/dev/null || true
+  fi
+
+  # xsettingsd for live Qt/GTK sync
+  local xsettingsd_config="$HOME/.config/xsettingsd/xsettingsd.conf"
+  if [ -f "$xsettingsd_config" ]; then
+    sed -i "s#^Net/IconThemeName.*#Net/IconThemeName \"$icon_theme\"#g" "$xsettingsd_config"
+    if command -v xsettingsd &> /dev/null; then
+      pkill xsettingsd 2>/dev/null || true
+      sleep 0.1
+      xsettingsd -c "$xsettingsd_config" 2>/dev/null &
+    fi
+  fi
+}
+
+# Set wallpaper using awww (preferred) or swww (fallback)
+set_wallpaper_backend() {
+  local image="$1"
+  local span="$2"
+
+  debug "Setting wallpaper: $image (span: $span)"
+
+  if command -v awww &> /dev/null; then
+    if [ "$span" = "true" ]; then
+      awww img "$image" 2>/dev/null || {
+        awww query 2>/dev/null | grep -oP 'outputs:\s*\K\S+' | while read -r output; do
+          awww img -o "$output" "$image" 2>/dev/null || true
+        done
+      }
+    else
+      awww img "$image"
+    fi
+  elif command -v swww &> /dev/null; then
+    swww img "$image" --transition-fps 60 --transition-type random
+  else
+    notify-send -u critical "Wallpaper" "No wallpaper backend found (install awww or swww)"
+    return 1
+  fi
+}
+
+# Main wallpaper setting function
+set_wallpaper() {
+  local image="$1"
+  local span="${2:-false}"
+
+  if [ ! -f "$image" ]; then
+    notify-send -u critical "Wallpaper" "File not found: $image"
+    exit 1
+  fi
+
+  debug "Setting wallpaper with colors: $image"
+
+  # Set wallpaper
+  set_wallpaper_backend "$image" "$span"
+
+  # Run wallust to generate colors
+  if command -v wallust &> /dev/null; then
+    debug "Running wallust..."
+    wallust run "$image" --quiet 2>/dev/null || wallust run "$image" 2>/dev/null || true
+    sleep 0.5
+  else
+    debug "wallust not found, skipping color generation"
+  fi
+
+  # Source dynamic colors generated by Wallust
+  local color_script="$HOME/.config/scripts/shared/dynamic-color.sh"
+  if [ -f "$color_script" ]; then
+    debug "Sourcing color script: $color_script"
+    # shellcheck source=/dev/null
+    source "$color_script"
+    ACCENT_COLOR="${COLOR4:-#7aa2f7}"
+    debug "Accent color: $ACCENT_COLOR"
+    
+    if [ -n "$ACCENT_COLOR" ]; then
+      BEST_TELA=$(find_closest_tela "$ACCENT_COLOR")
+      set_icon_theme "$BEST_TELA"
+    fi
+
+    # Sync external apps (Mako, Vicinae, Neovim, KDE, Kvantum)
+    if [ -x "$HOME/.config/quickshell/scripts/sync-theme-externals.sh" ]; then
+      "$HOME/.config/quickshell/scripts/sync-theme-externals.sh" \
+        "${COLOR0:-#0d0f18}" \
+        "${COLOR8:-#1e1e2e}" \
+        "${COLOR7:-#c0caf5}" \
+        "${COLOR4:-#7aa2f7}" \
+        "${COLOR1:-#f7768e}" \
+        "${COLOR2:-#9ece6a}" \
+        "${COLOR3:-#e0af68}" \
+        "${COLOR4:-#7aa2f7}" \
+        "${COLOR6:-#7dcfff}" \
+        "${COLOR5:-#bb9af7}" \
+        "${COLOR8:-#6D8895}" \
+        "wallust" 2>/dev/null &
+    fi
+
+    # Apply Hyprland border colors directly
+    if command -v hyprctl &> /dev/null && [ -n "$COLOR6" ]; then
+      COLOR6_STRIPPED="${COLOR6#\#}"
+      COLOR0_STRIPPED="${COLOR0#\#}"
+      debug "Applying Hyprland border colors: active=${COLOR6_STRIPPED}, inactive=${COLOR0_STRIPPED}"
+      hyprctl keyword "general:col.active_border" "rgba(${COLOR6_STRIPPED}ff)" 2>/dev/null || true
+      hyprctl keyword "general:col.inactive_border" "rgba(${COLOR0_STRIPPED}ff)" 2>/dev/null || true
+    fi
+  else
+    debug "Color script not found: $color_script"
+  fi
+
+  # Reload quickshell to pick up new colors
+  debug "Reloading quickshell..."
+  pkill -x quickshell 2>/dev/null || true
+  sleep 0.3
+  if command -v quickshell &>/dev/null; then
+    quickshell 2>/dev/null &
+    debug "quickshell restarted"
+  fi
+
+  # Refresh kitty colors
+  if command -v kitty &> /dev/null; then
+    debug "Refreshing kitty colors..."
+    kitty @ set-colors --all --configured "$HOME/.config/kitty/wallust.conf" 2>/dev/null || true
+  fi
+
+  local msg="Set successfully"
+  [ "$span" = "true" ] && msg="$msg (spanned across monitors)"
+  notify-send "Wallpaper" "$msg with wallust colors"
+}
+
+# Parse arguments
+SPAN=false
+IMAGE_PATH=""
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --span)
+      SPAN=true
+      shift
+      ;;
+    --verbose)
+      VERBOSE=true
+      export VERBOSE
+      shift
+      ;;
+    *)
+      IMAGE_PATH="$1"
+      shift
+      ;;
+  esac
+done
+
+# Main logic
+if [ -n "$IMAGE_PATH" ] && [ -f "$IMAGE_PATH" ]; then
+  set_wallpaper "$IMAGE_PATH" "$SPAN"
+elif [ -n "$IMAGE_PATH" ] && [ -d "$IMAGE_PATH" ]; then
+  IMAGE=$(find "$IMAGE_PATH" -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.jpeg" -o -iname "*.webp" \) | shuf -n 1)
+  if [ -n "$IMAGE" ]; then
+    set_wallpaper "$IMAGE" "$SPAN"
+  fi
+elif command -v waypaper &> /dev/null; then
+  waypaper
 else
-  echo "Waybar is not running."
+  if [ -d "$WALLPAPER_DIR" ]; then
+    IMAGE=$(find "$WALLPAPER_DIR" -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.jpeg" -o -iname "*.webp" \) | shuf -n 1)
+    if [ -n "$IMAGE" ]; then
+      set_wallpaper "$IMAGE" "$SPAN"
+    fi
+  fi
 fi
-
-kill -USR1 $(pidof mako)
-mako --config ~/.config/mako/config;
-
-~/.config/scripts/dynamic-icon.sh
-
-notify-send "Theme Changed" "Your Whole theme just changed"

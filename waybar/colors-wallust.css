@@ -1,20 +1,28 @@
-@define-color foreground #E5EFF3;
-@define-color background #202226;
-@define-color cursor #92A3BE;
+@define-color foreground #E4FBFA;
+@define-color background #171C17;
+@define-color cursor #EE7EBF;
 
-@define-color color0 #46484D;
-@define-color color1 #1D4141;
-@define-color color2 #3E5889;
-@define-color color3 #836892;
-@define-color color4 #5F8CAA;
-@define-color color5 #A7A1BD;
-@define-color color6 #B6D0DE;
-@define-color color7 #D2DFE6;
-@define-color color8 #939CA1;
-@define-color color9 #1D4141;
-@define-color color10 #3E5889;
-@define-color color11 #836892;
-@define-color color12 #5F8CAA;
-@define-color color13 #A7A1BD;
-@define-color color14 #B6D0DE;
-@define-color color15 #D2DFE6;
+@define-color color0 #3D433D;
+@define-color color1 #3C899E;
+@define-color color2 #F80184;
+@define-color color3 #FF8616;
+@define-color color4 #D2C565;
+@define-color color5 #D7C2E8;
+@define-color color6 #B1F4F0;
+@define-color color7 #D0F1EF;
+@define-color color8 #91A9A7;
+@define-color color9 #3C899E;
+@define-color color10 #F80184;
+@define-color color11 #FF8616;
+@define-color color12 #D2C565;
+@define-color color13 #D7C2E8;
+@define-color color14 #B1F4F0;
+@define-color color15 #D0F1EF;
+
+/* Extended color definitions for waybar styling */
+/* These are derived from the base colors for bar UI */
+@define-color bgAlt #3D433D;
+@define-color accent #3C899E;
+@define-color accentAlt #F80184;
+@define-color muted #91A9A7;
+@define-color surface #3D433D;

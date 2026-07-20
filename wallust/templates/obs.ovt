@@ -1,0 +1,52 @@
+@OBSThemeMeta {
+    name: 'Wallust';
+    id: 'com.obsproject.Yami.Wallust';
+    extends: 'com.obsproject.Yami';
+    author: 'Wallust';
+    dark: 'true';
+}
+
+@OBSThemeVars {
+    /* --- 100% FLAT DARK BACKGROUNDS (Top bar & all docks identical to background!) --- */
+    --grey1: {{background}};                 /* Deepest app background & outer window frame */
+    --grey2: {{background}};                 /* Main workspace & video canvas */
+    --grey3: {{background}};                 /* Top menu bar & dock headers ("Scenes", "Sources") - FLAT DARK! */
+    --grey5: {{background}};                 /* List views & dock containers - FLAT DARK! */
+    --grey6: {{background}};                 /* Audio mixer tracks & empty dock spaces - FLAT DARK! */
+    
+    /* --- BUTTONS & DETAILS (Kills the beige sidebar forever!) --- */
+    --grey4: {{background | lighten(0.04)}}; /* Buttons & input fields */
+    --grey7: {{background | lighten(0.06)}}; /* Scrollbars, empty dock padding & separators (NO MORE BEIGE!) */
+
+    /* --- VIBRANT HIGHLIGHTS & SELECTIONS (Bright accents from wallpaper!) --- */
+    --blue1: {{color6}};                     /* Active selections & checked boxes (Bright Cyan) */
+    --blue2: {{color4}};                     /* Focus outlines & hovered button highlights (Blue) */
+    --blue3: {{color5}};                     /* Secondary accents & tab underlines (Purple) */
+    --blue4: {{color12}};                    /* Extra bright hover glow */
+
+    /* --- TYPOGRAPHY & READABILITY --- */
+    --text1: {{foreground}};                 /* Brightest UI text & active headers */
+    --text2: {{color7}};                     /* Secondary text & inactive labels */
+    --text3: {{color8}};                     /* Muted text & subtle icons */
+
+    /* --- AUDIO METER & FUNCTIONAL COLORS (Left untouched!) --- */
+    --red1: {{color1}};                      /* Recording button normal, muted mic icons */
+    --red2: {{color9}};                      /* Recording button active & hover state */
+    --green1: {{color2}};                    /* Streaming button normal, audio meter safe zone */
+    --green2: {{color10}};                   /* Streaming button active & hover state */
+    --yellow1: {{color3}};                   /* Audio meter warning zone */
+    --yellow2: {{color11}};                  /* Highlighted warnings & alerts */
+    --orange1: {{color3}};                   /* Orange warning indicators */
+    --purple1: {{color5}};                   /* Purple accents */
+    --cyan1: {{color6}};                     /* Cyan accents */
+}
+
+/* --- QSS OVERRIDE: FORCE DARK TEXT ON BRIGHT HIGHLIGHTED SELECTIONS --- */
+QListView::item:selected,
+QTreeView::item:selected,
+QTableView::item:selected,
+QListWidget::item:selected,
+QTabBar::tab:selected,
+QComboBox QAbstractItemView::item:selected {
+    color: {{background}} !important;
+}

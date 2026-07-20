@@ -23,7 +23,6 @@
         "disable-scroll": true,
         "active-only": false,
         "all-outputs": true,
-        "on-click": "activate",
         "format": "{name}{icon}{windows}",
         "format-icons": {
             "urgent": "  ",
@@ -65,7 +64,7 @@
     "clock": {
         "interval": 1,
         "format": "{:%H:%M:%S}",
-        "locale": "it_IT.UTF-8",
+        "locale": "en_US.UTF-8",
         "tooltip-format": "<tt><small>{calendar}</small></tt>",
         "format-alt": "{:L%a %d/%m/%y (%H:%M:%S)}",
         "calendar": {
@@ -258,8 +257,7 @@
         "format": "{icon} Cerca",
         "format-icons": [""],
         "tooltip-format": "Applicazioni",
-        "on-click": "rofi -show drun"
-
+        "on-click": "vicinae toggle"
     },
 
     "custom/wl-gammarelay-temperature": {

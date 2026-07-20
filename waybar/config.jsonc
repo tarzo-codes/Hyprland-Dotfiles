@@ -1,7 +1,7 @@
 {
     "layer": "top",
     "position": "top",
-    "height":"20",
+    "height": "52",
     "mod": "dock",
     "exclusive": true,
     "passthrough": false,
@@ -12,53 +12,26 @@
 	],
 
     "modules-left": [
-		"clock",
-		"bluetooth",
+		"custom/rofi",
 		"hyprland/window"
 	],
     "modules-center": [
-		"custom/rofi",
-		"hyprland/workspaces",
-		"group/exit",
-		"custom/wol",
-		"custom/updates",
-		"custom/github"
+		"hyprland/workspaces"
 	],
     "modules-right": [
-		"custom/media",
-		"group/hardware",
 		"group/audio",
-		"tray",
-		"custom/swaync"
+		"network",
+		"battery",
+		"clock",
+		"tray"
 	],
 
-	// Group Hardware
-	"group/hardware": {
-		"orientation": "horizontal",
-		"modules":[
-			"temperature",
-			"battery",
-			"power-profiles-daemon",
-			"custom/wl-gammarelay-temperature",
-			"backlight"
-		]
-	},
-
-	// Group IO Audio
+	// Group Audio
 	"group/audio": {
 		"orientation": "horizontal",
 		"modules": [
 			"pulseaudio",
 			"pulseaudio#microphone"
-		]
-	},
-
-	// Group Exit
-	"group/exit": {
-		"orientation": "horizontal",
-		"modules": [
-			"custom/power_btn",
-			"custom/lock_screen"
 		]
 	}
 }
