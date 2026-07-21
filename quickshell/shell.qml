@@ -1777,8 +1777,13 @@ ShellRoot {
                 right: true
             }
 
-            color: Qt.rgba(0, 0, 0, Math.max(0.0, Math.min(0.85, (1.0 - shellRoot.brightnessValue) * 0.75)))
+            color: "transparent"
             visible: shellRoot.brightnessValue < 0.98
+
+            Rectangle {
+                anchors.fill: parent
+                color: Qt.rgba(0, 0, 0, Math.max(0.0, Math.min(0.85, (1.0 - shellRoot.brightnessValue) * 0.75)))
+            }
         }
     }
 
