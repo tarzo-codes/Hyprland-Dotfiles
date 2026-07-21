@@ -1766,7 +1766,7 @@ ShellRoot {
 
             mask: Region {} // Empty input region: 100% click-through pass-through
 
-            WlrLayershell.layer: WlrLayer.Top
+            WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.namespace: "quickshell-brightness-overlay"
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
