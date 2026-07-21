@@ -771,6 +771,9 @@ ShellRoot {
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                    shellRoot.brightnessPanelVisible = !shellRoot.brightnessPanelVisible;
+                }
                 onWheel: (wheel) => {
                     var delta = wheel.angleDelta.y > 0 ? 0.05 : -0.05;
                     shellRoot.isAdjustingBrightness = true;
@@ -1645,6 +1648,9 @@ ShellRoot {
                                 }
                                 MouseArea {
                                     id: melBrightTopMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        shellRoot.brightnessPanelVisible = !shellRoot.brightnessPanelVisible;
+                                    }
                                     onWheel: (wheel) => {
                                         var delta = wheel.angleDelta.y > 0 ? 0.05 : -0.05;
                                         shellRoot.isAdjustingBrightness = true;
@@ -1725,6 +1731,7 @@ ShellRoot {
                 BrightnessPanel {
                     id: brightPanel
                     modelData: topBar.screen
+                    colors: shellRoot.colors
                     rootBar: shellRoot
                     visible: shellRoot.brightnessPanelVisible
                 }
@@ -1747,6 +1754,31 @@ ShellRoot {
                 }
 
             }
+        }
+    }
+
+    // ─── Multi-Monitor Hardware + Software Brightness Dimming Overlay ──────────
+    Variants {
+        model: Quickshell.screens
+        delegate: PanelWindow {
+            required property var modelData
+            screen: modelData
+
+            mask: Region {} // Empty input region: 100% click-through pass-through
+
+            WlrLayershell.layer: WlrLayer.Top
+            WlrLayershell.namespace: "quickshell-brightness-overlay"
+            WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+
+            anchors {
+                top: true
+                bottom: true
+                left: true
+                right: true
+            }
+
+            color: Qt.rgba(0, 0, 0, Math.max(0.0, Math.min(0.85, (1.0 - shellRoot.brightnessValue) * 0.75)))
+            visible: shellRoot.brightnessValue < 0.98
         }
     }
 

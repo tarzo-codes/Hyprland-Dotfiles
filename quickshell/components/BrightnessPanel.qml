@@ -38,6 +38,7 @@ PanelWindow {
 
     color: "transparent"
 
+    property var colors: null
     property var rootBar: null
     property bool syncBothMonitors: true
     property string selectedMonitor: "ALL"
@@ -68,12 +69,26 @@ PanelWindow {
         }
     }
 
+    Timer {
+        id: brightDebounceTimer
+        interval: 40
+        repeat: false
+        onTriggered: {
+            if (brightnessPanel.rootBar) {
+                var pctVal = Math.round(brightnessPanel.rootBar.brightnessValue * 100).toString();
+                setBrightProc.command = ["python3", "/home/tarzo/.config/quickshell/scripts/brightness-ctrl.py", pctVal];
+                setBrightProc.running = false;
+                setBrightProc.running = true;
+            }
+        }
+    }
+
     Rectangle {
         id: container
         width: parent.width
         height: parent.height
-        color: brightnessPanel.rootBar ? brightnessPanel.rootBar._bg : "#1a1b26"
-        border.color: brightnessPanel.rootBar ? brightnessPanel.rootBar._brightYel : "#e0af68"
+        color: brightnessPanel.colors ? brightnessPanel.colors.background : (brightnessPanel.rootBar ? brightnessPanel.rootBar._bg : "#1a1b26")
+        border.color: brightnessPanel.colors ? brightnessPanel.colors.accent : (brightnessPanel.rootBar ? brightnessPanel.rootBar._acc : "#7aa2f7")
         border.width: 1.5
         radius: 12
 
@@ -88,14 +103,14 @@ PanelWindow {
 
                 Text {
                     text: "󰃠"
-                    color: brightnessPanel.rootBar ? brightnessPanel.rootBar._brightYel : "#e0af68"
+                    color: brightnessPanel.colors ? brightnessPanel.colors.accent : (brightnessPanel.rootBar ? brightnessPanel.rootBar._brightYel : "#e0af68")
                     font.family: brightnessPanel.rootBar ? brightnessPanel.rootBar.iconFontFamily : "JetBrainsMono Nerd Font"
                     font.pixelSize: Math.round(ThemeManager.globalFontSize * 1.1)
                 }
 
                 Text {
                     text: "BRIGHTNESS CONTROL"
-                    color: brightnessPanel.rootBar ? brightnessPanel.rootBar._fg : "#c0caf5"
+                    color: brightnessPanel.colors ? brightnessPanel.colors.foreground : (brightnessPanel.rootBar ? brightnessPanel.rootBar._fg : "#c0caf5")
                     font.family: brightnessPanel.rootBar ? brightnessPanel.rootBar.globalFontFamily : "Outfit"
                     font.pixelSize: Math.round(ThemeManager.globalFontSize * 0.9)
                     font.bold: true
@@ -106,7 +121,7 @@ PanelWindow {
 
                 Text {
                     text: brightnessPanel.rootBar ? Math.round(brightnessPanel.rootBar.brightnessValue * 100) + "%" : "80%"
-                    color: brightnessPanel.rootBar ? brightnessPanel.rootBar._brightYel : "#e0af68"
+                    color: brightnessPanel.colors ? brightnessPanel.colors.accent : (brightnessPanel.rootBar ? brightnessPanel.rootBar._acc : "#7aa2f7")
                     font.family: brightnessPanel.rootBar ? brightnessPanel.rootBar.globalFontFamily : "Outfit"
                     font.pixelSize: Math.round(ThemeManager.globalFontSize * 0.95)
                     font.bold: true
@@ -123,7 +138,7 @@ PanelWindow {
                     Layout.fillWidth: true
                     Text {
                         text: "SELECT DISPLAY TARGET"
-                        color: brightnessPanel.rootBar ? brightnessPanel.rootBar._muted : "#6D8895"
+                        color: brightnessPanel.colors ? brightnessPanel.colors.textMuted : (brightnessPanel.rootBar ? brightnessPanel.rootBar._muted : "#6D8895")
                         font.family: brightnessPanel.rootBar ? brightnessPanel.rootBar.globalFontFamily : "Outfit"
                         font.pixelSize: Math.round(ThemeManager.globalFontSize * 0.78)
                         font.bold: true
@@ -131,7 +146,7 @@ PanelWindow {
                     Item { Layout.fillWidth: true }
                     Text {
                         text: brightnessPanel.syncBothMonitors ? "󰓦 BOTH SYNCED" : "SINGLE DISPLAY"
-                        color: brightnessPanel.syncBothMonitors ? (brightnessPanel.rootBar ? brightnessPanel.rootBar._grn : "#9ece6a") : (brightnessPanel.rootBar ? brightnessPanel.rootBar._muted : "#6D8895")
+                        color: brightnessPanel.syncBothMonitors ? (brightnessPanel.colors ? brightnessPanel.colors.green : "#9ece6a") : (brightnessPanel.colors ? brightnessPanel.colors.textMuted : "#6D8895")
                         font.family: brightnessPanel.rootBar ? brightnessPanel.rootBar.globalFontFamily : "Outfit"
                         font.pixelSize: Math.round(ThemeManager.globalFontSize * 0.75)
                         font.bold: true
@@ -147,14 +162,14 @@ PanelWindow {
                         Layout.fillWidth: true
                         height: 26
                         radius: 6
-                        color: brightnessPanel.syncBothMonitors ? (brightnessPanel.rootBar ? brightnessPanel.rootBar.alphaColor(brightnessPanel.rootBar._brightYel, 0.25) : "#33e0af68") : (brightnessPanel.rootBar ? brightnessPanel.rootBar._sur : "#2b2d3a")
-                        border.color: brightnessPanel.syncBothMonitors ? (brightnessPanel.rootBar ? brightnessPanel.rootBar._brightYel : "#e0af68") : "transparent"
+                        color: brightnessPanel.syncBothMonitors ? (brightnessPanel.colors ? brightnessPanel.colors.surface : "#2b2d3a") : (brightnessPanel.colors ? brightnessPanel.colors.background : "#1a1b26")
+                        border.color: brightnessPanel.syncBothMonitors ? (brightnessPanel.colors ? brightnessPanel.colors.accent : "#7aa2f7") : "transparent"
                         border.width: 1
 
                         Text {
                             anchors.centerIn: parent
                             text: "󰓦 BOTH"
-                            color: brightnessPanel.syncBothMonitors ? (brightnessPanel.rootBar ? brightnessPanel.rootBar._brightYel : "#e0af68") : (brightnessPanel.rootBar ? brightnessPanel.rootBar._fg : "#c0caf5")
+                            color: brightnessPanel.syncBothMonitors ? (brightnessPanel.colors ? brightnessPanel.colors.accent : "#7aa2f7") : (brightnessPanel.colors ? brightnessPanel.colors.foreground : "#c0caf5")
                             font.family: brightnessPanel.rootBar ? brightnessPanel.rootBar.globalFontFamily : "Outfit"
                             font.pixelSize: Math.round(ThemeManager.globalFontSize * 0.8)
                             font.bold: true
@@ -177,14 +192,14 @@ PanelWindow {
                             Layout.fillWidth: true
                             height: 26
                             radius: 6
-                            color: (!brightnessPanel.syncBothMonitors && brightnessPanel.selectedMonitor === model.monName) ? (brightnessPanel.rootBar ? brightnessPanel.rootBar.alphaColor(brightnessPanel.rootBar._brightYel, 0.25) : "#33e0af68") : (brightnessPanel.rootBar ? brightnessPanel.rootBar._sur : "#2b2d3a")
-                            border.color: (!brightnessPanel.syncBothMonitors && brightnessPanel.selectedMonitor === model.monName) ? (brightnessPanel.rootBar ? brightnessPanel.rootBar._brightYel : "#e0af68") : "transparent"
+                            color: (!brightnessPanel.syncBothMonitors && brightnessPanel.selectedMonitor === model.monName) ? (brightnessPanel.colors ? brightnessPanel.colors.surface : "#2b2d3a") : (brightnessPanel.colors ? brightnessPanel.colors.background : "#1a1b26")
+                            border.color: (!brightnessPanel.syncBothMonitors && brightnessPanel.selectedMonitor === model.monName) ? (brightnessPanel.colors ? brightnessPanel.colors.accent : "#7aa2f7") : "transparent"
                             border.width: 1
 
                             Text {
                                 anchors.centerIn: parent
                                 text: model.monName
-                                color: (!brightnessPanel.syncBothMonitors && brightnessPanel.selectedMonitor === model.monName) ? (brightnessPanel.rootBar ? brightnessPanel.rootBar._brightYel : "#e0af68") : (brightnessPanel.rootBar ? brightnessPanel.rootBar._fg : "#c0caf5")
+                                color: (!brightnessPanel.syncBothMonitors && brightnessPanel.selectedMonitor === model.monName) ? (brightnessPanel.colors ? brightnessPanel.colors.accent : "#7aa2f7") : (brightnessPanel.colors ? brightnessPanel.colors.foreground : "#c0caf5")
                                 font.family: brightnessPanel.rootBar ? brightnessPanel.rootBar.globalFontFamily : "Outfit"
                                 font.pixelSize: Math.round(ThemeManager.globalFontSize * 0.8)
                                 font.bold: true
@@ -209,12 +224,12 @@ PanelWindow {
                 Layout.fillWidth: true
                 height: 12
                 radius: 6
-                color: brightnessPanel.rootBar ? brightnessPanel.rootBar.alphaColor(brightnessPanel.rootBar._brightYel, 0.2) : "#2b2d3a"
+                color: brightnessPanel.colors ? brightnessPanel.colors.surface : "#2b2d3a"
 
                 Rectangle {
                     height: parent.height
                     radius: 6
-                    color: brightnessPanel.rootBar ? brightnessPanel.rootBar._brightYel : "#e0af68"
+                    color: brightnessPanel.colors ? brightnessPanel.colors.accent : (brightnessPanel.rootBar ? brightnessPanel.rootBar._acc : "#7aa2f7")
                     width: brightnessPanel.rootBar ? Math.max(0, Math.min(1.0, brightnessPanel.rootBar.brightnessValue)) * parent.width : 0
                 }
 
@@ -223,18 +238,24 @@ PanelWindow {
                     cursorShape: Qt.PointingHandCursor
                     onPositionChanged: (mouse) => {
                         if (pressed && brightnessPanel.rootBar) {
+                            brightnessPanel.rootBar.isAdjustingBrightness = true;
+                            if (brightnessPanel.rootBar.brightCooldownTimer) {
+                                brightnessPanel.rootBar.brightCooldownTimer.restart();
+                            }
                             var pct = Math.max(0.05, Math.min(1.0, mouse.x / brightTrackRect.width));
                             brightnessPanel.rootBar.brightnessValue = pct;
-                            setBrightProc.command = ["python3", "/home/tarzo/.config/quickshell/scripts/brightness-ctrl.py", Math.round(pct * 100).toString()];
-                            setBrightProc.running = true;
+                            brightDebounceTimer.restart();
                         }
                     }
                     onPressed: (mouse) => {
                         if (brightnessPanel.rootBar) {
+                            brightnessPanel.rootBar.isAdjustingBrightness = true;
+                            if (brightnessPanel.rootBar.brightCooldownTimer) {
+                                brightnessPanel.rootBar.brightCooldownTimer.restart();
+                            }
                             var pct = Math.max(0.05, Math.min(1.0, mouse.x / brightTrackRect.width));
                             brightnessPanel.rootBar.brightnessValue = pct;
-                            setBrightProc.command = ["python3", "/home/tarzo/.config/quickshell/scripts/brightness-ctrl.py", Math.round(pct * 100).toString()];
-                            setBrightProc.running = true;
+                            brightDebounceTimer.restart();
                         }
                     }
                 }

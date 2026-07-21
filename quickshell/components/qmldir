@@ -15,4 +15,5 @@ NetworkPanel 1.0 NetworkPanel.qml
 CheatSheet 1.0 CheatSheet.qml
 BackgroundApps 1.0 BackgroundApps.qml
 Brightness 1.0 Brightness.qml
+BrightnessPanel 1.0 BrightnessPanel.qml
 MediaPlayerWindow 1.0 MediaPlayerWindow.qml
