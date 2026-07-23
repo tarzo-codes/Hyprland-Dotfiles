@@ -1057,6 +1057,27 @@ ShellRoot {
             font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize
             verticalAlignment: Text.AlignVCenter; height: 30
             elide: Text.ElideRight; width: Math.min(90, implicitWidth); clip: true
+
+            MouseArea {
+                anchors.fill: parent
+                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                cursorShape: Qt.PointingHandCursor
+                onClicked: (mouse) => {
+                    if (mouse.button === Qt.RightButton && shellRoot.activePlayersList.length > 1) {
+                        var idx = shellRoot.activePlayersList.indexOf(shellRoot.selectedPlayer);
+                        var nextIdx = (idx + 1) % shellRoot.activePlayersList.length;
+                        shellRoot.selectedPlayer = shellRoot.activePlayersList[nextIdx];
+                        shellRoot.refreshMediaPlayer();
+                    } else {
+                        shellRoot.volumePanelVisible = false;
+                        shellRoot.networkPanelVisible = false;
+                        shellRoot.settingsVisible = false;
+                        shellRoot.powerMenuVisible = false;
+                        shellRoot.themeSelectorVisible = false;
+                        shellRoot.mediaPlayerVisible = !shellRoot.mediaPlayerVisible;
+                    }
+                }
+            }
         }
     }
 
@@ -1996,6 +2017,26 @@ ShellRoot {
                                          width: Math.min(480, implicitWidth)
                                          verticalAlignment: Text.AlignVCenter
                                          height: parent.height
+                                         MouseArea {
+                                             anchors.fill: parent
+                                             acceptedButtons: Qt.LeftButton | Qt.RightButton
+                                             cursorShape: Qt.PointingHandCursor
+                                             onClicked: (mouse) => {
+                                                 if (mouse.button === Qt.RightButton && shellRoot.activePlayersList.length > 1) {
+                                                     var idx = shellRoot.activePlayersList.indexOf(shellRoot.selectedPlayer);
+                                                     var nextIdx = (idx + 1) % shellRoot.activePlayersList.length;
+                                                     shellRoot.selectedPlayer = shellRoot.activePlayersList[nextIdx];
+                                                     shellRoot.refreshMediaPlayer();
+                                                 } else {
+                                                     shellRoot.volumePanelVisible = false;
+                                                     shellRoot.networkPanelVisible = false;
+                                                     shellRoot.settingsVisible = false;
+                                                     shellRoot.powerMenuVisible = false;
+                                                     shellRoot.themeSelectorVisible = false;
+                                                     shellRoot.mediaPlayerVisible = !shellRoot.mediaPlayerVisible;
+                                                 }
+                                             }
+                                         }
                                      }
                                 }
                             }
