@@ -8,10 +8,9 @@ $os\
 $username\
 [](bg:{{color2}} fg:{{color4}})\
 $directory\
-[](fg:{{color2}} bg:{{color6}})\
+[](fg:{{color2}} bg:{{color4}})\
 $git_branch\
 $git_status\
-[](fg:{{color6}} bg:{{color0}})\
 $c\
 $cpp\
 $rust\
@@ -23,11 +22,11 @@ $java\
 $kotlin\
 $haskell\
 $python\
-[](fg:{{color0}} bg:{{color8}})\
+[](fg:{{color4}} bg:{{color0}})\
 $docker_context\
 $conda\
 $pixi\
-[](fg:{{color8}} bg:{{background}})\
+[](fg:{{color0}} bg:{{background}})\
 $time\
 [ ](fg:{{background}})\
 $line_break$character"""
@@ -83,11 +82,11 @@ truncation_symbol = "…/"
 [git_branch]
 symbol = ""
 style = "bg:{{color6}}"
-format = '[[ $symbol $branch ](fg:{{background}} bg:{{color6}})]($style)'
+format = '[[ $symbol $branch ](fg:{{foreground}} bg:{{color6}})]($style)'
 
 [git_status]
 style = "bg:{{color6}}"
-format = '[[($all_status$ahead_behind )](fg:{{background}} bg:{{color6}})]($style)'
+format = '[[($all_status$ahead_behind )](fg:{{foreground}} bg:{{color6}})]($style)'
 
 [nodejs]
 symbol = ""
@@ -139,19 +138,21 @@ symbol = ""
 style = "bg:{{color4}}"
 format = '[[ $symbol( $version) ](fg:{{foreground}} bg:{{color4}})]($style)'
 
+# UPDATED PYTHON MODULE CONFIGURATION
 [python]
 symbol = ""
-style = "bg:{{color4}}"
-format = '[[ $symbol( $version) ](fg:{{foreground}} bg:{{color4}})]($style)'
+style = "bg:{{color6}}"
+# Shows Python symbol, active virtual environment name (if active), and version
+format = '[[ $symbol( \($virtualenv\))( $version) ](fg:{{foreground}} bg:{{color4}})]($style)'
 
 [docker_context]
 symbol = ""
 style = "bg:{{color0}}"
-format = '[[ $symbol( $context) ](fg:{{color8}} bg:{{color0}})]($style)'
+format = '[[ $symbol( $context) ](fg:{{color7}} bg:{{color0}})]($style)'
 
 [conda]
 style = "bg:{{color0}}"
-format = '[[ $symbol( $environment) ](fg:{{color8}} bg:{{color0}})]($style)'
+format = '[[ $symbol( $environment) ](fg:{{color7}} bg:{{color0}})]($style)'
 
 [pixi]
 style = "bg:{{color0}}"

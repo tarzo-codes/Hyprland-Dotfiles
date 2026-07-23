@@ -29,3 +29,6 @@ gtk3.template = 'gtk.css'
 gtk3.target = '~/.config/gtk-3.0/gtk.css'
 gtk4.template = 'gtk.css'
 gtk4.target = '~/.config/gtk-4.0/gtk.css'
+
+openrgb.template = 'openrgb.txt'
+openrgb.target = '~/.config/openrgb.txt'

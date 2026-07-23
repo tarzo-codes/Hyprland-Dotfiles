@@ -189,13 +189,14 @@ apply_wallpaper_and_colors() {
     debug "Refreshing kitty colors..."
     kitty @ set-colors --all --configured "$HOME/.config/kitty/wallust.conf" 2>/dev/null || true
   fi
-
-  # Refresh polybar with new wallust colors
-  if command -v polybar &>/dev/null; then
-    debug "Refreshing polybar colors..."
-    export POLYBAR_THEME_MODE="random"
-    ~/.config/polybar/theme-switch.sh reload 2>/dev/null || true
+  if command -v openrgb &> /dev/null; then
+    debug "Refreshing rgb colors..."
+    OPENRGB_COLORS=$(cat $HOME/.config/openrgb.txt)
+    OPENRGB_COLORS=${OPENRGB_COLORS#"#"}
+    openrgb -c $OPENRGB_COLORS 2>/dev/null || true
   fi
+
+
 
   notify-send "Wallpaper" "Changed with wallust colors"
 }

@@ -27,7 +27,7 @@
     /* --- TYPOGRAPHY & READABILITY --- */
     --text1: {{foreground}};                 /* Brightest UI text & active headers */
     --text2: {{color7}};                     /* Secondary text & inactive labels */
-    --text3: {{color8}};                     /* Muted text & subtle icons */
+    --text3: {{color7}};                     /* Muted text & subtle icons */
 
     /* --- AUDIO METER & FUNCTIONAL COLORS (Left untouched!) --- */
     --red1: {{color1}};                      /* Recording button normal, muted mic icons */
@@ -48,5 +48,5 @@ QTableView::item:selected,
 QListWidget::item:selected,
 QTabBar::tab:selected,
 QComboBox QAbstractItemView::item:selected {
-    color: {{background}} !important;
+    color: {{foreground}} !important;
 }

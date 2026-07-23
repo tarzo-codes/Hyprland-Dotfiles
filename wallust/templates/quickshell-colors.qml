@@ -33,5 +33,5 @@ QtObject {
     // a future "per-theme accent picker" would hook into.
     readonly property string accent: color4
     readonly property string surface: color0
-    readonly property string textMuted: color8
+    readonly property string textMuted: color7
 }
