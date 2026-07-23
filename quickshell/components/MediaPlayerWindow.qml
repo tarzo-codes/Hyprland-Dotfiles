@@ -12,7 +12,7 @@ PanelWindow {
     screen: modelData
 
     implicitWidth: 340
-    implicitHeight: 180
+    implicitHeight: (mediaWindow.rootBar && mediaWindow.rootBar.activePlayersList.length > 1) ? 210 : 180
 
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "quickshell-media-player"
@@ -70,6 +70,67 @@ PanelWindow {
                             if (mediaWindow.rootBar) mediaWindow.rootBar.mediaPlayerVisible = false;
                         }
                     }
+                }
+            }
+
+            // Player Selector Row
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+                visible: mediaWindow.rootBar && mediaWindow.rootBar.activePlayersList.length > 1
+
+                Text {
+                    text: "Player:"
+                    color: mediaWindow.rootBar ? mediaWindow.rootBar._muted : "#565f89"
+                    font.family: mediaWindow.rootBar ? mediaWindow.rootBar.globalFontFamily : "JetBrainsMono Nerd Font"
+                    font.pixelSize: mediaWindow.rootBar ? mediaWindow.rootBar.globalFontSize - 1 : 10
+                    font.bold: true
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 6
+
+                    Repeater {
+                        model: mediaWindow.rootBar ? mediaWindow.rootBar.activePlayersList : []
+                        delegate: Rectangle {
+                            width: playerText.implicitWidth + 16
+                            height: 24
+                            radius: 12
+                            color: (mediaWindow.rootBar.selectedPlayer === modelData)
+                                   ? (mediaWindow.rootBar._brightAcc)
+                                   : (mediaWindow.rootBar._sur)
+                            border.color: (mediaWindow.rootBar.selectedPlayer === modelData)
+                                           ? "transparent"
+                                           : (mediaWindow.rootBar._sur)
+                            border.width: 1
+
+                            Text {
+                                id: playerText
+                                anchors.centerIn: parent
+                                text: {
+                                    var parts = modelData.split(".");
+                                    return parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+                                }
+                                color: (mediaWindow.rootBar.selectedPlayer === modelData)
+                                       ? (mediaWindow.rootBar._bg)
+                                       : (mediaWindow.rootBar._fg)
+                                font.family: mediaWindow.rootBar ? mediaWindow.rootBar.globalFontFamily : "JetBrainsMono Nerd Font"
+                                font.pixelSize: mediaWindow.rootBar ? mediaWindow.rootBar.globalFontSize - 1 : 10
+                                font.bold: true
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    mediaWindow.rootBar.selectedPlayer = modelData;
+                                    mediaWindow.rootBar.refreshMediaPlayer();
+                                }
+                            }
+                        }
+                    }
+                    Item { Layout.fillWidth: true }
                 }
             }
 

@@ -142,10 +142,19 @@ ShellRoot {
     property string dateValue:      "--:--"
     property string songValue:      ""
     property string artistValue:    ""
+    property string selectedPlayer: ""
+    property var activePlayersList: []
     property string activeWinTitle: ""
     property string activeWinClass: ""
     property int    activeWsId:     1
     property string networkType:    "wired"
+
+    function refreshMediaPlayer() {
+        listPlayersProc.running = true;
+        songProc.running = true;
+        artistProc.running = true;
+        playerStatusProc.running = true;
+    }
 
     Timer {
         interval: 8000
@@ -2195,8 +2204,7 @@ ShellRoot {
     Timer { interval: 60000; running: true; repeat: true; onTriggered: fsProc.running = true }
     Timer { interval: 10000; running: true; repeat: true; onTriggered: { dateProc.running = true; getUpdatesProc.running = true; } }
     Timer { interval: 1000;  running: true; repeat: true; onTriggered: { volumeGetProc.running = true; brightnessGetProc.running = true; } }
-    Timer { interval: 2000;  running: true; repeat: true; onTriggered: { songProc.running = true; artistProc.running = true; playerStatusProc.running = true } }
-    Timer { interval: 2000;  running: true; repeat: true; onTriggered: playerStatusProc.running = true }
+    Timer { interval: 2000;  running: true; repeat: true; onTriggered: { listPlayersProc.running = true; songProc.running = true; artistProc.running = true; playerStatusProc.running = true; } }
 
     // =========================================================================
     // SYSTEM PROCESSES
@@ -2256,12 +2264,50 @@ ShellRoot {
         }
     }
     Process {
-        id: songProc; command: ["bash", "-c", "playerctl metadata title 2>/dev/null || echo ''"]
+        id: listPlayersProc
+        command: ["bash", "-c", "playerctl -l 2>/dev/null || echo ''"]
+        running: true
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var raw = this.text.trim();
+                var list = [];
+                if (raw !== "") {
+                    var lines = raw.split("\n");
+                    for (var i = 0; i < lines.length; i++) {
+                        var p = lines[i].trim();
+                        if (p !== "") list.push(p);
+                    }
+                }
+                shellRoot.activePlayersList = list;
+                if (list.indexOf(shellRoot.selectedPlayer) === -1) {
+                    shellRoot.selectedPlayer = list.length > 0 ? list[0] : "";
+                }
+            }
+        }
+    }
+    Process {
+        id: songProc
+        command: {
+            var p = shellRoot.selectedPlayer;
+            if (p && p !== "") {
+                return ["bash", "-c", "playerctl -p " + p + " metadata title 2>/dev/null || echo ''"];
+            } else {
+                return ["bash", "-c", "playerctl metadata title 2>/dev/null || echo ''"];
+            }
+        }
         running: true
         stdout: StdioCollector { onStreamFinished: shellRoot.songValue = this.text.trim() }
     }
     Process {
-        id: artistProc; command: ["bash", "-c", "playerctl metadata artist 2>/dev/null || echo ''"]
+        id: artistProc
+        command: {
+            var p = shellRoot.selectedPlayer;
+            if (p && p !== "") {
+                return ["bash", "-c", "playerctl -p " + p + " metadata artist 2>/dev/null || echo ''"];
+            } else {
+                return ["bash", "-c", "playerctl metadata artist 2>/dev/null || echo ''"];
+            }
+        }
         running: true
         stdout: StdioCollector { onStreamFinished: shellRoot.artistValue = this.text.trim() }
     }
@@ -2352,11 +2398,38 @@ ShellRoot {
     Process { id: riceSelectorProc;   command: ["RiceSelector"] }
     Process { id: colorpickerProc;    command: ["hyprpicker", "-a"] }
     Process { id: workspaceDispatcher }
-    Process { id: prevProc;           command: ["playerctl", "previous"] }
-    Process { id: playProc;           command: ["playerctl", "play-pause"] }
+    Process {
+        id: prevProc
+        command: {
+            var p = shellRoot.selectedPlayer;
+            if (p && p !== "") {
+                return ["playerctl", "-p", p, "previous"];
+            } else {
+                return ["playerctl", "previous"];
+            }
+        }
+    }
+    Process {
+        id: playProc
+        command: {
+            var p = shellRoot.selectedPlayer;
+            if (p && p !== "") {
+                return ["playerctl", "-p", p, "play-pause"];
+            } else {
+                return ["playerctl", "play-pause"];
+            }
+        }
+    }
     Process {
         id: playerStatusProc
-        command: ["playerctl", "status"]
+        command: {
+            var p = shellRoot.selectedPlayer;
+            if (p && p !== "") {
+                return ["playerctl", "-p", p, "status"];
+            } else {
+                return ["playerctl", "status"];
+            }
+        }
         stdout: StdioCollector {
             onStreamFinished: shellRoot.isPlaying = (this.text.trim() === "Playing")
         }
@@ -2378,7 +2451,17 @@ ShellRoot {
         repeat: true
         onTriggered: activeWsProc.running = true
     }
-    Process { id: nextProc;           command: ["playerctl", "next"] }
+    Process {
+        id: nextProc
+        command: {
+            var p = shellRoot.selectedPlayer;
+            if (p && p !== "") {
+                return ["playerctl", "-p", p, "next"];
+            } else {
+                return ["playerctl", "next"];
+            }
+        }
+    }
     Process { id: bluetoothProc;      command: ["blueman-manager"] }
     Process { id: pavucontrolProc;    command: ["pavucontrol"] }
     Process { id: networkProc;        command: ["kitty", "--class", "floating_term", "-e", "nmtui"] }
