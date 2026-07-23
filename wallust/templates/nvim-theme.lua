@@ -9,4 +9,9 @@ return {
   number         = "{{color11}}",
   type           = "{{color14}}",
   comment        = "{{color5}}",
+  parameter      = "{{color9}}",
+  property       = "{{color6}}",
+  operator       = "{{color15}}",
+  bracket        = "{{color7}}",
+  builtin        = "{{color3}}",
 }

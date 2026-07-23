@@ -154,6 +154,22 @@ return {
     base0D = "$BLU",
     base0E = "$MAG",
     base0F = "$RED",
+
+    bg             = "$BG",
+    fg             = "$FG",
+    error          = "$RED",
+    keyword        = "$YEL",
+    keyword_return = "$MAG",
+    func           = "$BLU",
+    string         = "$GRN",
+    number         = "$YEL",
+    type           = "$CYN",
+    comment        = "$MUT",
+    parameter      = "$RED",
+    property       = "$CYN",
+    operator       = "$FG",
+    bracket        = "$FG",
+    builtin        = "$YEL",
 }
 EOF
 
