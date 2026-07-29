@@ -1,0 +1,29 @@
+[meta]
+version = 1
+name = "custom"
+description = "Dynamic Wallust theme for Vicinae"
+variant = "dark"
+
+[colors.core]
+background = "#DDDDE0"
+foreground = "#6F6C6C"
+secondary_background = "#FAFAFD"
+border = "#2E2E36"
+accent = "#96969B"
+
+[colors.accents]
+blue = "#96969B"
+green = "#30737B"
+magenta = "#13C9CC"
+orange = "#258EE9"
+purple = "#13C9CC"
+red = "#282934"
+yellow = "#258EE9"
+cyan = "#F6F1EF"
+
+[colors.list.item.selection]
+background = "#96969B"
+secondary_background = "#2E2E36"
+
+[colors.grid.item]
+background = "#FAFAFD"
