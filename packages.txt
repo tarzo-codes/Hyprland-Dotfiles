@@ -1,0 +1,45 @@
+# Hyprland Dotfiles - Required & Recommended Package List
+
+# Core Compositor & Terminal
+hyprland
+kitty
+
+# Status Bar & Desktop Shell
+quickshell
+waybar
+
+# Launcher & App Menu
+vicinae
+
+# Notifications
+mako
+
+# Wallpaper & Color Generation
+awww
+waypaper
+wallust
+
+# Screen Lock
+hyprlock
+
+# Screenshots & Color Picker
+grim
+slurp
+hyprpicker
+
+# Media & Volume Controls
+playerctl
+brightnessctl
+pamixer
+pipewire
+pipewire-pulse
+wireplumber
+
+# File Management
+nautilus
+dolphin
+
+# Appearance & Icons
+nwg-look
+tela-icon-theme-git
+ttf-jetbrains-mono-nerd

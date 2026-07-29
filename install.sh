@@ -235,6 +235,17 @@ setup_configs() {
         kitty
         wallust
         nvim
+        rofi
+        waybar
+        waypaper
+        vicinae
+        mako
+        gtk-3.0
+        gtk-4.0
+        firefox
+        hypr-gtk-tool
+        Mousepad
+        dconf
     )
 
     for dir in "${TARGET_DIRS[@]}"; do
@@ -246,6 +257,11 @@ setup_configs() {
             ln -sf "$SRC" "$DEST"
         fi
     done
+
+    # Symlink starship.toml
+    if [ -f "$DOTFILES_DIR/config/starship.toml" ]; then
+        ln -sf "$DOTFILES_DIR/config/starship.toml" "$CONFIG_DIR/starship.toml"
+    fi
 
     chmod +x "$CONFIG_DIR"/scripts/*.sh "$CONFIG_DIR"/scripts/*.py 2>/dev/null || true
     chmod +x "$CONFIG_DIR"/quickshell/scripts/*.sh "$CONFIG_DIR"/quickshell/scripts/*.py 2>/dev/null || true

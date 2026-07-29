@@ -1,0 +1,17 @@
+return {
+  bg             = "#242425",
+  fg             = "#B1AEAE",
+  error          = "#A49F9B",
+  keyword        = "#917863",
+  keyword_return = "#717F9D",
+  func           = "#6E6E6D",
+  string         = "#717F9D",
+  number         = "#917863",
+  type           = "#201819",
+  comment        = "#444346",
+  parameter      = "#A49F9B",
+  property       = "#201819",
+  operator       = "#878384",
+  bracket        = "#878384",
+  builtin        = "#917863",
+}
