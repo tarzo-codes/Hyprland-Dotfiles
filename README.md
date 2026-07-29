@@ -57,9 +57,11 @@ yay -S vicinae-bin awww waypaper bibata-cursor-theme tela-icon-theme
 
 ---
 
-## 📦 Installation
+## 📦 Installation Guide
 
-Clone the repository and run the automated installer:
+### Quick Start (Interactive TUI Installer)
+
+Clone the repository and run the interactive TUI installer script:
 
 ```bash
 git clone https://github.com/tarzo-codes/Hyprland-Dotfiles.git ~/dotfiles
@@ -68,16 +70,67 @@ chmod +x install.sh
 ./install.sh
 ```
 
-### What `install.sh` Features:
-1. **Interactive Wizard & CLI Flags**:
-   - `./install.sh` launches an interactive menu.
-   - `./install.sh --revert` or `-r`: Reverts current configs to any previous timestamped backup.
-   - `./install.sh --backup` or `-b`: Creates an instant standalone backup in `~/.config/hypr_dotfiles_backups/`.
-   - `./install.sh --wallpapers` or `-w`: Interactively downloads/updates the wallpaper collection (`tarzo-codes/wallpapers`).
-2. **Automated Package Installation**: Installs official pacman and AUR dependencies automatically.
-3. **Full Backup System**: Automatically generates a timestamped backup before touching existing configs.
-4. **Configuration Deployment**: Symlinks dotfile modules (`hypr`, `quickshell`, `scripts`, `fish`, `fastfetch`, `btop`, `kitty`, `wallust`, `nvim`) to `~/.config/`.
-5. **Theme Engine Initialization**: Runs Wallust and contrast engines (`fish-smart-colors.py`, `fastfetch-smart-logo.py`, `btop-smart-theme.py`).
+---
+
+### 🖥️ Installer TUI Menu Walkthrough
+
+Launching `./install.sh` opens an interactive **Whiptail TUI Menu** with 6 options:
+
+```
+┌───────────────── Hyprland 0.56.1 Lua + Quickshell Installer TUI ─────────────────┐
+│                                                                                 │
+│  Select an option below:                                                        │
+│                                                                                 │
+│    1 🚀 Full Installation (Packages + Backup + Configs + Wallpapers)            │
+│    2 📂 Create Backup of Current Configurations                                 │
+│    3 🔄 Revert / Restore Previous Backup                                        │
+│    4 🖼️ Download / Update Wallpaper Collection                                  │
+│    5 🎨 Initialize Theme & Wallust Engine                                       │
+│    6 ❌ Exit                                                                    │
+│                                                                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### Menu Options Explained:
+1. **`1. 🚀 Full Installation`**:
+   - Performs distribution & dependency checks (Arch Linux / CachyOS).
+   - Creates an automatic timestamped backup in `~/.config/hypr_dotfiles_backups/`.
+   - Installs all required pacman & AUR dependencies (`hyprland`, `quickshell`, `vicinae-bin`, `wallust`, etc.).
+   - Symlinks Hyprland 0.56.1 Lua dotfiles to `~/.config/`.
+   - Asks to download/update the official wallpaper collection into `~/wallpaper`.
+   - Initializes the Wallust WCAG AA contrast engines (`fish`, `fastfetch`, `btop`).
+2. **`2. 📂 Create Backup`**: Generates an instant timestamped backup of your active configs (`~/.config/hypr_dotfiles_backups/backup_YYYYMMDD_HHMMSS/`).
+3. **`3. 🔄 Revert / Restore Backup`**: Displays an interactive menu of historical backups to restore any previous configuration state.
+4. **`4. 🖼️ Download Wallpapers`**: Clones or updates the wallpaper repository (`https://github.com/tarzo-codes/wallpapers.git`) to `~/wallpaper`.
+5. **`5. 🎨 Initialize Theme Engine`**: Runs Wallust and triggers Python smart theme scripts for Fish, Fastfetch, and btop.
+
+---
+
+### ⚡ Non-Interactive CLI Shortcuts
+
+You can also bypass the TUI menu and run installer tasks directly via CLI flags:
+
+| Flag | Shortcut | Description |
+|---|---|---|
+| `./install.sh --full` | `-f` | Run full automated installation non-interactively |
+| `./install.sh --backup` | `-b` | Create an instant config backup |
+| `./install.sh --revert` | `-r` | Open historical backup restore menu |
+| `./install.sh --wallpapers` | `-w` | Download or update wallpaper collection |
+
+---
+
+### 🎉 Post-Installation Steps
+
+After running the installer:
+1. **Reload Hyprland**: Press `SUPER + SHIFT + R` or run:
+   ```bash
+   hyprctl reload
+   ```
+2. **Reload Fish Shell**: Launch a fresh shell session:
+   ```bash
+   exec fish
+   ```
+3. **Select Wallpaper**: Press `SUPER + W` to open the Quickshell Wallpaper Selector and apply your first dynamic Wallust theme!
 
 ---
 
