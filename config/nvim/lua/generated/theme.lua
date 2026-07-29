@@ -1,7 +1,7 @@
 return {
-  bg             = "#DDDDE0",
-  fg             = "#6F6C6C",
-  error          = "#282934",
+  bg             = "#000003",
+  fg             = "#FCFAF9",
+  error          = "#41424D",
   keyword        = "#258EE9",
   keyword_return = "#30737B",
   func           = "#96969B",
@@ -9,9 +9,9 @@ return {
   number         = "#258EE9",
   type           = "#F6F1EF",
   comment        = "#13C9CC",
-  parameter      = "#282934",
+  parameter      = "#41424D",
   property       = "#F6F1EF",
-  operator       = "#252424",
-  bracket        = "#6F6C6C",
+  operator       = "#F2F0EF",
+  bracket        = "#F2F0EF",
   builtin        = "#258EE9",
 }

@@ -11,6 +11,16 @@ secondary_background = "{{color0}}"
 border = "{{color8}}"
 accent = "{{color4}}"
 
+[colors.input]
+background = "{{color0}}"
+text = "{{foreground}}"
+placeholder = "{{color8}}"
+border = "{{color8}}"
+
+[colors.list]
+background = "{{background}}"
+text = "{{foreground}}"
+
 [colors.accents]
 blue = "{{color4}}"
 green = "{{color2}}"
@@ -24,6 +34,7 @@ cyan = "{{color6}}"
 [colors.list.item.selection]
 background = "{{color4}}"
 secondary_background = "{{color8}}"
+text = "{{foreground}}"
 
 [colors.grid.item]
 background = "{{color0}}"
