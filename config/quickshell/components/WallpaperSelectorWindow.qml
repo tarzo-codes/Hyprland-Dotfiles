@@ -1,0 +1,548 @@
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
+import Quickshell
+import Quickshell.Io
+import Quickshell.Wayland
+import "../themes"
+
+PanelWindow {
+    id: wallpaperWindow
+    required property var modelData
+    screen: modelData
+
+    implicitWidth: 820
+    implicitHeight: 560
+
+    WlrLayershell.layer: WlrLayer.Overlay
+    WlrLayershell.namespace: "quickshell-wallpaper-selector"
+    WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+
+    anchors {
+        top: true
+        bottom: true
+        left: true
+        right: true
+    }
+
+    color: Qt.rgba(0, 0, 0, 0.45)
+
+    property var colors: null
+    property var rootBar: null
+    property string activeWallpaperPath: ""
+    property string selectedWallpaperPath: ""
+    property bool showAddFolderRow: false
+    property bool syncThemeColors: true
+
+    ListModel {
+        id: wallpaperModel
+    }
+
+    onVisibleChanged: {
+        if (visible) {
+            readActiveWpProc.running = true;
+            scanWallpapersTimer.restart();
+        }
+    }
+
+    Timer {
+        id: scanWallpapersTimer
+        interval: 80
+        running: false
+        repeat: false
+        onTriggered: {
+            wpScanner.running = true;
+        }
+    }
+
+    // Process to read current active wallpaper
+    Process {
+        id: readActiveWpProc
+        command: ["bash", "-c", "cat ~/.cache/quickshell/current_wallpaper 2>/dev/null || grep '^wallpaper = ' ~/.config/waypaper/config.ini 2>/dev/null | cut -d'=' -f2 | sed 's/^ *//;s|~/|/home/tarzo/|g'"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var active = this.text.trim();
+                if (active !== "") {
+                    wallpaperWindow.activeWallpaperPath = active;
+                    if (wallpaperWindow.selectedWallpaperPath === "") {
+                        wallpaperWindow.selectedWallpaperPath = active;
+                    }
+                }
+            }
+        }
+    }
+
+    // Process to scan wallpapers across ~/wallpaper, ~/Pictures/Wallpapers, ~/.local/share/wallpapers and custom user dirs
+    Process {
+        id: wpScanner
+        command: ["bash", "-c", "mkdir -p ~/.config/quickshell && touch ~/.config/quickshell/wallpaper_dirs.txt && find ~/wallpaper ~/Pictures/Wallpapers ~/.local/share/wallpapers $(cat ~/.config/quickshell/wallpaper_dirs.txt 2>/dev/null) -maxdepth 2 -type f \\( -iname \"*.jpg\" -o -iname \"*.png\" -o -iname \"*.jpeg\" -o -iname \"*.webp\" \\) 2>/dev/null | sort -u"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                wallpaperModel.clear();
+                var lines = this.text.trim().split("\n");
+                for (var i = 0; i < lines.length; i++) {
+                    var path = lines[i].trim();
+                    if (path !== "") {
+                        var fileName = path.substring(path.lastIndexOf('/') + 1);
+                        wallpaperModel.append({
+                            "path": path,
+                            "name": fileName
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+    // Process to add custom wallpaper directory
+    Process {
+        id: addFolderProc
+        property string folderToAdd: ""
+        command: ["bash", "-c", "mkdir -p ~/.config/quickshell && echo \"$1\" | sed \"s|~/|$HOME/|\" >> ~/.config/quickshell/wallpaper_dirs.txt", "_", folderToAdd]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                folderInput.text = "";
+                wallpaperWindow.showAddFolderRow = false;
+                wpScanner.running = false;
+                wpScanner.running = true;
+            }
+        }
+    }
+
+    // Unified Process to apply selected wallpaper
+    Process {
+        id: applyWpProc
+        command: ["bash", "-c", "echo 'No action'"]
+    }
+
+    Rectangle {
+        id: container
+        anchors.centerIn: parent
+        width: 800
+        height: 540
+        color: rootBar ? rootBar._bg : "#181825"
+        border.color: rootBar ? rootBar._sur : "#313244"
+        border.width: 1
+        radius: 14
+
+        scale: 0.95
+        opacity: 0
+        Component.onCompleted: {
+            scale = 1.0;
+            opacity = 1.0;
+        }
+        Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+        Behavior on opacity { NumberAnimation { duration: 180 } }
+
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 18
+            spacing: 12
+
+            // Header Row
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 10
+
+                Text {
+                    text: "\uf03e"
+                    color: rootBar ? rootBar._yel : "#fabd2f"
+                    font.family: "JetBrainsMono Nerd Font"
+                    font.pixelSize: 18
+                    font.bold: true
+                }
+
+                Text {
+                    text: "WALLPAPER SELECTOR"
+                    color: rootBar ? rootBar._fg : "#c0caf5"
+                    font.family: "JetBrainsMono Nerd Font"
+                    font.pixelSize: Math.round(ThemeManager.globalFontSize * 1.2)
+                    font.bold: true
+                    font.letterSpacing: 1.2
+                    Layout.fillWidth: true
+                }
+
+                Text {
+                    text: wallpaperModel.count + " wallpapers"
+                    color: rootBar ? rootBar._muted : "#6D8895"
+                    font.family: "JetBrainsMono Nerd Font"
+                    font.pixelSize: Math.round(ThemeManager.globalFontSize * 0.9)
+                }
+
+                // Add Folder Toggle Button
+                Rectangle {
+                    width: 110; height: 26; radius: 6
+                    color: addFolderMouse.containsMouse ? (rootBar ? rootBar._sur : "#313244") : "transparent"
+                    border.color: rootBar ? rootBar._sur : "#313244"
+                    border.width: 1
+
+                    Row {
+                        anchors.centerIn: parent
+                        spacing: 4
+                        Text {
+                            text: "\uf07b"
+                            color: rootBar ? rootBar._acc : "#7aa2f7"
+                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 11
+                        }
+                        Text {
+                            text: "Add Folder"
+                            color: rootBar ? rootBar._fg : "#c0caf5"
+                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 9
+                            font.bold: true
+                        }
+                    }
+
+                    MouseArea {
+                        id: addFolderMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: wallpaperWindow.showAddFolderRow = !wallpaperWindow.showAddFolderRow
+                    }
+                }
+
+                // Close Button
+                Rectangle {
+                    width: 26; height: 26; radius: 13
+                    color: closeMouse.containsMouse ? "#fb4934" : (rootBar ? rootBar._sur : "#313244")
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "\uf00d"
+                        color: closeMouse.containsMouse ? "#ffffff" : (rootBar ? rootBar._fg : "#c0caf5")
+                        font.family: "JetBrainsMono Nerd Font"
+                        font.pixelSize: 11
+                    }
+
+                    MouseArea {
+                        id: closeMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (wallpaperWindow.rootBar) {
+                                wallpaperWindow.rootBar.wallpaperSelectorVisible = false;
+                            } else {
+                                wallpaperWindow.visible = false;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Custom Directory Input Row (collapsible)
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: wallpaperWindow.showAddFolderRow ? 38 : 0
+                visible: wallpaperWindow.showAddFolderRow
+                color: rootBar ? rootBar._sur : "#313244"
+                border.color: rootBar ? rootBar._acc : "#7aa2f7"
+                border.width: 1
+                radius: 6
+                clip: true
+                Behavior on Layout.preferredHeight { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.margins: 4
+                    spacing: 8
+
+                    Text {
+                        text: "Folder Path:"
+                        color: rootBar ? rootBar._muted : "#6D8895"
+                        font.family: "JetBrainsMono Nerd Font"
+                        font.pixelSize: 10
+                    }
+
+                    TextField {
+                        id: folderInput
+                        placeholderText: "/home/tarzo/Pictures or ~/Downloads"
+                        Layout.fillWidth: true
+                        font.family: "JetBrainsMono Nerd Font"
+                        font.pixelSize: 10
+                        color: rootBar ? rootBar._fg : "#c0caf5"
+                        background: Rectangle {
+                            color: "#151520"
+                            radius: 4
+                            border.color: folderInput.activeFocus ? (rootBar ? rootBar._acc : "#7aa2f7") : "#313244"
+                            border.width: 1
+                        }
+
+                        onAccepted: {
+                            if (text.trim() !== "") {
+                                addFolderProc.folderToAdd = text.trim();
+                                addFolderProc.running = false;
+                                addFolderProc.running = true;
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        width: 60; height: 26; radius: 4
+                        color: addBtnMouse.containsMouse ? (rootBar ? rootBar._acc : "#7aa2f7") : "#313244"
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "Add"
+                            color: "#ffffff"
+                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 10
+                            font.bold: true
+                        }
+
+                        MouseArea {
+                            id: addBtnMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                if (folderInput.text.trim() !== "") {
+                                    addFolderProc.folderToAdd = folderInput.text.trim();
+                                    addFolderProc.running = false;
+                                    addFolderProc.running = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Wallpapers Grid View with High-Performance Asynchronous Thumbnail Loading
+            ScrollView {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                clip: true
+
+                GridView {
+                    id: grid
+                    model: wallpaperModel
+                    cellWidth: 188
+                    cellHeight: 126
+                    anchors.fill: parent
+
+                    delegate: Item {
+                        width: grid.cellWidth - 10
+                        height: grid.cellHeight - 10
+
+                        property bool isSelected: wallpaperWindow.selectedWallpaperPath === path
+                        property bool isActive: wallpaperWindow.activeWallpaperPath === path
+
+                        Rectangle {
+                            id: card
+                            anchors.fill: parent
+                            radius: 8
+                            color: itemMouse.containsMouse ? (rootBar ? rootBar._sur : "#313244") : (rootBar ? rootBar._bg : "#1e1e2e")
+                            border.color: isSelected ? (rootBar ? rootBar._acc : "#7aa2f7") : (isActive ? "#fabd2f" : "transparent")
+                            border.width: isSelected || isActive ? 2 : 0
+                            clip: true
+
+                            scale: itemMouse.containsMouse ? 1.03 : 1.0
+                            Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+
+                            Image {
+                                id: thumb
+                                anchors.fill: parent
+                                anchors.margins: 3
+                                source: "file://" + path
+                                sourceSize.width: 320
+                                sourceSize.height: 200
+                                asynchronous: true
+                                cache: true
+                                fillMode: Image.PreserveAspectCrop
+                                opacity: isSelected || itemMouse.containsMouse ? 1.0 : 0.82
+                                Behavior on opacity { NumberAnimation { duration: 120 } }
+                            }
+
+                            // Active / Selected Badge
+                            Rectangle {
+                                anchors.top: parent.top
+                                anchors.right: parent.right
+                                anchors.margins: 6
+                                width: 22; height: 22; radius: 11
+                                color: isActive ? "#fabd2f" : "#7aa2f7"
+                                visible: isActive || isSelected
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: isActive ? "\uf00c" : "\uf06e"
+                                    color: "#181825"
+                                    font.family: "JetBrainsMono Nerd Font"
+                                    font.pixelSize: 10
+                                    font.bold: true
+                                }
+                            }
+
+                            // Wallpaper Name Overlay on Hover / Selection
+                            Rectangle {
+                                anchors.bottom: parent.bottom
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                height: 22
+                                color: Qt.rgba(0, 0, 0, 0.78)
+                                visible: itemMouse.containsMouse || isSelected
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: name
+                                    color: isSelected ? "#fabd2f" : "#ffffff"
+                                    font.family: "JetBrainsMono Nerd Font"
+                                    font.pixelSize: 9
+                                    font.bold: isSelected
+                                    elide: Text.ElideMiddle
+                                    width: parent.width - 10
+                                    horizontalAlignment: Text.AlignHCenter
+                                }
+                            }
+
+                            MouseArea {
+                                id: itemMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    wallpaperWindow.selectedWallpaperPath = path;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Footer Bar with Apply Button, Sync Checkbox & Status
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 10
+
+                Text {
+                    text: {
+                        if (wallpaperWindow.selectedWallpaperPath === wallpaperWindow.activeWallpaperPath) {
+                            return "✓ Active Wallpaper selected";
+                        } else if (wallpaperWindow.selectedWallpaperPath !== "") {
+                            var fn = wallpaperWindow.selectedWallpaperPath.substring(wallpaperWindow.selectedWallpaperPath.lastIndexOf('/') + 1);
+                            return "Selected: " + fn;
+                        }
+                        return "Select a wallpaper and click Apply.";
+                    }
+                    color: rootBar ? rootBar._muted : "#6D8895"
+                    font.family: "JetBrainsMono Nerd Font"
+                    font.pixelSize: 10
+                    Layout.fillWidth: true
+                    elide: Text.ElideMiddle
+                }
+
+                // Sync Theme Checkbox
+                RowLayout {
+                    spacing: 4
+
+                    CheckBox {
+                        id: syncThemeCb
+                        checked: wallpaperWindow.syncThemeColors
+                        onCheckedChanged: wallpaperWindow.syncThemeColors = checked
+                    }
+
+                    Text {
+                        text: "Sync Theme (Wallust)"
+                        color: rootBar ? rootBar._fg : "#c0caf5"
+                        font.family: "JetBrainsMono Nerd Font"
+                        font.pixelSize: 10
+                    }
+                }
+
+                // Rescan Button
+                Rectangle {
+                    width: 75
+                    height: 32
+                    radius: 6
+                    color: refreshBtnMouse.containsMouse ? (rootBar ? rootBar._sur : "#313244") : "transparent"
+                    border.color: rootBar ? rootBar._sur : "#313244"
+                    border.width: 1
+
+                    Row {
+                        anchors.centerIn: parent
+                        spacing: 4
+                        Text {
+                            text: "\uf021"
+                            color: rootBar ? rootBar._fg : "#c0caf5"
+                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 10
+                        }
+                        Text {
+                            text: "Rescan"
+                            color: rootBar ? rootBar._fg : "#c0caf5"
+                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 10
+                        }
+                    }
+
+                    MouseArea {
+                        id: refreshBtnMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            wpScanner.running = false;
+                            wpScanner.running = true;
+                        }
+                    }
+                }
+
+                // APPLY WALLPAPER BUTTON
+                Rectangle {
+                    id: applyBtn
+                    width: 135
+                    height: 32
+                    radius: 6
+                    property bool isAlreadyApplied: wallpaperWindow.selectedWallpaperPath === wallpaperWindow.activeWallpaperPath || wallpaperWindow.selectedWallpaperPath === ""
+                    color: isAlreadyApplied ? (rootBar ? rootBar._sur : "#313244") : (applyBtnMouse.containsMouse ? Qt.lighter(rootBar ? rootBar._acc : "#7aa2f7", 1.1) : (rootBar ? rootBar._acc : "#7aa2f7"))
+                    opacity: isAlreadyApplied ? 0.6 : 1.0
+
+                    Row {
+                        anchors.centerIn: parent
+                        spacing: 6
+                        Text {
+                            text: "\uf00c"
+                            color: applyBtn.isAlreadyApplied ? (rootBar ? rootBar._muted : "#6D8895") : "#ffffff"
+                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 11
+                            font.bold: true
+                        }
+                        Text {
+                            text: applyBtn.isAlreadyApplied ? "Applied" : "Apply"
+                            color: applyBtn.isAlreadyApplied ? (rootBar ? rootBar._muted : "#6D8895") : "#ffffff"
+                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 10
+                            font.bold: true
+                        }
+                    }
+
+                    MouseArea {
+                        id: applyBtnMouse
+                        anchors.fill: parent
+                        hoverEnabled: !applyBtn.isAlreadyApplied
+                        cursorShape: applyBtn.isAlreadyApplied ? Qt.ArrowCursor : Qt.PointingHandCursor
+                        onClicked: {
+                            if (!applyBtn.isAlreadyApplied && wallpaperWindow.selectedWallpaperPath !== "") {
+                                if (wallpaperWindow.syncThemeColors) {
+                                    ThemeManager.colorMode = "wallust";
+                                    applyWpProc.command = ["bash", "-c",
+                                        // Save flag so startup.sh reopens the picker after restart
+                                        "mkdir -p ~/.cache/quickshell && " +
+                                        "touch ~/.cache/quickshell/wp_selector_open && " +
+                                        "bash \"$HOME/.config/scripts/wallpaper_picker.sh\" \"" + wallpaperWindow.selectedWallpaperPath + "\""];
+                                } else {
+                                    applyWpProc.command = ["bash", "-c",
+                                        "bash \"$HOME/.config/scripts/wallpaper_picker.sh\" --wp-only \"" + wallpaperWindow.selectedWallpaperPath + "\""];
+                                    wallpaperWindow.activeWallpaperPath = wallpaperWindow.selectedWallpaperPath;
+                                }
+                                applyWpProc.running = false;
+                                applyWpProc.running = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

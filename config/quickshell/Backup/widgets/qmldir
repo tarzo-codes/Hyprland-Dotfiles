@@ -1,0 +1,4 @@
+module widgets
+PowerButton 1.0 PowerButton.qml
+PowerMenu 1.0 PowerMenu.qml
+BaseButton 1.0 BaseButton.qml

@@ -1,0 +1,3 @@
+module themes
+singleton ThemeManager 1.0 ThemeManager.qml
+singleton WallustColors 1.0 WallustColors.qml
