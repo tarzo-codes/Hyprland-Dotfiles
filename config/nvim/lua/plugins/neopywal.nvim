@@ -1,7 +1,17 @@
-{
+return {
+  {
     "RedsXDD/neopywal.nvim",
     name = "neopywal",
     lazy = false,
     priority = 1000,
-    opts = {},
+    opts = {
+      transparent_background = false,
+    },
+  },
+  {
+    "LazyVim/LazyVim",
+    opts = {
+      colorscheme = "neopywal",
+    },
+  },
 }
