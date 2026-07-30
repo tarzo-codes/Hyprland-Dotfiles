@@ -1,0 +1,32 @@
+/* Wallust Dynamic GTK3/GTK4 Theme Template */
+
+@import 'colors.css';
+
+@define-color theme_bg_color #322E37;
+@define-color theme_fg_color #DBF0FC;
+@define-color theme_base_color #322E37;
+@define-color theme_text_color #DBF0FC;
+@define-color theme_selected_bg_color #FF7D5C;
+@define-color theme_selected_fg_color #DBF0FC;
+@define-color window_bg_color #322E37;
+@define-color window_fg_color #DBF0FC;
+@define-color view_bg_color #322E37;
+@define-color view_fg_color #DBF0FC;
+@define-color headerbar_bg_color #322E37;
+@define-color headerbar_fg_color #DBF0FC;
+@define-color card_bg_color #56525C;
+@define-color card_fg_color #DBF0FC;
+
+window, dialog, messagedialog, .background, widget {
+    background-color: #322E37;
+    color: #DBF0FC;
+}
+
+headerbar, actionbar, tab, notebook header, stack {
+    background-color: #322E37;
+    color: #DBF0FC;
+}
+
+label {
+    color: #DBF0FC;
+}

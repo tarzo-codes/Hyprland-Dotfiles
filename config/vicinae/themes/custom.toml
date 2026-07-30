@@ -5,36 +5,36 @@ description = "Dynamic Wallust theme for Vicinae"
 variant = "dark"
 
 [colors.core]
-background = "#000003"
-foreground = "#FCFAF9"
-secondary_background = "#000003"
-border = "#A9A8A7"
-accent = "#96969B"
+background = "#322E37"
+foreground = "#DBF0FC"
+secondary_background = "#56525C"
+border = "#889DA9"
+accent = "#FF7D5C"
 
 [colors.input]
-background = "#000003"
-text = "#FCFAF9"
-placeholder = "#A9A8A7"
-border = "#A9A8A7"
+background = "#56525C"
+text = "#DBF0FC"
+placeholder = "#889DA9"
+border = "#889DA9"
 
 [colors.list]
-background = "#000003"
-text = "#FCFAF9"
+background = "#322E37"
+text = "#DBF0FC"
 
 [colors.accents]
-blue = "#96969B"
-green = "#30737B"
-magenta = "#13C9CC"
-orange = "#258EE9"
-purple = "#13C9CC"
-red = "#41424D"
-yellow = "#258EE9"
-cyan = "#F6F1EF"
+blue = "#FF7D5C"
+green = "#B43C5D"
+magenta = "#F8C063"
+orange = "#2174BD"
+purple = "#F8C063"
+red = "#362756"
+yellow = "#2174BD"
+cyan = "#97D3F6"
 
 [colors.list.item.selection]
-background = "#96969B"
-secondary_background = "#A9A8A7"
-text = "#FCFAF9"
+background = "#FF7D5C"
+secondary_background = "#889DA9"
+text = "#DBF0FC"
 
 [colors.grid.item]
-background = "#000003"
+background = "#56525C"

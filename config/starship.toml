@@ -1,151 +1,178 @@
-"$schema" = 'https://starship.rs/config-schema.json'
+# Wallust generated starship.toml — dynamic contrast colors
+# Mode: dark
+# SEG1=#C2E1F2 SEG2=#97D3F6 SEG3=#FF7D5C TIME_BG=#2174BD
 
 format = """
- [](#3E5889)\
+[](#C2E1F2)\
 $os\
 $username\
-[](bg:#1D4141 fg:#3E5889)\
+[](bg:#97D3F6 fg:#C2E1F2)\
 $directory\
-[](fg:#1D4141 bg:#B6D0DE)\
+[](bg:#FF7D5C fg:#97D3F6)\
 $git_branch\
 $git_status\
-[](fg:#B6D0DE bg:#5F8CAA)\
 $c\
-$elixir\
-$elm\
-$golang\
-$gradle\
-$haskell\
-$java\
-$julia\
-$nodejs\
-$nim\
+$cpp\
 $rust\
-$scala\
-[](fg:#5F8CAA bg:#3E5889)\
+$golang\
+$nodejs\
+$bun\
+$php\
+$java\
+$kotlin\
+$haskell\
+$python\
 $docker_context\
-[](fg:#3E5889 bg:#3E5889)\
+$conda\
+$pixi\
+[](fg:#FF7D5C bg:#2174BD)\
 $time\
-[ ](fg:#3E5889)\n >> 
-"""
+[ ](fg:#2174BD)\
+$line_break$character"""
 
-# Disable the blank line at the start of the prompt
-# add_newline = false
+[os]
+disabled = false
+style = "bg:#C2E1F2 fg:#12121a"
 
-# You can also replace your username with a neat symbol like   or disable this
-# and use the os module below
+[os.symbols]
+CachyOS = "󰣇"
+Windows = "󰍲"
+Ubuntu = "󰕈"
+SUSE = ""
+Raspbian = "󰐿"
+Mint = "󰣭"
+Macos = "󰀵"
+Manjaro = ""
+Linux = "󰌽"
+Gentoo = "󰣨"
+Fedora = "󰣛"
+Alpine = ""
+Amazon = ""
+Android = ""
+AOSC = ""
+Arch = "󰣇"
+Artix = "󰣇"
+EndeavourOS = ""
+CentOS = ""
+Debian = "󰣚"
+Redhat = "󱄛"
+RedHatEnterprise = "󱄛"
+Pop = ""
+
 [username]
 show_always = true
-style_user = "bg:#3E5889"
-style_root = "bg:#3E5889"
-format = '[$user ]($style)'
-disabled = false
-
-# An alternative to the username module which displays a symbol that
-# represents the current operating system
-[os]
-style = "bg:#3E5889"
-disabled = true # Disabled by default
+style_user = "bg:#C2E1F2 fg:#12121a"
+style_root  = "bg:#C2E1F2 fg:#12121a"
+format = '[ $user ]($style)'
 
 [directory]
-style = "bg:#1D4141"
+style = "fg:#12121a bg:#97D3F6"
 format = "[ $path ]($style)"
 truncation_length = 3
 truncation_symbol = "…/"
 
-# Here is how you can shorten some long paths by text replacement
-# similar to mapped_locations in Oh My Posh:
 [directory.substitutions]
 "Documents" = "󰈙 "
-"Downloads" = " "
-"Music" = " "
-"Pictures" = " "
-# Keep in mind that the order matters. For example:
-# "Important Documents" = " 󰈙 "
-# will not be replaced, because "Documents" was already substituted before.
-# So either put "Important Documents" before "Documents" or use the substituted version:
-# "Important 󰈙 " = " 󰈙 "
-
-[c]
-symbol = " "
-style = "bg:#5F8CAA"
-format = '[ $symbol ($version) ]($style)'
-
-[cpp]
-symbol = " "
-style = "bg:#5F8CAA"
-format = '[ $symbol ($version) ]($style)'
-
-[docker_context]
-symbol = " "
-style = "bg:#3E5889"
-format = '[ $symbol $context ]($style)'
-
-[elixir]
-symbol = " "
-style = "bg:#5F8CAA"
-format = '[ $symbol ($version) ]($style)'
-
-[elm]
-symbol = " "
-style = "bg:#5F8CAA"
-format = '[ $symbol ($version) ]($style)'
+"Downloads" = " "
+"Music"     = "󰝚 "
+"Pictures"  = " "
+"Developer" = "󰲋 "
 
 [git_branch]
 symbol = ""
-style = "bg:#B6D0DE"
-format = '[ $symbol $branch ]($style)'
+style  = "bg:#FF7D5C"
+format = '[[ $symbol $branch ](fg:#12121a bg:#FF7D5C)]($style)'
 
 [git_status]
-style = "bg:#B6D0DE"
-format = '[$all_status$ahead_behind ]($style)'
-
-[golang]
-symbol = " "
-style = "bg:#5F8CAA"
-format = '[ $symbol ($version) ]($style)'
-
-[gradle]
-style = "bg:#5F8CAA"
-format = '[ $symbol ($version) ]($style)'
-
-[haskell]
-symbol = " "
-style = "bg:#5F8CAA"
-format = '[ $symbol ($version) ]($style)'
-
-[java]
-symbol = " "
-style = "bg:#5F8CAA"
-format = '[ $symbol ($version) ]($style)'
-
-[julia]
-symbol = " "
-style = "bg:#5F8CAA"
-format = '[ $symbol ($version) ]($style)'
+style  = "bg:#FF7D5C"
+format = '[[($all_status$ahead_behind )](fg:#12121a bg:#FF7D5C)]($style)'
 
 [nodejs]
 symbol = ""
-style = "bg:#5F8CAA"
-format = '[ $symbol ($version) ]($style)'
+style  = "bg:#FF7D5C"
+format = '[[ $symbol( $version) ](fg:#12121a bg:#FF7D5C)]($style)'
 
-[nim]
-symbol = "󰆥 "
-style = "bg:#5F8CAA"
-format = '[ $symbol ($version) ]($style)'
+[bun]
+symbol = ""
+style  = "bg:#FF7D5C"
+format = '[[ $symbol( $version) ](fg:#12121a bg:#FF7D5C)]($style)'
+
+[c]
+symbol = " "
+style  = "bg:#FF7D5C"
+format = '[[ $symbol( $version) ](fg:#12121a bg:#FF7D5C)]($style)'
+
+[cpp]
+symbol = " "
+style  = "bg:#FF7D5C"
+format = '[[ $symbol( $version) ](fg:#12121a bg:#FF7D5C)]($style)'
 
 [rust]
 symbol = ""
-style = "bg:#5F8CAA"
-format = '[ $symbol ($version) ]($style)'
+style  = "bg:#FF7D5C"
+format = '[[ $symbol( $version) ](fg:#12121a bg:#FF7D5C)]($style)'
 
-[scala]
-symbol = " "
-style = "bg:#5F8CAA"
-format = '[ $symbol ($version) ]($style)'
+[golang]
+symbol = ""
+style  = "bg:#FF7D5C"
+format = '[[ $symbol( $version) ](fg:#12121a bg:#FF7D5C)]($style)'
+
+[php]
+symbol = ""
+style  = "bg:#FF7D5C"
+format = '[[ $symbol( $version) ](fg:#12121a bg:#FF7D5C)]($style)'
+
+[java]
+symbol = ""
+style  = "bg:#FF7D5C"
+format = '[[ $symbol( $version) ](fg:#12121a bg:#FF7D5C)]($style)'
+
+[kotlin]
+symbol = ""
+style  = "bg:#FF7D5C"
+format = '[[ $symbol( $version) ](fg:#12121a bg:#FF7D5C)]($style)'
+
+[haskell]
+symbol = ""
+style  = "bg:#FF7D5C"
+format = '[[ $symbol( $version) ](fg:#12121a bg:#FF7D5C)]($style)'
+
+[python]
+symbol = ""
+style  = "bg:#FF7D5C"
+format = '[[ $symbol( \($virtualenv\))( $version) ](fg:#12121a bg:#FF7D5C)]($style)'
+
+[docker_context]
+symbol = ""
+style  = "bg:#FF7D5C"
+format = '[[ $symbol( $context) ](fg:#12121a bg:#FF7D5C)]($style)'
+
+[conda]
+style  = "bg:#FF7D5C"
+format = '[[ $symbol( $environment) ](fg:#12121a bg:#FF7D5C)]($style)'
+
+[pixi]
+style  = "bg:#FF7D5C"
+format = '[[ $symbol( $version)( $environment) ](fg:#12121a bg:#FF7D5C)]($style)'
+
+[cmd_duration]
+format = "[󱑂 $duration]($style)"
+style  = "fg:#97D3F6"
 
 [time]
+disabled    = false
+time_format = "%R"
+style       = "bg:#2174BD"
+format      = '[[ $time ](fg:#ffffff bg:#2174BD)]($style)'
+
+[line_break]
 disabled = false
-time_format = "%R" # Hour:Minute Format
-style = "bg:#3E5889"
-format = '[ 󰣇 $time ]($style)'
+
+[character]
+disabled               = false
+success_symbol         = '[❯ ](bold fg:#97D3F6)'
+error_symbol           = '[❯ ](bold fg:#362756)'
+vimcmd_symbol          = '[❮ ](bold fg:#97D3F6)'
+vimcmd_replace_one_symbol = '[❮ ](bold fg:#97D3F6)'
+vimcmd_replace_symbol  = '[❮ ](bold fg:#97D3F6)'
+vimcmd_visual_symbol   = '[❮ ](bold fg:#97D3F6)'
