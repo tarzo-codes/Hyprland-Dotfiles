@@ -5,7 +5,13 @@
 
 set -e
 
-WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
+if [ -d "$HOME/anime_wallapaper" ]; then
+  WALLPAPER_DIR="$HOME/anime_wallapaper"
+elif [ -d "$HOME/wallpaper" ]; then
+  WALLPAPER_DIR="$HOME/wallpaper"
+else
+  WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
+fi
 CACHE_DIR="$HOME/.cache/wallust"
 TELA_BASE="Tela-dark"
 VERBOSE="${VERBOSE:-false}"

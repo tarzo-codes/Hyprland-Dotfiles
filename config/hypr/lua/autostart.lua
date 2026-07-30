@@ -3,7 +3,7 @@
 -------------------
 
 hl.on("hyprland.start", function()
-    hl.exec_cmd("awww")
+    hl.exec_cmd("swww-daemon")
     hl.exec_cmd("waypaper --restore")
     hl.exec_cmd("vicinae server")
     hl.exec_cmd("~/.config/quickshell/scripts/startup.sh")

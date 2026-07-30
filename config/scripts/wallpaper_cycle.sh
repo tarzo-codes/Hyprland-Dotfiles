@@ -1,5 +1,11 @@
 #!/bin/bash
-WALLPAPER_DIR="$HOME/Pictures/wallpapers"
+if [ -d "$HOME/anime_wallapaper" ]; then
+    WALLPAPER_DIR="$HOME/anime_wallapaper"
+elif [ -d "$HOME/wallpaper" ]; then
+    WALLPAPER_DIR="$HOME/wallpaper"
+else
+    WALLPAPER_DIR="$HOME/Pictures/wallpapers"
+fi
 INDEX_FILE="$HOME/.config/hypr/.wallpaper_index"
 mapfile -t WALLS < <(find "$WALLPAPER_DIR" -type f | sort)
 

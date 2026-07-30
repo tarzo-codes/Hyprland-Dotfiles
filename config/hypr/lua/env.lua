@@ -2,6 +2,7 @@
 ---- ENVIRONMENT VARIABLES ----
 -------------------------------
 
+hl.env("PATH", os.getenv("HOME") .. "/.local/bin:" .. (os.getenv("PATH") or ""))
 hl.env("HYPRLAND_CONFIG", os.getenv("HOME") .. "/.config/hypr/hyprland.lua")
 hl.env("XCURSOR_THEME", "Bibata-Modern-Ice")
 hl.env("HYPRCURSOR_THEME", "Bibata-Modern-Ice")
