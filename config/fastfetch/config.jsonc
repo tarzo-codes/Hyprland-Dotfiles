@@ -22,9 +22,10 @@
     },
     "break",
     {
-      "type": "custom",
-      "key": "  Powered by Arch Linux (btw)",
+      "type": "os",
+      "key": "󰣇 ",
       "keyColor": "blue",
+      "format": "Powered by {pretty-name}"
     },
     {
       "type": "kernel",
