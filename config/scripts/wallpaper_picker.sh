@@ -366,8 +366,9 @@ set_wallpaper() {
   debug "Setting wallpaper: $image"
 
   # Save active wallpaper path to cache and config
-  mkdir -p "$HOME/.cache/quickshell"
+  mkdir -p "$HOME/.cache/quickshell" "$HOME/.cache/wallust"
   echo "$image" > "$HOME/.cache/quickshell/current_wallpaper"
+  echo "$image" > "$HOME/.cache/wallust/current_wallpaper"
   if [ -f "$HOME/.config/waypaper/config.ini" ]; then
     sed -i "s|^wallpaper =.*|wallpaper = $image|" "$HOME/.config/waypaper/config.ini" 2>/dev/null || true
   fi

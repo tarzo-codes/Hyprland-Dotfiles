@@ -413,6 +413,8 @@ import os
 from PIL import Image
 
 wp_path = os.path.expanduser('~/.cache/wallust/current_wallpaper')
+if not wp_path or not os.path.isfile(wp_path):
+    wp_path = os.path.expanduser('~/.cache/quickshell/current_wallpaper')
 is_light_wp = '$IS_LIGHT' == 'true'
 
 best_base = 'Tela-blue'
