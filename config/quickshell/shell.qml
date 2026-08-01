@@ -257,7 +257,7 @@ ShellRoot {
     property string dateValue:      "--:--"
     property string songValue:      ""
     property string artistValue:    ""
-    readonly property real maxDynamicModuleWidth: Math.max(450, (Quickshell.screens.length > 0 ? Quickshell.screens[0].width : 1920) * 0.50)
+    readonly property real maxDynamicModuleWidth: Math.max(650, (Quickshell.screens.length > 0 ? Quickshell.screens[0].width : 1920) * 0.65)
     property real   mediaPosition:  0.0
     property real   mediaLength:    1.0
     property string mediaTimeStr:   "0:00 / 0:00"
@@ -1476,7 +1476,7 @@ ShellRoot {
                 font.pixelSize: shellRoot.globalFontSize + 2
                 font.bold: true
                 elide: Text.ElideRight
-                width: Math.min(240, implicitWidth)
+                width: Math.min(shellRoot.maxDynamicModuleWidth, implicitWidth)
                 verticalAlignment: Text.AlignVCenter
                 height: 30
             }
@@ -2386,7 +2386,7 @@ ShellRoot {
                                         visible: Hyprland.activeWindow !== null
                                         text: Hyprland.activeWindow ? Hyprland.activeWindow.title : ""
                                         color: contrastFg(shellRoot._sur, shellRoot._muted); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize
-                                        elide: Text.ElideRight; width: Math.min(100, implicitWidth); verticalAlignment: Text.AlignVCenter; height: parent.height
+                                        elide: Text.ElideRight; width: Math.min(shellRoot.maxDynamicModuleWidth, implicitWidth); verticalAlignment: Text.AlignVCenter; height: parent.height
                                     }
                                 }
                             }
@@ -2507,7 +2507,7 @@ ShellRoot {
                                         font.pixelSize: shellRoot.globalFontSize
                                         font.bold: true
                                         elide: Text.ElideRight
-                                        width: Math.min(320, implicitWidth)
+                                        width: Math.min(shellRoot.maxDynamicModuleWidth, implicitWidth)
                                         verticalAlignment: Text.AlignVCenter
                                         height: parent.height
                                     }
@@ -3451,7 +3451,7 @@ ShellRoot {
                                          font.pixelSize: shellRoot.globalFontSize
                                          font.bold: true
                                          elide: Text.ElideRight
-                                         width: Math.min(480, implicitWidth)
+                                         width: Math.min(shellRoot.maxDynamicModuleWidth, implicitWidth)
                                          verticalAlignment: Text.AlignVCenter
                                          height: parent.height
                                          MouseArea {
