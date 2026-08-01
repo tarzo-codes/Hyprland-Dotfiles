@@ -1899,7 +1899,7 @@ ShellRoot {
                             visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "marisol"
                             
                             Repeater {
-                                model: BarModules.mode === "custom" ? shellRoot.getModuleArray(BarModules.leftModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].top ? themeLayouts[ThemeManager.themeName].top.left : [])
+                                model: (BarModules.mode === "custom" || CentralConfig.mode === "custom") ? shellRoot.getModuleArray(CentralConfig.leftModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].top ? themeLayouts[ThemeManager.themeName].top.left : [])
                                 delegate: capsuleDelegate
                             }
                         }
@@ -1913,7 +1913,7 @@ ShellRoot {
                             visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "marisol"
 
                             Repeater {
-                                model: BarModules.mode === "custom" ? shellRoot.getModuleArray(BarModules.centerModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].top ? themeLayouts[ThemeManager.themeName].top.center : [])
+                                model: (BarModules.mode === "custom" || CentralConfig.mode === "custom") ? shellRoot.getModuleArray(CentralConfig.centerModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].top ? themeLayouts[ThemeManager.themeName].top.center : [])
                                 delegate: capsuleDelegate
                             }
                         }
@@ -1927,7 +1927,7 @@ ShellRoot {
                             visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "marisol"
 
                             Repeater {
-                                model: BarModules.mode === "custom" ? shellRoot.getModuleArray(BarModules.rightModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].top ? themeLayouts[ThemeManager.themeName].top.right : [])
+                                model: (BarModules.mode === "custom" || CentralConfig.mode === "custom") ? shellRoot.getModuleArray(CentralConfig.rightModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].top ? themeLayouts[ThemeManager.themeName].top.right : [])
                                 delegate: capsuleDelegate
                             }
                         }

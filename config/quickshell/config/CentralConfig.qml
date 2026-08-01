@@ -94,6 +94,7 @@ Item {
         leftModules = lefts.join(",");
         centerModules = centers.join(",");
         rightModules = rights.join(",");
+        mode = "custom";
     }
 
     function getZone(moduleKey) {
@@ -134,6 +135,7 @@ Item {
         if (zone === "left") leftModules = newCsv;
         else if (zone === "center") centerModules = newCsv;
         else if (zone === "right") rightModules = newCsv;
+        mode = "custom";
     }
 
     function getModuleIndex(moduleKey) {
