@@ -12,7 +12,7 @@ PanelWindow {
     screen: modelData
 
     implicitWidth: 420
-    implicitHeight: 180
+    implicitHeight: 215
 
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "quickshell-media-player"

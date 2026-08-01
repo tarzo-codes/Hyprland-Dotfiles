@@ -414,10 +414,25 @@ from PIL import Image
 
 wp_path = os.path.expanduser('~/.cache/wallust/current_wallpaper')
 dom_color = None
+is_light_wp = '$IS_LIGHT' == 'true'
+
 if wp_path and os.path.isfile(wp_path):
     try:
-        im = Image.open(wp_path).convert('RGB').resize((100, 100))
-        colors = im.getcolors(10000)
+        im = Image.open(wp_path).convert('RGB')
+        im_small = im.resize((100, 100))
+        colors = im_small.getcolors(10000)
+        
+        # Calculate total wallpaper luminance for auto light/dark mode
+        pixels = list(im_small.getdata())
+        avg_luma = sum(0.299*r + 0.587*g + 0.114*b for r, g, b in pixels) / (len(pixels) * 255.0)
+        if avg_luma > 0.50:
+            is_light_wp = True
+            with open(os.path.expanduser('~/.cache/quickshell/is_light_mode'), 'w') as f:
+                f.write('true')
+        else:
+            with open(os.path.expanduser('~/.cache/quickshell/is_light_mode'), 'w') as f:
+                f.write('false')
+
         if colors:
             colors.sort(key=lambda x: x[0], reverse=True)
             for count, (r, g, b) in colors:
@@ -431,15 +446,15 @@ if wp_path and os.path.isfile(wp_path):
         pass
 
 tela_colors = {
-    'Tela-pink': '#e91e63',
-    'Tela-purple': '#9c27b0',
-    'Tela-orange': '#ff9800',
     'Tela-yellow': '#ffeb3b',
+    'Tela-orange': '#ff9800',
+    'Tela-ubuntu': '#e95420',
+    'Tela-pink': '#e91e63',
     'Tela-green': '#4caf50',
     'Tela-red': '#e53935',
-    'Tela-blue': '#5297e0',
     'Tela-manjaro': '#16a085',
-    'Tela-ubuntu': '#e95420',
+    'Tela-blue': '#5297e0',
+    'Tela-purple': '#9c27b0',
     'Tela-nord': '#88c0d0',
     'Tela-dracula': '#bd93f9',
     'Tela-grey': '#607d8b',
@@ -447,11 +462,13 @@ tela_colors = {
     'Tela-black': '#212121',
 }
 
-is_light = '$IS_LIGHT' == 'true'
-suffix = '$ICON_SUFFIX'
+is_light = is_light_wp
+suffix = '-light' if is_light else '-dark'
 candidates = ['$ACC', '$RED', '$GRN', '$YEL', '$BLU', '$CYN', '$MAG']
 if dom_color:
     candidates.insert(0, dom_color)
+
+warm_themes = ['Tela-yellow', 'Tela-orange', 'Tela-ubuntu', 'Tela-pink', 'Tela-green', 'Tela-red']
 
 def hex_to_rgb(h):
     h = h.lstrip('#')
@@ -466,7 +483,7 @@ def get_hsv_sat(r, g, b):
 def get_luma(r, g, b):
     return (0.299 * r + 0.587 * g + 0.114 * b) / 255.0
 
-best_base = 'Tela-light' if is_light else 'Tela-dark'
+best_base = 'Tela-yellow' if is_light else 'Tela-dark'
 best_score = -999999
 
 for cand in candidates:
@@ -474,23 +491,18 @@ for cand in candidates:
     r, g, b = hex_to_rgb(cand)
     sat = get_hsv_sat(r, g, b)
     luma = get_luma(r, g, b)
-
     for name, hex_val in tela_colors.items():
         tr, tg, tb = hex_to_rgb(hex_val)
         dist = (r - tr)**2 + (g - tg)**2 + (b - tb)**2
-
+        warm_bonus = 60000 if (is_light and name in warm_themes) else 0
         if is_light:
-            # For light mode/theme: strongly reward high saturation & vibrant colorful hues!
-            score = (sat * 250000) + (luma * 50000) - dist
+            score = warm_bonus + (sat * 250000) + (luma * 50000) - dist
         else:
-            # For dark mode/wallpaper: reward dark/sleek icons & matching dark tones!
             is_dark_icon = 1.0 if name in ['Tela-black', 'Tela-grey', 'Tela-dark', 'Tela-nord', 'Tela-dracula'] else 0.5
             score = (is_dark_icon * 40000) + (sat * 60000) - (luma * 30000) - dist
-
         if score > best_score:
             best_score = score
             best_base = name
-
 candidate = f'{best_base}{suffix}'
 icon_dirs = [os.path.expanduser(f'~/.local/share/icons/{candidate}'), f'/usr/share/icons/{candidate}']
 if any(os.path.isdir(d) for d in icon_dirs):
