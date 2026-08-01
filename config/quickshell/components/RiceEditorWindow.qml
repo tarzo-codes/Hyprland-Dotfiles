@@ -25,6 +25,12 @@ PanelWindow {
     property var colors: null
     property var rootBar: null
     signal closeRequested()
+    onVisibleChanged: {
+        if (!visible) {
+            CentralConfig.editMode = false;
+            BarModules.editMode = false;
+        }
+    }
 
     property int activeCategory: 0
     property int activeTab: 0

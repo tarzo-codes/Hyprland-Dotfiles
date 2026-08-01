@@ -167,6 +167,12 @@ ShellRoot {
     property bool powerMenuVisible:      false
     property bool settingsVisible:       false
     property bool riceEditorVisible:     false
+    onRiceEditorVisibleChanged: {
+        if (!riceEditorVisible) {
+            CentralConfig.editMode = false;
+            BarModules.editMode = false;
+        }
+    }
     property bool taskSwitcherVisible:   false
     property bool clipboardVisible:      false
     property bool desktopContextMenuVisible: false
@@ -1929,7 +1935,8 @@ ShellRoot {
 
                 Timer {
                     id: topHideTimer
-                    interval: 600
+                    interval: 1000
+                    running: (CentralConfig.autoHideBar || ThemeManager.autoHideBar) && !topBar.isTopHovered
                     repeat: false
                     onTriggered: topBar.topBarShouldHide = true
                 }
@@ -1938,12 +1945,12 @@ ShellRoot {
                     if (isTopHovered) {
                         topHideTimer.stop();
                         topBarShouldHide = false;
-                    } else {
+                    } else if (CentralConfig.autoHideBar || ThemeManager.autoHideBar) {
                         topHideTimer.restart();
                     }
                 }
 
-                property real autoHideTopOffset: (ThemeManager.autoHideBar && topBarShouldHide) ? -(shellRoot.barHeight - 4) : 0
+                property real autoHideTopOffset: ((CentralConfig.autoHideBar || ThemeManager.autoHideBar) && topBarShouldHide) ? -(shellRoot.barHeight - 3) : 0
                 Behavior on autoHideTopOffset { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
 
                 property real animatedMargin: (ThemeManager.barIsTopFloat && ThemeManager.themeName !== "melissa")
@@ -2897,7 +2904,8 @@ ShellRoot {
 
                 Timer {
                     id: bottomHideTimer
-                    interval: 600
+                    interval: 1000
+                    running: (CentralConfig.autoHideBar || ThemeManager.autoHideBar) && !bottomBar.isBottomHovered
                     repeat: false
                     onTriggered: bottomBar.bottomBarShouldHide = true
                 }
@@ -2906,12 +2914,12 @@ ShellRoot {
                     if (isBottomHovered) {
                         bottomHideTimer.stop();
                         bottomBarShouldHide = false;
-                    } else {
+                    } else if (CentralConfig.autoHideBar || ThemeManager.autoHideBar) {
                         bottomHideTimer.restart();
                     }
                 }
 
-                property real autoHideBottomOffset: (ThemeManager.autoHideBar && bottomBarShouldHide) ? (shellRoot.barHeight - 4) : 0
+                property real autoHideBottomOffset: ((CentralConfig.autoHideBar || ThemeManager.autoHideBar) && bottomBarShouldHide) ? (shellRoot.barHeight - 3) : 0
                 Behavior on autoHideBottomOffset { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
 
                 property real animatedMargin: (ThemeManager.themeName === "cristina")
