@@ -1490,16 +1490,63 @@ ShellRoot {
         }
     }
 
-    // CUSTOM WIDGETS
+    Timer {
+        id: eqTimer
+        interval: 100
+        running: shellRoot.songValue !== "" && shellRoot.songValue !== "No media playing" && shellRoot.songValue !== "No player found"
+        repeat: true
+        property var eqHeights: [10, 16, 8, 18]
+        onTriggered: {
+            eqHeights = [
+                Math.floor(Math.random() * 14) + 4,
+                Math.floor(Math.random() * 18) + 4,
+                Math.floor(Math.random() * 12) + 4,
+                Math.floor(Math.random() * 20) + 4
+            ];
+        }
+    }
+
     Component {
         id: compSong
-        Text {
-            visible: shellRoot.songValue !== ""
-            text: "\uf001 [ " + shellRoot.songValue + " ]"
-            color: shellRoot._acc
-            font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize
-            verticalAlignment: Text.AlignVCenter; height: 30
-            elide: Text.ElideRight; width: Math.min(90, implicitWidth); clip: true
+        Row {
+            spacing: 6
+            height: 30
+            anchors.verticalCenter: parent.verticalCenter
+            visible: shellRoot.songValue !== "" || (CentralConfig.editMode || BarModules.editMode)
+
+            // Dynamic Equalizer Animated Bars
+            Row {
+                spacing: 2
+                anchors.verticalCenter: parent.verticalCenter
+                Repeater {
+                    model: 4
+                    delegate: Rectangle {
+                        width: 3
+                        height: eqTimer.running ? eqTimer.eqHeights[index] : 4
+                        radius: 1.5
+                        color: shellRoot._cyn
+                        anchors.bottom: parent.bottom
+                        Behavior on height { NumberAnimation { duration: 90; easing.type: Easing.OutCubic } }
+                    }
+                }
+            }
+
+            // Album Cover Art (if available)
+            Image {
+                visible: shellRoot.artUrl !== ""
+                source: shellRoot.artUrl
+                width: 20; height: 20
+                fillMode: Image.PreserveAspectCrop
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
+            Text {
+                text: shellRoot.songValue !== "" ? shellRoot.songValue : "[ EDIT: Song Title ]"
+                color: shellRoot._acc
+                font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize
+                verticalAlignment: Text.AlignVCenter; height: 30
+                elide: Text.ElideRight; width: Math.min(140, implicitWidth); clip: true
+            }
 
             MouseArea {
                 anchors.fill: parent
@@ -1726,6 +1773,7 @@ ShellRoot {
             width: visible ? (childRow.implicitWidth + (modelData.type === "capsule" ? 24 : 0)) : 0
             anchors.verticalCenter: parent.verticalCenter
             visible: {
+                if (BarModules.editMode || CentralConfig.editMode) return true;
                 var mods = modelData.type === "capsule" ? modelData.modules : [modelData.type];
                 var hasActiveModule = false;
                 for (var i = 0; i < mods.length; i++) {

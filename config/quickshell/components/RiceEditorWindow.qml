@@ -74,6 +74,13 @@ PanelWindow {
         statusTimer.restart();
     }
 
+    function ensureEditMode() {
+        if (!CentralConfig.editMode) {
+            CentralConfig.editMode = true;
+            showStatus("Edit Mode Activated! Live bar unlocked for editing.");
+        }
+    }
+
     function requestPresetConfirmation(presetId, presetName) {
         pendingPresetId = presetId;
         pendingPresetName = presetName;
@@ -102,10 +109,10 @@ PanelWindow {
     Rectangle {
         id: mainCard
         anchors.centerIn: parent
-        width: 760
-        height: 550
-        color: "#161622"
-        border.color: rootBar ? rootBar._cyn : "#31748f"
+        width: 880
+        height: 640
+        color: rootBar ? rootBar._bg : "#161622"
+        border.color: rootBar ? rootBar._acc : "#31748f"
         border.width: 1.5
         radius: 14
         clip: true
@@ -133,15 +140,15 @@ PanelWindow {
             // ── LEFT SIDEBAR NAVIGATION ─────────────────────────────────────
             // ═════════════════════════════════════════════════════════════════
             Rectangle {
-                Layout.preferredWidth: 200
+                Layout.preferredWidth: 220
                 Layout.fillHeight: true
-                color: "#1b192c"
+                color: rootBar ? rootBar.alphaColor(rootBar._sur, 0.7) : "#1b192c"
 
                 Rectangle {
                     anchors.right: parent.right
                     anchors.top: parent.top; anchors.bottom: parent.bottom
                     width: 1
-                    color: "#2a283e"
+                    color: rootBar ? rootBar.alphaColor(rootBar._muted, 0.4) : "#2a283e"
                 }
 
                 ColumnLayout {
@@ -721,6 +728,24 @@ PanelWindow {
                                 spacing: 12
                                 visible: activeTab === 2
 
+                                // Edit Mode OFF Warning Banner
+                                Rectangle {
+                                    visible: !CentralConfig.editMode
+                                    width: parent.width; height: 32; radius: 6
+                                    color: rootBar ? rootBar.alphaColor(rootBar._yel, 0.18) : "#382e1e"
+                                    border.color: rootBar ? rootBar._yel : "#f1ca93"; border.width: 1
+
+                                    Row {
+                                        anchors.centerIn: parent; spacing: 6
+                                        Text { text: "⚠️"; font.pixelSize: 11 }
+                                        Text {
+                                            text: "Edit Mode is OFF. Editing any module will automatically enable Edit Mode!"
+                                            color: rootBar ? rootBar._yel : "#f1ca93"
+                                            font.pixelSize: 10; font.bold: true
+                                        }
+                                    }
+                                }
+
                                 // Presets Bar
                                 Column {
                                     width: parent.width; spacing: 6
@@ -733,25 +758,25 @@ PanelWindow {
                                         Rectangle {
                                             width: 110; height: 26; radius: 6; color: "#2a283e"; border.color: "#9bced7"; border.width: 1
                                             Text { anchors.centerIn: parent; text: "Emilia Original"; color: "#e0def4"; font.pixelSize: 9; font.bold: true }
-                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: riceWindow.requestPresetConfirmation("emilia_default", "Emilia Original") }
+                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { ensureEditMode(); riceWindow.requestPresetConfirmation("emilia_default", "Emilia Original"); } }
                                         }
 
                                         Rectangle {
                                             width: 110; height: 26; radius: 6; color: "#2a283e"; border.color: "#f1ca93"; border.width: 1
                                             Text { anchors.centerIn: parent; text: "Minimal Ricing"; color: "#e0def4"; font.pixelSize: 9; font.bold: true }
-                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: riceWindow.requestPresetConfirmation("minimal", "Minimal Ricing") }
+                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { ensureEditMode(); riceWindow.requestPresetConfirmation("minimal", "Minimal Ricing"); } }
                                         }
 
                                         Rectangle {
                                             width: 110; height: 26; radius: 6; color: "#2a283e"; border.color: "#c3a5e6"; border.width: 1
                                             Text { anchors.centerIn: parent; text: "System Monitor"; color: "#e0def4"; font.pixelSize: 9; font.bold: true }
-                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: riceWindow.requestPresetConfirmation("sysmon", "System Monitor") }
+                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { ensureEditMode(); riceWindow.requestPresetConfirmation("sysmon", "System Monitor"); } }
                                         }
 
                                         Rectangle {
                                             width: 110; height: 26; radius: 6; color: "#2a283e"; border.color: "#8ec07c"; border.width: 1
                                             Text { anchors.centerIn: parent; text: "Full Powerhouse"; color: "#e0def4"; font.pixelSize: 9; font.bold: true }
-                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: riceWindow.requestPresetConfirmation("full", "Full Powerhouse") }
+                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { ensureEditMode(); riceWindow.requestPresetConfirmation("full", "Full Powerhouse"); } }
                                         }
                                     }
                                 }
@@ -825,7 +850,7 @@ PanelWindow {
                                                         color: parent.currentZone !== "hidden" ? "#2a283e" : "#141320"
                                                         visible: parent.currentZone !== "hidden"
                                                         Text { anchors.centerIn: parent; text: "◄"; color: "#9bced7"; font.pixelSize: 10 }
-                                                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { CentralConfig.moveModule(modelData.key, "left"); riceWindow.showStatus("Moved " + modelData.key + " ◄ Left"); } }
+                                                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { ensureEditMode(); CentralConfig.moveModule(modelData.key, "left"); riceWindow.showStatus("Moved " + modelData.key + " ◄ Left"); } }
                                                     }
 
                                                     // Re-order Right Button (►)
@@ -834,7 +859,7 @@ PanelWindow {
                                                         color: parent.currentZone !== "hidden" ? "#2a283e" : "#141320"
                                                         visible: parent.currentZone !== "hidden"
                                                         Text { anchors.centerIn: parent; text: "►"; color: "#9bced7"; font.pixelSize: 10 }
-                                                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { CentralConfig.moveModule(modelData.key, "right"); riceWindow.showStatus("Moved " + modelData.key + " ► Right"); } }
+                                                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { ensureEditMode(); CentralConfig.moveModule(modelData.key, "right"); riceWindow.showStatus("Moved " + modelData.key + " ► Right"); } }
                                                     }
 
                                                     Item { width: 4 }
@@ -844,7 +869,7 @@ PanelWindow {
                                                         width: 44; height: 22; radius: 4
                                                         color: parent.currentZone === "left" ? "#9bced7" : "#2a283e"
                                                         Text { anchors.centerIn: parent; text: "Left"; color: parent.parent.currentZone === "left" ? "#181628" : "#6e6a86"; font.pixelSize: 9; font.bold: true }
-                                                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { CentralConfig.setZone(modelData.key, "left"); riceWindow.showStatus("Set " + modelData.key + " -> LEFT"); } }
+                                                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { ensureEditMode(); CentralConfig.setZone(modelData.key, "left"); riceWindow.showStatus("Set " + modelData.key + " -> LEFT"); } }
                                                     }
 
                                                     // Center Zone Button
@@ -852,7 +877,7 @@ PanelWindow {
                                                         width: 50; height: 22; radius: 4
                                                         color: parent.currentZone === "center" ? "#f1ca93" : "#2a283e"
                                                         Text { anchors.centerIn: parent; text: "Center"; color: parent.parent.currentZone === "center" ? "#181628" : "#6e6a86"; font.pixelSize: 9; font.bold: true }
-                                                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { CentralConfig.setZone(modelData.key, "center"); riceWindow.showStatus("Set " + modelData.key + " -> CENTER"); } }
+                                                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { ensureEditMode(); CentralConfig.setZone(modelData.key, "center"); riceWindow.showStatus("Set " + modelData.key + " -> CENTER"); } }
                                                     }
 
                                                     // Right Zone Button
@@ -860,7 +885,7 @@ PanelWindow {
                                                         width: 44; height: 22; radius: 4
                                                         color: parent.currentZone === "right" ? "#c3a5e6" : "#2a283e"
                                                         Text { anchors.centerIn: parent; text: "Right"; color: parent.parent.currentZone === "right" ? "#181628" : "#6e6a86"; font.pixelSize: 9; font.bold: true }
-                                                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { CentralConfig.setZone(modelData.key, "right"); riceWindow.showStatus("Set " + modelData.key + " -> RIGHT"); } }
+                                                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { ensureEditMode(); CentralConfig.setZone(modelData.key, "right"); riceWindow.showStatus("Set " + modelData.key + " -> RIGHT"); } }
                                                     }
 
                                                     // Hidden Button
@@ -868,7 +893,7 @@ PanelWindow {
                                                         width: 48; height: 22; radius: 4
                                                         color: parent.currentZone === "hidden" ? "#ea6f91" : "#2a283e"
                                                         Text { anchors.centerIn: parent; text: "Hidden"; color: parent.parent.currentZone === "hidden" ? "#ffffff" : "#6e6a86"; font.pixelSize: 9; font.bold: true }
-                                                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { CentralConfig.setZone(modelData.key, "hidden"); riceWindow.showStatus("Set " + modelData.key + " -> HIDDEN"); } }
+                                                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { ensureEditMode(); CentralConfig.setZone(modelData.key, "hidden"); riceWindow.showStatus("Set " + modelData.key + " -> HIDDEN"); } }
                                                     }
                                                 }
                                             }
