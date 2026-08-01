@@ -409,12 +409,26 @@ fi
 # 5. Icon Theme Switcher — Dynamic Tela Icons (SECOND)
 # ──────────────────────────────────────────────────────────────────────────
 ICON_THEME=$(python3 -c "
-import os
+import os, colorsys
 from PIL import Image
 
 wp_path = os.path.expanduser('~/.cache/wallust/current_wallpaper')
-if not wp_path or not os.path.isfile(wp_path):
+if wp_path and os.path.isfile(wp_path):
+    try:
+        with open(wp_path) as f:
+            line = f.read().strip()
+            if line and os.path.isfile(line): wp_path = line
+    except Exception: pass
+
+if not os.path.isfile(wp_path):
     wp_path = os.path.expanduser('~/.cache/quickshell/current_wallpaper')
+    if wp_path and os.path.isfile(wp_path):
+        try:
+            with open(wp_path) as f:
+                line = f.read().strip()
+                if line and os.path.isfile(line): wp_path = line
+        except Exception: pass
+
 is_light_cache = os.path.expanduser('~/.cache/quickshell/is_light_mode')
 if os.path.isfile(is_light_cache):
     with open(is_light_cache) as f:

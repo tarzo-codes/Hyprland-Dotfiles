@@ -149,7 +149,19 @@ from PIL import Image
 wp_path = '$IMAGE_PATH'
 if not wp_path or not os.path.isfile(wp_path):
     cache_wp = os.path.expanduser('~/.cache/wallust/current_wallpaper')
-    if os.path.isfile(cache_wp): wp_path = cache_wp
+    if os.path.isfile(cache_wp):
+        try:
+            with open(cache_wp) as f:
+                line = f.read().strip()
+                if line and os.path.isfile(line): wp_path = line
+        except Exception: pass
+
+if wp_path and os.path.isfile(wp_path):
+    try:
+        with open(wp_path) as f:
+            line = f.read().strip()
+            if line and os.path.isfile(line): wp_path = line
+    except Exception: pass
 
 best_base = 'Tela-blue'
 
