@@ -412,47 +412,49 @@ ICON_THEME=$(python3 -c "
 import os
 
 tela_colors = {
-    'Tela-blue': '#5297e0',
     'Tela-green': '#4caf50',
     'Tela-red': '#e53935',
     'Tela-purple': '#9c27b0',
     'Tela-pink': '#e91e63',
     'Tela-orange': '#ff9800',
     'Tela-yellow': '#ffeb3b',
+    'Tela-blue': '#5297e0',
+    'Tela-brown': '#795548',
     'Tela-grey': '#607d8b',
     'Tela-black': '#212121',
     'Tela-dracula': '#bd93f9',
     'Tela-nord': '#88c0d0',
     'Tela-manjaro': '#16a085',
-}
-
-theme_overrides = {
-    'aline': 'Tela-blue',
-    'emilia': 'Tela-blue',
-    'h4ck3r': 'Tela-green',
-    'z0mbi3': 'Tela-black',
-    'dracula': 'Tela-dracula',
-    'nord': 'Tela-nord'
+    'Tela-ubuntu': '#e95420'
 }
 
 suffix = '$ICON_SUFFIX'
-theme = '$THEME'.lower()
+candidates = ['$ACC', '$RED', '$GRN', '$YEL', '$BLU', '$CYN', '$MAG']
 
-if theme in theme_overrides:
-    base = theme_overrides[theme]
-else:
-    acc = '$ACC'.lstrip('#')
-    r, g, b = tuple(int(acc[i:i+2], 16) for i in (0, 2, 4))
-    best_base = 'Tela-blue'
-    best_dist = 9999999
+def hex_to_rgb(h):
+    h = h.lstrip('#')
+    if len(h) != 6: return (120, 120, 120)
+    return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+
+best_base = 'Tela-blue'
+best_score = -999999
+
+for cand in candidates:
+    if not cand or not cand.startswith('#'): continue
+    r, g, b = hex_to_rgb(cand)
+    mx, mn = max(r, g, b), min(r, g, b)
+    sat = (mx - mn) / (mx if mx > 0 else 1)
+    if sat < 0.10: continue
+    
     for name, hex_val in tela_colors.items():
-        tr, tg, tb = tuple(int(hex_val.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
+        tr, tg, tb = hex_to_rgb(hex_val)
         dist = (r - tr)**2 + (g - tg)**2 + (b - tb)**2
-        if dist < best_dist:
-            best_dist = dist
+        score = (sat * 100000) - dist
+        if score > best_score:
+            best_score = score
             best_base = name
-    base = best_base
 
+base = best_base
 candidate = f'{base}{suffix}'
 icon_dirs = [os.path.expanduser(f'~/.local/share/icons/{candidate}'), f'/usr/share/icons/{candidate}']
 if any(os.path.isdir(d) for d in icon_dirs):
