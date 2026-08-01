@@ -743,6 +743,7 @@ PanelWindow {
                                             { key: "tray", name: "System Tray Expander", icon: "󰅀" },
                                             { key: "settings", name: "Quick Settings Panel", icon: "󰒓" },
                                             { key: "theme", name: "Theme Selector", icon: "󰏘" },
+                                            { key: "mode_switcher", name: "Dark / Light / Auto Mode", icon: "󰔎" },
                                             { key: "wallpaper", name: "Wallpaper Picker", icon: "󰸉" },
                                             { key: "colorpicker", name: "Color Picker Tool", icon: "󰃉" },
                                             { key: "power", name: "Power Button", icon: "󰐥" }

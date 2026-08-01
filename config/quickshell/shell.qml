@@ -636,6 +636,7 @@ ShellRoot {
         if (type === "bluetooth")    return compBluetooth;
         if (type === "background_tasks" || type === "tasks" || type === "bg_tasks") return compBackgroundTaskHandler;
         if (type === "wallpaper" || type === "wallpaper_selector") return compWallpaperSelector;
+        if (type === "mode_switcher" || type === "theme_mode") return compModeSwitcher;
         if (type === "colorpicker")  return compColorpicker;
         if (type === "mplayer")      return compMplayer;
         if (type === "weather")      return compWeather;
@@ -1436,6 +1437,54 @@ ShellRoot {
         BackgroundApps {
             rootBar: shellRoot
             anchors.verticalCenter: parent.verticalCenter
+        }
+    Process {
+        id: reapplyThemeProc
+        command: ["bash", "-c", "$HOME/.config/scripts/wallpaper_picker.sh --reapply"]
+    }
+
+    Component {
+        id: compModeSwitcher
+        Row {
+            spacing: 6
+            height: 30
+            Rectangle {
+                height: 24; width: 68; radius: 6
+                anchors.verticalCenter: parent.verticalCenter
+                color: modeMouse.containsMouse ? shellRoot._sur : "transparent"
+                border.color: shellRoot._cyn; border.width: 1
+
+                Row {
+                    anchors.centerIn: parent; spacing: 4
+                    Text {
+                        text: ThemeManager.modeChoice === "dark" ? "󰔎" : (ThemeManager.modeChoice === "light" ? "󰌵" : "󰄛")
+                        color: ThemeManager.modeChoice === "light" ? shellRoot._yel : shellRoot._cyn
+                        font.family: shellRoot.iconFontFamily; font.pixelSize: shellRoot.iconFontSize
+                    }
+                    Text {
+                        text: ThemeManager.modeChoice.toUpperCase()
+                        color: shellRoot._fg
+                        font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize - 1; font.bold: true
+                    }
+                }
+
+                MouseArea {
+                    id: modeMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        var nextMode = "dark";
+                        if (ThemeManager.modeChoice === "dark") nextMode = "light";
+                        else if (ThemeManager.modeChoice === "light") nextMode = "auto";
+                        else nextMode = "dark";
+
+                        ThemeManager.modeChoice = nextMode;
+                        reapplyThemeProc.running = false;
+                        reapplyThemeProc.running = true;
+                    }
+                }
+            }
         }
     }
 
