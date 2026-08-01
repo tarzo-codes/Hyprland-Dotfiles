@@ -140,45 +140,60 @@ update_apps() {
   if [ -f "$color_script" ]; then
     # shellcheck source=/dev/null
     source "$color_script"
+    IS_LIGHT_MODE=$(cat "$HOME/.cache/quickshell/is_light_mode" 2>/dev/null || echo "false")
     # Dynamically find the best matching Tela icon theme across all Wallust accent colors
     TELA_BASE=$(python3 -c "
 import os
 
 source_colors = ['$COLOR1', '$COLOR2', '$COLOR3', '$COLOR4', '$COLOR5', '$COLOR6', '$COLOR9', '$COLOR10', '$COLOR11', '$COLOR12', '$COLOR13', '$COLOR14']
 tela_colors = {
-    'Tela-green': '#4caf50',
-    'Tela-red': '#e53935',
-    'Tela-purple': '#9c27b0',
     'Tela-pink': '#e91e63',
+    'Tela-purple': '#9c27b0',
     'Tela-orange': '#ff9800',
     'Tela-yellow': '#ffeb3b',
+    'Tela-green': '#4caf50',
+    'Tela-red': '#e53935',
     'Tela-blue': '#5297e0',
-    'Tela-brown': '#795548',
-    'Tela-grey': '#607d8b',
-    'Tela-black': '#212121',
-    'Tela-dracula': '#bd93f9',
-    'Tela-nord': '#88c0d0',
     'Tela-manjaro': '#16a085',
-    'Tela-ubuntu': '#e95420'
+    'Tela-ubuntu': '#e95420',
+    'Tela-nord': '#88c0d0',
+    'Tela-dracula': '#bd93f9',
+    'Tela-grey': '#607d8b',
+    'Tela-brown': '#795548',
+    'Tela-black': '#212121',
 }
+
+is_light = '$IS_LIGHT_MODE' == 'true'
 
 def hex_to_rgb(h):
     h = h.lstrip('#')
     if len(h) != 6: return (120, 120, 120)
     return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
 
-best_base = 'Tela-blue'
+def get_hsv_sat(r, g, b):
+    mx, mn = max(r, g, b), min(r, g, b)
+    if mx == 0: return 0
+    return (mx - mn) / mx
+
+def get_luma(r, g, b):
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255.0
+
+best_base = 'Tela-light' if is_light else 'Tela-dark'
 best_score = -999999
+
 for c in source_colors:
     if not c or not c.startswith('#'): continue
     r, g, b = hex_to_rgb(c)
-    mx, mn = max(r, g, b), min(r, g, b)
-    sat = (mx - mn) / (mx if mx > 0 else 1)
-    if sat < 0.10: continue
+    sat = get_hsv_sat(r, g, b)
+    luma = get_luma(r, g, b)
     for name, hex_val in tela_colors.items():
         tr, tg, tb = hex_to_rgb(hex_val)
         dist = (r - tr)**2 + (g - tg)**2 + (b - tb)**2
-        score = (sat * 100000) - dist
+        if is_light:
+            score = (sat * 250000) + (luma * 50000) - dist
+        else:
+            is_dark_icon = 1.0 if name in ['Tela-black', 'Tela-grey', 'Tela-dark', 'Tela-nord', 'Tela-dracula'] else 0.5
+            score = (is_dark_icon * 40000) + (sat * 60000) - (luma * 30000) - dist
         if score > best_score:
             best_score = score
             best_base = name

@@ -412,22 +412,23 @@ ICON_THEME=$(python3 -c "
 import os
 
 tela_colors = {
-    'Tela-green': '#4caf50',
-    'Tela-red': '#e53935',
-    'Tela-purple': '#9c27b0',
     'Tela-pink': '#e91e63',
+    'Tela-purple': '#9c27b0',
     'Tela-orange': '#ff9800',
     'Tela-yellow': '#ffeb3b',
+    'Tela-green': '#4caf50',
+    'Tela-red': '#e53935',
     'Tela-blue': '#5297e0',
-    'Tela-brown': '#795548',
-    'Tela-grey': '#607d8b',
-    'Tela-black': '#212121',
-    'Tela-dracula': '#bd93f9',
-    'Tela-nord': '#88c0d0',
     'Tela-manjaro': '#16a085',
-    'Tela-ubuntu': '#e95420'
+    'Tela-ubuntu': '#e95420',
+    'Tela-nord': '#88c0d0',
+    'Tela-dracula': '#bd93f9',
+    'Tela-grey': '#607d8b',
+    'Tela-brown': '#795548',
+    'Tela-black': '#212121',
 }
 
+is_light = '$IS_LIGHT' == 'true'
 suffix = '$ICON_SUFFIX'
 candidates = ['$ACC', '$RED', '$GRN', '$YEL', '$BLU', '$CYN', '$MAG']
 
@@ -436,31 +437,45 @@ def hex_to_rgb(h):
     if len(h) != 6: return (120, 120, 120)
     return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
 
-best_base = 'Tela-blue'
+def get_hsv_sat(r, g, b):
+    mx, mn = max(r, g, b), min(r, g, b)
+    if mx == 0: return 0
+    return (mx - mn) / mx
+
+def get_luma(r, g, b):
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255.0
+
+best_base = 'Tela-light' if is_light else 'Tela-dark'
 best_score = -999999
 
 for cand in candidates:
     if not cand or not cand.startswith('#'): continue
     r, g, b = hex_to_rgb(cand)
-    mx, mn = max(r, g, b), min(r, g, b)
-    sat = (mx - mn) / (mx if mx > 0 else 1)
-    if sat < 0.10: continue
-    
+    sat = get_hsv_sat(r, g, b)
+    luma = get_luma(r, g, b)
+
     for name, hex_val in tela_colors.items():
         tr, tg, tb = hex_to_rgb(hex_val)
         dist = (r - tr)**2 + (g - tg)**2 + (b - tb)**2
-        score = (sat * 100000) - dist
+
+        if is_light:
+            # For light mode/theme: strongly reward high saturation & vibrant colorful hues!
+            score = (sat * 250000) + (luma * 50000) - dist
+        else:
+            # For dark mode/wallpaper: reward dark/sleek icons & matching dark tones!
+            is_dark_icon = 1.0 if name in ['Tela-black', 'Tela-grey', 'Tela-dark', 'Tela-nord', 'Tela-dracula'] else 0.5
+            score = (is_dark_icon * 40000) + (sat * 60000) - (luma * 30000) - dist
+
         if score > best_score:
             best_score = score
             best_base = name
 
-base = best_base
-candidate = f'{base}{suffix}'
+candidate = f'{best_base}{suffix}'
 icon_dirs = [os.path.expanduser(f'~/.local/share/icons/{candidate}'), f'/usr/share/icons/{candidate}']
 if any(os.path.isdir(d) for d in icon_dirs):
     print(candidate)
 else:
-    print(base)
+    print(best_base)
 ")
 
 # Apply Icon Theme (second)
