@@ -518,6 +518,8 @@ else:
 [ -f "$HOME/.config/gtk-4.0/settings.ini" ] && sed -i "s/gtk-icon-theme-name=.*/gtk-icon-theme-name=$ICON_THEME/" "$HOME/.config/gtk-4.0/settings.ini" 2>/dev/null || true
 gsettings set org.gnome.desktop.interface icon-theme "$ICON_THEME" 2>/dev/null || true
 kwriteconfig6 --file kdeglobals --group Icons --key Theme "$ICON_THEME" 2>/dev/null
+notify-send -a "Quickshell" -i "preferences-desktop-icons" "Icon Theme Updated" "Icon theme set to $ICON_THEME" 2>/dev/null || true
+echo "[Quickshell] Icon theme updated to: $ICON_THEME"
 
 
 
