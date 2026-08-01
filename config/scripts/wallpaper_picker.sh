@@ -177,8 +177,8 @@ if wp_path and os.path.isfile(wp_path):
         im_small = im.resize((150, 150))
         colors = im_small.getcolors(30000)
         
-        pixels = list(im_small.getdata())
-        avg_luma = sum(0.299*r + 0.587*g + 0.114*b for r, g, b in pixels) / (len(pixels) * 255.0)
+        total_px = sum(count for count, _ in colors) if colors else 1
+        avg_luma = sum(count * (0.299*r + 0.587*g + 0.114*b) for count, (r, g, b) in colors) / (total_px * 255.0) if colors else 0.5
         if avg_luma > 0.50:
             with open(os.path.expanduser('~/.cache/quickshell/is_light_mode'), 'w') as f:
                 f.write('true')
