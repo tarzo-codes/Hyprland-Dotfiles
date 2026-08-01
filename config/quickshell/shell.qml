@@ -257,6 +257,7 @@ ShellRoot {
     property string dateValue:      "--:--"
     property string songValue:      ""
     property string artistValue:    ""
+    readonly property real maxDynamicModuleWidth: Math.max(450, (Quickshell.screens.length > 0 ? Quickshell.screens[0].width : 1920) * 0.50)
     property real   mediaPosition:  0.0
     property real   mediaLength:    1.0
     property string mediaTimeStr:   "0:00 / 0:00"
@@ -1073,7 +1074,7 @@ ShellRoot {
                 font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize
                 font.bold: true
                 elide: Text.ElideRight
-                width: text !== "" ? Math.min(600, implicitWidth) : 0
+                width: text !== "" ? Math.min(shellRoot.maxDynamicModuleWidth, implicitWidth) : 0
                 clip: true
                 verticalAlignment: Text.AlignVCenter; height: 30
             }
@@ -1614,7 +1615,7 @@ ShellRoot {
                 font.bold: true
                 verticalAlignment: Text.AlignVCenter; height: 30
                 elide: Text.ElideRight
-                width: text !== "" ? Math.min(600, implicitWidth) : 0
+                width: text !== "" ? Math.min(shellRoot.maxDynamicModuleWidth, implicitWidth) : 0
                 clip: true
             }
 
@@ -2164,7 +2165,7 @@ ShellRoot {
                                             font.pixelSize: shellRoot.globalFontSize
                                             font.bold: true
                                             elide: Text.ElideRight
-                                            width: Math.min(180, implicitWidth)
+                                            width: Math.min(shellRoot.maxDynamicModuleWidth, implicitWidth)
                                             verticalAlignment: Text.AlignVCenter
                                             height: parent.height
                                         }
@@ -3056,7 +3057,7 @@ ShellRoot {
                                     font.pixelSize: shellRoot.globalFontSize
                                     font.bold: true
                                     elide: Text.ElideRight
-                                    width: Math.min(220, implicitWidth)
+                                    width: Math.min(shellRoot.maxDynamicModuleWidth, implicitWidth)
                                     verticalAlignment: Text.AlignVCenter
                                     height: parent.height
                                 }
