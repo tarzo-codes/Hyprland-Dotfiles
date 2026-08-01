@@ -415,27 +415,6 @@ from PIL import Image
 wp_path = os.path.expanduser('~/.cache/wallust/current_wallpaper')
 is_light_wp = '$IS_LIGHT' == 'true'
 
-tela_colors = {
-    'Tela-red': '#e53935',
-    'Tela-pink': '#e91e63',
-    'Tela-ubuntu': '#e95420',
-    'Tela-orange': '#ff9800',
-    'Tela-yellow': '#ffeb3b',
-    'Tela-green': '#4caf50',
-    'Tela-purple': '#9c27b0',
-    'Tela-blue': '#5297e0',
-    'Tela-manjaro': '#16a085',
-    'Tela-nord': '#88c0d0',
-    'Tela-dracula': '#bd93f9',
-    'Tela-grey': '#607d8b',
-    'Tela-brown': '#795548',
-    'Tela-black': '#212121',
-}
-
-def hex_to_rgb(h):
-    h = h.lstrip('#')
-    return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
-
 best_base = 'Tela-blue'
 
 if wp_path and os.path.isfile(wp_path):
@@ -455,21 +434,52 @@ if wp_path and os.path.isfile(wp_path):
                 f.write('false')
 
         if colors:
-            scores = {k: 0.0 for k in tela_colors}
+            hue_scores = {
+                'Tela-pink': 0.0,
+                'Tela-red': 0.0,
+                'Tela-orange': 0.0,
+                'Tela-ubuntu': 0.0,
+                'Tela-yellow': 0.0,
+                'Tela-green': 0.0,
+                'Tela-manjaro': 0.0,
+                'Tela-blue': 0.0,
+                'Tela-nord': 0.0,
+                'Tela-purple': 0.0,
+                'Tela-dracula': 0.0,
+                'Tela-black': 0.0,
+                'Tela-grey': 0.0
+            }
+            
             for count, (r, g, b) in colors:
-                mx, mn = max(r, g, b), min(r, g, b)
-                sat = (mx - mn) / (mx if mx > 0 else 1)
-                luma = (0.299*r + 0.587*g + 0.114*b) / 255.0
-                if sat >= 0.18 and 0.15 <= luma <= 0.85:
-                    for name, hex_val in tela_colors.items():
-                        tr, tg, tb = hex_to_rgb(hex_val)
-                        dist = ((r - tr)**2 + (g - tg)**2 + (b - tb)**2) ** 0.5
-                        if dist < 130:
-                            sat_mult = 3.0 if name in ['Tela-red', 'Tela-pink', 'Tela-ubuntu', 'Tela-orange', 'Tela-purple'] else 1.0
-                            scores[name] += (sat ** 2.5) * count * (130 - dist) * sat_mult
-            top_focal = max(scores.items(), key=lambda x: x[1])
-            if top_focal[1] > 20:
-                best_base = top_focal[0]
+                h, s, v = colorsys.rgb_to_hsv(r/255.0, g/255.0, b/255.0)
+                luma = 0.299*(r/255.0) + 0.587*(g/255.0) + 0.114*(b/255.0)
+                if s >= 0.12 and 0.10 <= luma <= 0.90:
+                    deg = h * 360.0
+                    weight = count * (s ** 2)
+                    if deg >= 335 or deg < 10:
+                        hue_scores['Tela-pink'] += weight * 1.3
+                        hue_scores['Tela-red'] += weight
+                    elif 10 <= deg < 25:
+                        hue_scores['Tela-red'] += weight * 1.3
+                    elif 25 <= deg < 48:
+                        hue_scores['Tela-orange'] += weight * 1.3
+                        hue_scores['Tela-ubuntu'] += weight
+                    elif 48 <= deg < 70:
+                        hue_scores['Tela-yellow'] += weight * 1.2
+                    elif 70 <= deg < 165:
+                        hue_scores['Tela-green'] += weight * 1.2
+                        hue_scores['Tela-manjaro'] += weight
+                    elif 165 <= deg < 255:
+                        hue_scores['Tela-blue'] += weight * 1.2
+                        hue_scores['Tela-nord'] += weight
+                        hue_scores['Tela-grey'] += weight * 0.5
+                    elif 255 <= deg < 335:
+                        hue_scores['Tela-purple'] += weight * 1.2
+                        hue_scores['Tela-dracula'] += weight
+            
+            top_hue = max(hue_scores.items(), key=lambda x: x[1])
+            if top_hue[1] > 1.0:
+                best_base = top_hue[0]
     except Exception:
         pass
 
