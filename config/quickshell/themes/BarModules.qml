@@ -5,12 +5,19 @@ import "../config"
 Item {
     id: root
 
-    property alias mode:           CentralConfig.mode
-    property alias editMode:       CentralConfig.editMode
-    property alias appletLocation: CentralConfig.appletLocation
-    property alias leftModules:    CentralConfig.leftModules
-    property alias centerModules:  CentralConfig.centerModules
-    property alias rightModules:   CentralConfig.rightModules
+    property string mode:           CentralConfig.mode
+    property bool   editMode:       CentralConfig.editMode
+    property string appletLocation: CentralConfig.appletLocation
+    property string leftModules:    CentralConfig.leftModules
+    property string centerModules:  CentralConfig.centerModules
+    property string rightModules:   CentralConfig.rightModules
+
+    Binding { target: root; property: "mode"; value: CentralConfig.mode }
+    Binding { target: root; property: "editMode"; value: CentralConfig.editMode }
+    Binding { target: root; property: "appletLocation"; value: CentralConfig.appletLocation }
+    Binding { target: root; property: "leftModules"; value: CentralConfig.leftModules }
+    Binding { target: root; property: "centerModules"; value: CentralConfig.centerModules }
+    Binding { target: root; property: "rightModules"; value: CentralConfig.rightModules }
 
     property bool isPreviewing: false
     property string previewLeft: ""
