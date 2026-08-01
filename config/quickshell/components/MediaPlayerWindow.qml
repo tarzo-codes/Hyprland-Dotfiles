@@ -80,6 +80,42 @@ PanelWindow {
                     }
                 }
 
+                // CAVA-style Dynamic Background Audio Visualizer Bars
+                Timer {
+                    id: cavaTimer
+                    interval: 80
+                    running: mediaWindow.rootBar && mediaWindow.rootBar.isPlaying
+                    repeat: true
+                    property var cavaHeights: [20, 45, 70, 30, 85, 50, 95, 40, 65, 30, 80, 55, 35, 90, 60]
+                    onTriggered: {
+                        var arr = [];
+                        for (var c = 0; c < 15; c++) {
+                            arr.push(Math.floor(Math.random() * 85) + 10);
+                        }
+                        cavaHeights = arr;
+                    }
+                }
+
+                Row {
+                    anchors.bottom: parent.bottom
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    spacing: 4
+                    opacity: 0.18
+                    visible: mediaWindow.rootBar && mediaWindow.rootBar.isPlaying
+
+                    Repeater {
+                        model: 15
+                        delegate: Rectangle {
+                            width: 14
+                            height: (parent.parent.children[0].cavaHeights[index] / 100) * 110
+                            radius: 3
+                            color: mediaWindow.rootBar ? mediaWindow.rootBar._cyn : "#7dcfff"
+                            anchors.bottom: parent.bottom
+                            Behavior on height { NumberAnimation { duration: 75; easing.type: Easing.OutCubic } }
+                        }
+                    }
+                }
+
                 ColumnLayout {
                     anchors.fill: parent
                     anchors.margins: 12
@@ -169,14 +205,19 @@ PanelWindow {
                                 height: parent.height
                                 radius: 3
                                 color: mediaWindow.rootBar ? mediaWindow.rootBar._grn : "#8ec07c" // Wallust green progress fill!
-                                width: parent.width * 0.35
-                                Behavior on width { NumberAnimation { duration: 150 } }
+                                width: {
+                                    if (mediaWindow.rootBar && mediaWindow.rootBar.mediaLength > 0) {
+                                        return Math.max(0, Math.min(parent.width, parent.width * (mediaWindow.rootBar.mediaPosition / mediaWindow.rootBar.mediaLength)));
+                                    }
+                                    return parent.width * 0.35;
+                                }
+                                Behavior on width { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
                             }
                         }
 
                         // Time Display
                         Text {
-                            text: "0:45 / 4:50"
+                            text: (mediaWindow.rootBar && mediaWindow.rootBar.mediaTimeStr) ? mediaWindow.rootBar.mediaTimeStr : "0:45 / 4:50"
                             color: mediaWindow.rootBar ? mediaWindow.rootBar._fg : "#e0def4"
                             font.family: mediaWindow.rootBar ? mediaWindow.rootBar.globalFontFamily : "JetBrainsMono Nerd Font"
                             font.pixelSize: 10

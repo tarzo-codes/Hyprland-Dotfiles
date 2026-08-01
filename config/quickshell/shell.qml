@@ -251,8 +251,46 @@ ShellRoot {
     property string dateValue:      "--:--"
     property string songValue:      ""
     property string artistValue:    ""
+    property real   mediaPosition:  0.0
+    property real   mediaLength:    1.0
+    property string mediaTimeStr:   "0:00 / 0:00"
     property string selectedPlayer: ""
     property var activePlayersList: []
+
+    Timer {
+        interval: 1000
+        running: shellRoot.isPlaying || shellRoot.mediaPlayerVisible
+        repeat: true
+        triggeredOnStart: true
+        onTriggered: mediaPosProc.running = true
+    }
+
+    Process {
+        id: mediaPosProc
+        command: ["bash", "-c", "pos=$(playerctl position 2>/dev/null || echo 0); len=$(playerctl metadata mpris:length 2>/dev/null || echo 0); echo \"$pos|$len\""]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var parts = this.text.trim().split("|");
+                if (parts.length === 2) {
+                    var p = parseFloat(parts[0]) || 0;
+                    var l = (parseFloat(parts[1]) || 0) / 1000000; // convert microseconds to seconds
+                    shellRoot.mediaPosition = p;
+                    shellRoot.mediaLength = l > 0 ? l : 1.0;
+
+                    function fmt(s) {
+                        var m = Math.floor(s / 60);
+                        var sec = Math.floor(s % 60);
+                        return m + ":" + (sec < 10 ? "0" : "") + sec;
+                    }
+                    if (l > 0) {
+                        shellRoot.mediaTimeStr = fmt(p) + " / " + fmt(l);
+                    } else {
+                        shellRoot.mediaTimeStr = fmt(p);
+                    }
+                }
+            }
+        }
+    }
     property string activeWinTitle: ""
     property string activeWinClass: ""
     property int    activeWsId:     1
@@ -638,16 +676,14 @@ ShellRoot {
         if (type === "wallpaper" || type === "wallpaper_selector") return compWallpaperSelector;
         if (type === "mode_switcher" || type === "theme_mode") return compModeSwitcher;
         if (type === "colorpicker")  return compColorpicker;
-        if (type === "mplayer")      return compMplayer;
+        if (type === "mplayer" || type === "media" || type === "song" || type === "compact_player") return compSong;
         if (type === "weather")      return compWeather;
         if (type === "tray")         return compTray;
         if (type === "apps" || type === "pinnedApps") return compApps;
-        if (type === "song")         return compSong;
         if (type === "arch_text")    return compArchText;
         if (type === "andrea_stats") return compAndreaStats;
         if (type === "cynthia_prompt") return compCynthiaPrompt;
         if (type === "cynthia_status") return compCynthiaStatus;
-        if (type === "compact_player" || type === "media") return compCompactPlayer;
         return null;
     }
 
