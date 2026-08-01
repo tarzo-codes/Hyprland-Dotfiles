@@ -1030,20 +1030,23 @@ ShellRoot {
                 font.pixelSize: shellRoot.iconFontSize
                 verticalAlignment: Text.AlignVCenter
                 height: 30
-                visible: ThemeManager.themeName === "marisol"
+                visible: CentralConfig.showTitleLogo || ThemeManager.themeName === "marisol"
             }
             Text {
                 id: winText
                 text: {
                     var prefix = ThemeManager.themeName === "silvia" ? ":  " : "";
-                    var body = "";
-                    if (ThemeManager.themeName === "silvia") {
-                        body = shellRoot.activeWinClass !== "" ? (shellRoot.activeWinClass + ":" + shellRoot.activeWinTitle) : shellRoot.activeWinTitle;
-                    } else if (ThemeManager.themeName === "marisol") {
-                        body = shellRoot.activeWinClass !== "" ? shellRoot.activeWinClass : shellRoot.activeWinTitle;
-                    } else {
-                        body = shellRoot.activeWinClass !== "" ? (shellRoot.activeWinClass + " — " + shellRoot.activeWinTitle) : shellRoot.activeWinTitle;
+                    var parts = [];
+                    if (CentralConfig.showTitleAppName && shellRoot.activeWinClass !== "") {
+                        parts.push(shellRoot.activeWinClass);
                     }
+                    if (CentralConfig.showTitleWindowName && shellRoot.activeWinTitle !== "") {
+                        parts.push(shellRoot.activeWinTitle);
+                    }
+                    if (parts.length === 0 && shellRoot.activeWinTitle !== "") {
+                        parts.push(shellRoot.activeWinTitle);
+                    }
+                    var body = parts.join(" — ");
                     return prefix + body;
                 }
                 color: ThemeManager.themeName === "silvia" ? shellRoot._acc : (ThemeManager.themeName === "marisol" ? shellRoot._cyn : shellRoot._fg)
@@ -1553,6 +1556,7 @@ ShellRoot {
 
             // Dynamic Equalizer Animated Bars
             Row {
+                visible: CentralConfig.showSongEqualizer
                 spacing: 2
                 anchors.verticalCenter: parent.verticalCenter
                 Repeater {
@@ -1570,7 +1574,7 @@ ShellRoot {
 
             // Album Cover Art (if available)
             Image {
-                visible: shellRoot.artUrl !== ""
+                visible: CentralConfig.showSongCoverArt && shellRoot.artUrl !== ""
                 source: shellRoot.artUrl
                 width: 20; height: 20
                 fillMode: Image.PreserveAspectCrop
@@ -1578,13 +1582,19 @@ ShellRoot {
             }
 
             Text {
-                text: shellRoot.songValue !== "" ? shellRoot.songValue : "[ EDIT: Song Title ]"
+                text: {
+                    if (shellRoot.songValue === "") return "[ EDIT: Song Title ]";
+                    if (CentralConfig.showSongArtist && shellRoot.artistValue !== "") {
+                        return shellRoot.songValue + " • " + shellRoot.artistValue;
+                    }
+                    return shellRoot.songValue;
+                }
                 color: shellRoot._acc
                 font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize
                 font.bold: true
                 verticalAlignment: Text.AlignVCenter; height: 30
                 elide: Text.ElideRight
-                width: text !== "" ? Math.min(260, implicitWidth) : 0
+                width: text !== "" ? Math.min(280, implicitWidth) : 0
                 clip: true
             }
 

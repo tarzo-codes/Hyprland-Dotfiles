@@ -781,6 +781,109 @@ PanelWindow {
                                     }
                                 }
 
+                                // Per-Module Settings & Sub-Component Toggles Card
+                                Column {
+                                    width: parent.width; spacing: 8
+
+                                    Text { text: "󰒓  Per-Module Component Settings & Display Toggles:"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true }
+
+                                    Rectangle {
+                                        width: parent.width; radius: 8; color: "#1e1e2e"; border.color: "#2a283e"; border.width: 1
+                                        height: modSettingsCol.implicitHeight + 16
+
+                                        Column {
+                                            id: modSettingsCol
+                                            anchors.fill: parent; anchors.margins: 10; spacing: 10
+
+                                            // ── Active Window Title Customizer ──
+                                            Column {
+                                                width: parent.width; spacing: 4
+                                                Text { text: "󰈈  Active Window Title Module:"; color: "#9bced7"; font.pixelSize: 10; font.bold: true }
+
+                                                Row {
+                                                    spacing: 12
+                                                    // Logo Checkbox
+                                                    Row {
+                                                        spacing: 4
+                                                        Rectangle {
+                                                            width: 16; height: 16; radius: 3; color: CentralConfig.showTitleLogo ? "#9bced7" : "#2a283e"; border.color: "#9bced7"; border.width: 1
+                                                            Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showTitleLogo; color: "#181628"; font.pixelSize: 10; font.bold: true }
+                                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showTitleLogo = !CentralConfig.showTitleLogo }
+                                                        }
+                                                        Text { text: "App Icon"; color: "#e0def4"; font.pixelSize: 10; anchors.verticalCenter: parent.verticalCenter }
+                                                    }
+
+                                                    // App Name Checkbox
+                                                    Row {
+                                                        spacing: 4
+                                                        Rectangle {
+                                                            width: 16; height: 16; radius: 3; color: CentralConfig.showTitleAppName ? "#9bced7" : "#2a283e"; border.color: "#9bced7"; border.width: 1
+                                                            Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showTitleAppName; color: "#181628"; font.pixelSize: 10; font.bold: true }
+                                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showTitleAppName = !CentralConfig.showTitleAppName }
+                                                        }
+                                                        Text { text: "App Name (Class)"; color: "#e0def4"; font.pixelSize: 10; anchors.verticalCenter: parent.verticalCenter }
+                                                    }
+
+                                                    // Window Title Checkbox
+                                                    Row {
+                                                        spacing: 4
+                                                        Rectangle {
+                                                            width: 16; height: 16; radius: 3; color: CentralConfig.showTitleWindowName ? "#9bced7" : "#2a283e"; border.color: "#9bced7"; border.width: 1
+                                                            Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showTitleWindowName; color: "#181628"; font.pixelSize: 10; font.bold: true }
+                                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showTitleWindowName = !CentralConfig.showTitleWindowName }
+                                                        }
+                                                        Text { text: "Window Title"; color: "#e0def4"; font.pixelSize: 10; anchors.verticalCenter: parent.verticalCenter }
+                                                    }
+                                                }
+                                            }
+
+                                            Rectangle { width: parent.width; height: 1; color: "#2a283e" }
+
+                                            // ── Song / Media Player Customizer ──
+                                            Column {
+                                                width: parent.width; spacing: 4
+                                                Text { text: "󰎈  Media / Song Title Module:"; color: "#f1ca93"; font.pixelSize: 10; font.bold: true }
+
+                                                Row {
+                                                    spacing: 12
+                                                    // Equalizer Checkbox
+                                                    Row {
+                                                        spacing: 4
+                                                        Rectangle {
+                                                            width: 16; height: 16; radius: 3; color: CentralConfig.showSongEqualizer ? "#f1ca93" : "#2a283e"; border.color: "#f1ca93"; border.width: 1
+                                                            Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showSongEqualizer; color: "#181628"; font.pixelSize: 10; font.bold: true }
+                                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showSongEqualizer = !CentralConfig.showSongEqualizer }
+                                                        }
+                                                        Text { text: "Equalizer Bars"; color: "#e0def4"; font.pixelSize: 10; anchors.verticalCenter: parent.verticalCenter }
+                                                    }
+
+                                                    // Album Cover Checkbox
+                                                    Row {
+                                                        spacing: 4
+                                                        Rectangle {
+                                                            width: 16; height: 16; radius: 3; color: CentralConfig.showSongCoverArt ? "#f1ca93" : "#2a283e"; border.color: "#f1ca93"; border.width: 1
+                                                            Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showSongCoverArt; color: "#181628"; font.pixelSize: 10; font.bold: true }
+                                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showSongCoverArt = !CentralConfig.showSongCoverArt }
+                                                        }
+                                                        Text { text: "Album Cover Art"; color: "#e0def4"; font.pixelSize: 10; anchors.verticalCenter: parent.verticalCenter }
+                                                    }
+
+                                                    // Artist Name Checkbox
+                                                    Row {
+                                                        spacing: 4
+                                                        Rectangle {
+                                                            width: 16; height: 16; radius: 3; color: CentralConfig.showSongArtist ? "#f1ca93" : "#2a283e"; border.color: "#f1ca93"; border.width: 1
+                                                            Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showSongArtist; color: "#181628"; font.pixelSize: 10; font.bold: true }
+                                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showSongArtist = !CentralConfig.showSongArtist }
+                                                        }
+                                                        Text { text: "Artist Name"; color: "#e0def4"; font.pixelSize: 10; anchors.verticalCenter: parent.verticalCenter }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
                                 // Module List
                                 Column {
                                     width: parent.width

@@ -41,6 +41,14 @@ Item {
         property real   brightnessValue: 0.88
         property bool   isMuted: false
 
+        // Per-Module Configuration Settings
+        property bool showTitleLogo: true
+        property bool showTitleAppName: true
+        property bool showTitleWindowName: true
+        property bool showSongCoverArt: true
+        property bool showSongEqualizer: true
+        property bool showSongArtist: false
+
         // Bar Layout Mode & Modules
         property string mode: "default" // "default" or "custom"
         property bool   editMode: false
@@ -67,6 +75,13 @@ Item {
     property alias useCustomAppletSize: cfgStore.useCustomAppletSize
     property alias appletCustomX:     cfgStore.appletCustomX
     property alias appletCustomY:     cfgStore.appletCustomY
+
+    property alias showTitleLogo:       cfgStore.showTitleLogo
+    property alias showTitleAppName:    cfgStore.showTitleAppName
+    property alias showTitleWindowName: cfgStore.showTitleWindowName
+    property alias showSongCoverArt:    cfgStore.showSongCoverArt
+    property alias showSongEqualizer:   cfgStore.showSongEqualizer
+    property alias showSongArtist:      cfgStore.showSongArtist
 
     property alias volValue:          cfgStore.volValue
     property alias brightnessValue:   cfgStore.brightnessValue
