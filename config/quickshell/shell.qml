@@ -1017,6 +1017,20 @@ ShellRoot {
         }
     }
 
+    function getAppIcon(appClass) {
+        if (!appClass || appClass === "") return "󰈈";
+        var c = appClass.toLowerCase();
+        if (c.indexOf("kitty") !== -1 || c.indexOf("foot") !== -1 || c.indexOf("alacritty") !== -1 || c.indexOf("terminal") !== -1) return "󰆍";
+        if (c.indexOf("zen") !== -1 || c.indexOf("firefox") !== -1 || c.indexOf("chrome") !== -1 || c.indexOf("browser") !== -1) return "󰈹";
+        if (c.indexOf("dolphin") !== -1 || c.indexOf("thunar") !== -1 || c.indexOf("nautilus") !== -1 || c.indexOf("files") !== -1) return "󰉋";
+        if (c.indexOf("code") !== -1 || c.indexOf("vscium") !== -1 || c.indexOf("nvim") !== -1) return "󰨞";
+        if (c.indexOf("discord") !== -1 || c.indexOf("vesktop") !== -1) return "󰙯";
+        if (c.indexOf("steam") !== -1) return "󰓓";
+        if (c.indexOf("spotify") !== -1) return "󰓇";
+        if (c.indexOf("obs") !== -1) return "󰑋";
+        return "󰈈";
+    }
+
     Component {
         id: compTitle
         Row {
@@ -1024,7 +1038,7 @@ ShellRoot {
             height: 30
             visible: winText.text !== ""
             Text {
-                text: "󰆍"
+                text: shellRoot.getAppIcon(shellRoot.activeWinClass)
                 color: shellRoot._mag
                 font.family: shellRoot.globalFontFamily
                 font.pixelSize: shellRoot.iconFontSize
