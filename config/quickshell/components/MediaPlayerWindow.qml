@@ -36,6 +36,12 @@ PanelWindow {
     property bool isShuffle: false
     property bool isRepeat: false
 
+    Process { id: directPrevProc; command: ["playerctl", "previous"] }
+    Process { id: directNextProc; command: ["playerctl", "next"] }
+    Process { id: directPlayProc; command: ["playerctl", "play-pause"] }
+    Process { id: directShuffleProc; command: ["playerctl", "shuffle", "toggle"] }
+    Process { id: directRepeatProc; command: ["playerctl", "loop", "Playlist"] }
+
     // Outer Main Card
     Rectangle {
         id: container
@@ -133,14 +139,28 @@ PanelWindow {
                                 color: isShuffle ? (mediaWindow.rootBar ? mediaWindow.rootBar._grn : "#8ec07c") : (mediaWindow.rootBar ? mediaWindow.rootBar._muted : "#6e6a86")
                                 font.family: mediaWindow.rootBar ? mediaWindow.rootBar.globalFontFamily : "JetBrainsMono Nerd Font"
                                 font.pixelSize: 14
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: isShuffle = !isShuffle }
+                                MouseArea {
+                                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        isShuffle = !isShuffle;
+                                        directShuffleProc.running = false;
+                                        directShuffleProc.running = true;
+                                    }
+                                }
                             }
                             Text {
                                 text: "󰑖"
                                 color: isRepeat ? (mediaWindow.rootBar ? mediaWindow.rootBar._grn : "#8ec07c") : (mediaWindow.rootBar ? mediaWindow.rootBar._muted : "#6e6a86")
                                 font.family: mediaWindow.rootBar ? mediaWindow.rootBar.globalFontFamily : "JetBrainsMono Nerd Font"
                                 font.pixelSize: 14
-                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: isRepeat = !isRepeat }
+                                MouseArea {
+                                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        isRepeat = !isRepeat;
+                                        directRepeatProc.running = false;
+                                        directRepeatProc.running = true;
+                                    }
+                                }
                             }
                         }
 
@@ -238,12 +258,17 @@ PanelWindow {
                 Item { Layout.fillHeight: true }
 
                 // Previous Track
-                Text {
+                Rectangle {
                     Layout.alignment: Qt.AlignHCenter
-                    text: "󰒮"
-                    color: mediaWindow.rootBar ? mediaWindow.rootBar._cyn : "#9bced7"
-                    font.family: mediaWindow.rootBar ? mediaWindow.rootBar.globalFontFamily : "JetBrainsMono Nerd Font"
-                    font.pixelSize: 20
+                    width: 32; height: 32; radius: 16
+                    color: "transparent"
+                    Text {
+                        anchors.centerIn: parent
+                        text: "󰒮"
+                        color: mediaWindow.rootBar ? mediaWindow.rootBar._cyn : "#9bced7"
+                        font.family: mediaWindow.rootBar ? mediaWindow.rootBar.globalFontFamily : "JetBrainsMono Nerd Font"
+                        font.pixelSize: 20
+                    }
                     MouseArea {
                         anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                         onClicked: {
@@ -251,17 +276,24 @@ PanelWindow {
                                 mediaWindow.rootBar.prevProc.running = false;
                                 mediaWindow.rootBar.prevProc.running = true;
                             }
+                            directPrevProc.running = false;
+                            directPrevProc.running = true;
                         }
                     }
                 }
 
                 // Play / Pause
-                Text {
+                Rectangle {
                     Layout.alignment: Qt.AlignHCenter
-                    text: mediaWindow.rootBar && mediaWindow.rootBar.isPlaying ? "󰏤" : "󰐊"
-                    color: mediaWindow.rootBar ? mediaWindow.rootBar._fg : "#ffffff"
-                    font.family: mediaWindow.rootBar ? mediaWindow.rootBar.globalFontFamily : "JetBrainsMono Nerd Font"
-                    font.pixelSize: 22
+                    width: 36; height: 36; radius: 18
+                    color: mediaWindow.rootBar ? mediaWindow.rootBar.alphaColor(mediaWindow.rootBar._sur, 0.6) : "#2a283e"
+                    Text {
+                        anchors.centerIn: parent
+                        text: mediaWindow.rootBar && mediaWindow.rootBar.isPlaying ? "󰏤" : "󰐊"
+                        color: mediaWindow.rootBar ? mediaWindow.rootBar._fg : "#ffffff"
+                        font.family: mediaWindow.rootBar ? mediaWindow.rootBar.globalFontFamily : "JetBrainsMono Nerd Font"
+                        font.pixelSize: 22
+                    }
                     MouseArea {
                         anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                         onClicked: {
@@ -272,17 +304,24 @@ PanelWindow {
                                     mediaWindow.rootBar.playProc.running = true;
                                 }
                             }
+                            directPlayProc.running = false;
+                            directPlayProc.running = true;
                         }
                     }
                 }
 
                 // Next Track
-                Text {
+                Rectangle {
                     Layout.alignment: Qt.AlignHCenter
-                    text: "󰒭"
-                    color: mediaWindow.rootBar ? mediaWindow.rootBar._cyn : "#9bced7"
-                    font.family: mediaWindow.rootBar ? mediaWindow.rootBar.globalFontFamily : "JetBrainsMono Nerd Font"
-                    font.pixelSize: 20
+                    width: 32; height: 32; radius: 16
+                    color: "transparent"
+                    Text {
+                        anchors.centerIn: parent
+                        text: "󰒭"
+                        color: mediaWindow.rootBar ? mediaWindow.rootBar._cyn : "#9bced7"
+                        font.family: mediaWindow.rootBar ? mediaWindow.rootBar.globalFontFamily : "JetBrainsMono Nerd Font"
+                        font.pixelSize: 20
+                    }
                     MouseArea {
                         anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                         onClicked: {
@@ -290,6 +329,8 @@ PanelWindow {
                                 mediaWindow.rootBar.nextProc.running = false;
                                 mediaWindow.rootBar.nextProc.running = true;
                             }
+                            directNextProc.running = false;
+                            directNextProc.running = true;
                         }
                     }
                 }

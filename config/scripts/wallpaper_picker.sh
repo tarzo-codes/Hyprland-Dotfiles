@@ -144,8 +144,34 @@ update_apps() {
     # Dynamically find the best matching Tela icon theme across all Wallust accent colors
     TELA_BASE=$(python3 -c "
 import os
+from PIL import Image
+
+wp_path = '$IMAGE_PATH'
+if not wp_path or not os.path.isfile(wp_path):
+    cache_wp = os.path.expanduser('~/.cache/wallust/current_wallpaper')
+    if os.path.isfile(cache_wp): wp_path = cache_wp
+
+dom_color = None
+if wp_path and os.path.isfile(wp_path):
+    try:
+        im = Image.open(wp_path).convert('RGB').resize((100, 100))
+        colors = im.getcolors(10000)
+        if colors:
+            colors.sort(key=lambda x: x[0], reverse=True)
+            for count, (r, g, b) in colors:
+                mx, mn = max(r, g, b), min(r, g, b)
+                sat = (mx - mn) / (mx if mx > 0 else 1)
+                luma = (0.299*r + 0.587*g + 0.114*b) / 255.0
+                if sat >= 0.15 and 0.15 <= luma <= 0.85:
+                    dom_color = f'#{r:02x}{g:02x}{b:02x}'
+                    break
+    except Exception:
+        pass
 
 source_colors = ['$COLOR1', '$COLOR2', '$COLOR3', '$COLOR4', '$COLOR5', '$COLOR6', '$COLOR9', '$COLOR10', '$COLOR11', '$COLOR12', '$COLOR13', '$COLOR14']
+if dom_color:
+    source_colors.insert(0, dom_color)
+
 tela_colors = {
     'Tela-pink': '#e91e63',
     'Tela-purple': '#9c27b0',

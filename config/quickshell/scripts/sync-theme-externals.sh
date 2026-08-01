@@ -410,6 +410,25 @@ fi
 # ──────────────────────────────────────────────────────────────────────────
 ICON_THEME=$(python3 -c "
 import os
+from PIL import Image
+
+wp_path = os.path.expanduser('~/.cache/wallust/current_wallpaper')
+dom_color = None
+if wp_path and os.path.isfile(wp_path):
+    try:
+        im = Image.open(wp_path).convert('RGB').resize((100, 100))
+        colors = im.getcolors(10000)
+        if colors:
+            colors.sort(key=lambda x: x[0], reverse=True)
+            for count, (r, g, b) in colors:
+                mx, mn = max(r, g, b), min(r, g, b)
+                sat = (mx - mn) / (mx if mx > 0 else 1)
+                luma = (0.299*r + 0.587*g + 0.114*b) / 255.0
+                if sat >= 0.15 and 0.15 <= luma <= 0.85:
+                    dom_color = f'#{r:02x}{g:02x}{b:02x}'
+                    break
+    except Exception:
+        pass
 
 tela_colors = {
     'Tela-pink': '#e91e63',
@@ -431,6 +450,8 @@ tela_colors = {
 is_light = '$IS_LIGHT' == 'true'
 suffix = '$ICON_SUFFIX'
 candidates = ['$ACC', '$RED', '$GRN', '$YEL', '$BLU', '$CYN', '$MAG']
+if dom_color:
+    candidates.insert(0, dom_color)
 
 def hex_to_rgb(h):
     h = h.lstrip('#')
