@@ -110,11 +110,7 @@ set_icon_theme() {
     fi
   fi
 
-  # Send desktop notification when icon theme updates
-  if command -v notify-send &> /dev/null; then
-    notify-send -a "Quickshell" -i "preferences-desktop-icons" "Icon Theme Updated" "Icon theme set to $icon_theme" 2>/dev/null || true
-  fi
-  echo "[Quickshell] Icon theme updated to: $icon_theme"
+  echo "[Quickshell] Pass 1 Icon theme applied: $icon_theme"
 }
 
 # Set wallpaper using awww (preferred) or swww (fallback)
