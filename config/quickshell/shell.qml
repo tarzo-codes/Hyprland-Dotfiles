@@ -1438,6 +1438,8 @@ ShellRoot {
             rootBar: shellRoot
             anchors.verticalCenter: parent.verticalCenter
         }
+    }
+
     Process {
         id: reapplyThemeProc
         command: ["bash", "-c", "$HOME/.config/scripts/wallpaper_picker.sh --reapply"]
