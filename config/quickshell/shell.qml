@@ -1050,7 +1050,8 @@ ShellRoot {
                 font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize
                 font.bold: true
                 elide: Text.ElideRight
-                width: text !== "" ? Math.min(ThemeManager.themeName === "silvia" ? 180 : 260, implicitWidth) : 0
+                width: text !== "" ? Math.min(ThemeManager.themeName === "silvia" ? 220 : 340, implicitWidth) : 0
+                clip: true
                 verticalAlignment: Text.AlignVCenter; height: 30
             }
         }
@@ -1580,8 +1581,11 @@ ShellRoot {
                 text: shellRoot.songValue !== "" ? shellRoot.songValue : "[ EDIT: Song Title ]"
                 color: shellRoot._acc
                 font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize
+                font.bold: true
                 verticalAlignment: Text.AlignVCenter; height: 30
-                elide: Text.ElideRight; width: Math.min(140, implicitWidth); clip: true
+                elide: Text.ElideRight
+                width: text !== "" ? Math.min(260, implicitWidth) : 0
+                clip: true
             }
 
             MouseArea {
