@@ -741,8 +741,10 @@ PanelWindow {
                                             { key: "weather", name: "Weather Widget", icon: "󰖕" },
                                             { key: "clock", name: "Clock & Date", icon: "󰥔" },
                                             { key: "tray", name: "System Tray Expander", icon: "󰅀" },
+                                            { key: "settings", name: "Quick Settings Panel", icon: "󰒓" },
                                             { key: "theme", name: "Theme Selector", icon: "󰏘" },
                                             { key: "wallpaper", name: "Wallpaper Picker", icon: "󰸉" },
+                                            { key: "colorpicker", name: "Color Picker Tool", icon: "󰃉" },
                                             { key: "power", name: "Power Button", icon: "󰐥" }
                                         ]
                                         delegate: Rectangle {
