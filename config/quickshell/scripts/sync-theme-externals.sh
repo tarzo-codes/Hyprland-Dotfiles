@@ -436,7 +436,7 @@ def hex_to_rgb(h):
     h = h.lstrip('#')
     return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
 
-best_base = 'Tela-red'
+best_base = 'Tela-blue'
 
 if wp_path and os.path.isfile(wp_path):
     try:
@@ -460,15 +460,15 @@ if wp_path and os.path.isfile(wp_path):
                 mx, mn = max(r, g, b), min(r, g, b)
                 sat = (mx - mn) / (mx if mx > 0 else 1)
                 luma = (0.299*r + 0.587*g + 0.114*b) / 255.0
-                if sat >= 0.25 and 0.15 <= luma <= 0.85:
+                if sat >= 0.18 and 0.15 <= luma <= 0.85:
                     for name, hex_val in tela_colors.items():
                         tr, tg, tb = hex_to_rgb(hex_val)
                         dist = ((r - tr)**2 + (g - tg)**2 + (b - tb)**2) ** 0.5
                         if dist < 130:
                             sat_mult = 3.0 if name in ['Tela-red', 'Tela-pink', 'Tela-ubuntu', 'Tela-orange', 'Tela-purple'] else 1.0
-                            scores[name] += (sat ** 3) * count * (130 - dist) * sat_mult
+                            scores[name] += (sat ** 2.5) * count * (130 - dist) * sat_mult
             top_focal = max(scores.items(), key=lambda x: x[1])
-            if top_focal[1] > 50:
+            if top_focal[1] > 20:
                 best_base = top_focal[0]
     except Exception:
         pass
