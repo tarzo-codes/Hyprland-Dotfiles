@@ -1069,11 +1069,11 @@ ShellRoot {
                     var body = parts.join(" — ");
                     return prefix + body;
                 }
-                color: ThemeManager.themeName === "silvia" ? shellRoot._acc : (ThemeManager.themeName === "marisol" ? shellRoot._cyn : shellRoot._fg)
+                color: shellRoot.contrastFg(shellRoot._sur, shellRoot._fg)
                 font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize
                 font.bold: true
                 elide: Text.ElideRight
-                width: text !== "" ? Math.min(ThemeManager.themeName === "silvia" ? 220 : 340, implicitWidth) : 0
+                width: text !== "" ? Math.min(600, implicitWidth) : 0
                 clip: true
                 verticalAlignment: Text.AlignVCenter; height: 30
             }
@@ -1609,12 +1609,12 @@ ShellRoot {
                     }
                     return shellRoot.songValue;
                 }
-                color: shellRoot._acc
+                color: shellRoot.contrastFg(shellRoot._sur, shellRoot._fg)
                 font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize
                 font.bold: true
                 verticalAlignment: Text.AlignVCenter; height: 30
                 elide: Text.ElideRight
-                width: text !== "" ? Math.min(280, implicitWidth) : 0
+                width: text !== "" ? Math.min(600, implicitWidth) : 0
                 clip: true
             }
 

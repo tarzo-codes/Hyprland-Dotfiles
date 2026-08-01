@@ -115,8 +115,8 @@ PanelWindow {
     Rectangle {
         id: mainCard
         anchors.centerIn: parent
-        width: 880
-        height: 640
+        width: 960
+        height: 680
         color: rootBar ? rootBar._bg : "#161622"
         border.color: rootBar ? rootBar._acc : "#31748f"
         border.width: 1.5
@@ -431,14 +431,16 @@ PanelWindow {
 
                                 Text { text: "󰍹  Active Bar / Theme Selection (18 Bars)"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true }
 
-                                Flow {
+                                Grid {
+                                    columns: 6
+                                    columnSpacing: 6
+                                    rowSpacing: 6
                                     width: parent.width
-                                    spacing: 6
 
                                     Repeater {
                                         model: ThemeManager.availableThemes
                                         delegate: Rectangle {
-                                            width: (parent.width - 24) / 4
+                                            width: (parent.width - 30) / 6
                                             height: 28
                                             radius: 6
                                             color: ThemeManager.themeName === modelData ? (rootBar ? rootBar._cyn : "#9bced7") : (barMouse.containsMouse ? "#2a283e" : "#1e1e2e")
