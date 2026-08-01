@@ -25,6 +25,7 @@ Item {
         property int    globalFontSize: 11
         property bool   autoHideBar: false
         property string customAccentColor: ""
+        property bool   gradientAnimated: true
 
         // Applet Configuration (Position & Size)
         property string appletLocation: "top" // "top", "bottom", "center", "custom"
@@ -57,6 +58,7 @@ Item {
     property alias globalFontSize:    cfgStore.globalFontSize
     property alias autoHideBar:       cfgStore.autoHideBar
     property alias customAccentColor: cfgStore.customAccentColor
+    property alias gradientAnimated:  cfgStore.gradientAnimated
 
     property alias appletLocation:    cfgStore.appletLocation
     property alias appletScale:       cfgStore.appletScale

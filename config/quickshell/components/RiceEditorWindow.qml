@@ -45,6 +45,13 @@ PanelWindow {
     property string pendingPresetId: ""
     property string pendingPresetName: ""
 
+    // Process to toggle active border gradient animation live via hyprctl
+    Process {
+        id: toggleGradientAnimProc
+        property string animCmd: ""
+        command: ["bash", "-c", "hyprctl keyword animation \"" + animCmd + "\" 2>/dev/null || true"]
+    }
+
     Shortcut {
         sequence: "Escape"
         onActivated: {
@@ -625,6 +632,41 @@ PanelWindow {
                             // ════ TAB 1: STYLE & HARDWARE SAVED VALUES ════
                             Column {
                                 width: parent.width; spacing: 12; visible: activeTab === 1
+
+                                Row {
+                                    width: parent.width
+                                    Text { text: "Active Border Gradient Mode"; color: "#e0def4"; font.pixelSize: 11; anchors.verticalCenter: parent.verticalCenter }
+                                    Item { width: parent.width - 270 }
+                                    Rectangle {
+                                        width: 140; height: 26; radius: 4
+                                        color: CentralConfig.gradientAnimated ? (rootBar ? rootBar._cyn : "#9bced7") : "#2a283e"
+                                        border.color: CentralConfig.gradientAnimated ? "#ffffff" : "#9bced7"
+                                        border.width: 1
+
+                                        Text {
+                                            anchors.centerIn: parent
+                                            text: CentralConfig.gradientAnimated ? "󰔡  ANIMATED (SLOW)" : "󰏘  STATIC (45°)"
+                                            color: CentralConfig.gradientAnimated ? "#181628" : "#e0def4"
+                                            font.pixelSize: 9; font.bold: true
+                                        }
+
+                                        MouseArea {
+                                            anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                            onClicked: {
+                                                CentralConfig.gradientAnimated = !CentralConfig.gradientAnimated;
+                                                if (CentralConfig.gradientAnimated) {
+                                                    toggleGradientAnimProc.animCmd = "borderangle, 1, 250, linear, loop";
+                                                    riceWindow.showStatus("Border Gradient: Animated Slow Flow");
+                                                } else {
+                                                    toggleGradientAnimProc.animCmd = "borderangle, 0, 1, default";
+                                                    riceWindow.showStatus("Border Gradient: Static (45°)");
+                                                }
+                                                toggleGradientAnimProc.running = false;
+                                                toggleGradientAnimProc.running = true;
+                                            }
+                                        }
+                                    }
+                                }
 
                                 Row {
                                     width: parent.width
