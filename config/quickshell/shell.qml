@@ -60,6 +60,62 @@ ShellRoot {
         }
     }
 
+    // IPC — Rice Control Center
+    IpcHandler {
+        target: "RiceEditorController"
+        function toggle() {
+            var next = !shellRoot.riceEditorVisible;
+            shellRoot.dismissPanels();
+            shellRoot.riceEditorVisible = next;
+        }
+    }
+
+    // IPC — Task Switcher
+    IpcHandler {
+        target: "TaskSwitcherController"
+        function toggle() {
+            var next = !shellRoot.taskSwitcherVisible;
+            shellRoot.dismissPanels();
+            shellRoot.taskSwitcherVisible = next;
+        }
+        function next() {
+            if (!shellRoot.taskSwitcherVisible) {
+                shellRoot.dismissPanels();
+                shellRoot.taskSwitcherVisible = true;
+            } else {
+                if (shellRoot.topTaskSwitcher) shellRoot.topTaskSwitcher.selectNext();
+                if (shellRoot.botTaskSwitcher) shellRoot.botTaskSwitcher.selectNext();
+            }
+        }
+        function activateAndClose() {
+            if (shellRoot.taskSwitcherVisible) {
+                if (shellRoot.topTaskSwitcher) shellRoot.topTaskSwitcher.activateSelected();
+                if (shellRoot.botTaskSwitcher) shellRoot.botTaskSwitcher.activateSelected();
+                shellRoot.taskSwitcherVisible = false;
+            }
+        }
+    }
+
+    // IPC — Clipboard Manager
+    IpcHandler {
+        target: "ClipboardController"
+        function toggle() {
+            var next = !shellRoot.clipboardVisible;
+            shellRoot.dismissPanels();
+            shellRoot.clipboardVisible = next;
+        }
+    }
+
+    // IPC — Desktop Context Menu
+    IpcHandler {
+        target: "DesktopMenuController"
+        function toggle() {
+            var next = !shellRoot.desktopContextMenuVisible;
+            shellRoot.dismissPanels();
+            shellRoot.desktopContextMenuVisible = next;
+        }
+    }
+
     // Sync isLightMode state from cache file on startup (especially for Auto mode)
     Process {
         id: syncLightModeProc
@@ -110,6 +166,10 @@ ShellRoot {
     // ─── Global state ─────────────────────────────────────────────────────────
     property bool powerMenuVisible:      false
     property bool settingsVisible:       false
+    property bool riceEditorVisible:     false
+    property bool taskSwitcherVisible:   false
+    property bool clipboardVisible:      false
+    property bool desktopContextMenuVisible: false
     property bool themeSelectorVisible:  false
     property bool volumePanelVisible:    false
     property bool brightnessPanelVisible: false
@@ -123,13 +183,15 @@ ShellRoot {
     property string lightModePromptWp:   ""
     property string userName:            "user"
     property string hostName:            "host"
-    property int  barHeight:       Math.max(36, ThemeManager.barHeight)
-    property real barWidthPercent: ThemeManager.barWidthPercent
-    // Write-back so the slider in SettingsPanel updates the persistent store
-    onBarHeightChanged:       ThemeManager.barHeight       = barHeight
-    onBarWidthPercentChanged: ThemeManager.barWidthPercent = barWidthPercent
-    property real brightnessValue:  1.0
-    property real volValue:         0.5
+    property int  barHeight:       Math.max(36, CentralConfig.barHeight)
+    property real barWidthPercent: CentralConfig.barWidthPercent
+    // Write-back so CentralConfig is updated persistently
+    onBarHeightChanged:       CentralConfig.barHeight       = barHeight
+    onBarWidthPercentChanged: CentralConfig.barWidthPercent = barWidthPercent
+    property real brightnessValue:  CentralConfig.brightnessValue
+    property real volValue:         CentralConfig.volValue
+    onVolValueChanged:              CentralConfig.volValue = volValue
+    onBrightnessValueChanged:       CentralConfig.brightnessValue = brightnessValue
     Behavior on brightnessValue { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
 
     property bool isAdjustingBrightness: false
@@ -246,7 +308,7 @@ ShellRoot {
     // Auto-dismiss open panels/applets when user clicks outside onto another window
     Connections {
         target: Hyprland
-        function onActiveWindowChanged() {
+        function onFocusedWindowChanged() {
             shellRoot.volumePanelVisible = false;
             shellRoot.networkPanelVisible = false;
             shellRoot.bluetoothPanelVisible = false;
@@ -358,7 +420,7 @@ ShellRoot {
     property string _bg:  c("background", "#0d0f18")
     property string _sur: c("surface",    "#1e1e2e")
     property string _fg:  c("foreground", "#c0caf5")
-    property string _acc: c("accent",     "#7aa2f7")
+    property string _acc: ThemeManager.customAccentColor !== "" ? ThemeManager.customAccentColor : c("accent",     "#7aa2f7")
     property string _red: c("red",        "#f7768e")
     property string _grn: c("green",      "#9ece6a")
     property string _yel: c("yellow",     "#e0af68")
@@ -370,7 +432,7 @@ ShellRoot {
     Binding on _bg  { value: c("background", "#0d0f18") }
     Binding on _sur { value: c("surface",    "#1e1e2e") }
     Binding on _fg  { value: c("foreground", "#c0caf5") }
-    Binding on _acc { value: c("accent",     "#7aa2f7") }
+    Binding on _acc { value: ThemeManager.customAccentColor !== "" ? ThemeManager.customAccentColor : c("accent",     "#7aa2f7") }
     Binding on _red { value: c("red",        "#f7768e") }
     Binding on _grn { value: c("green",      "#9ece6a") }
     Binding on _yel { value: c("yellow",     "#e0af68") }
@@ -378,6 +440,19 @@ ShellRoot {
     Binding on _cyn { value: c("cyan",       "#7dcfff") }
     Binding on _mag { value: c("magenta",    "#bb9af7") }
     Binding on _muted { value: c("textMuted", "#6D8895") }
+
+    function getAppColor(appName, defaultColor) {
+        if (ThemeManager.appColorMode === "real") {
+            if (appName === "kitty") return "#4A90E2";
+            if (appName === "dolphin") return "#1C9EFF";
+            if (appName === "zen-browser") return "#33D17A";
+            if (appName === "vesktop" || appName === "discord") return "#5865F2";
+            if (appName === "steam") return "#C7D5E0";
+            if (appName === "lutris") return "#F57C00";
+            if (appName === "code") return "#007ACC";
+        }
+        return defaultColor;
+    }
 
     function ensureBright(hex) {
         if (!hex || hex === "" || hex === "transparent") return "#ffffff";
@@ -544,19 +619,19 @@ ShellRoot {
     // Component map for all widgets
     function getWidget(type) {
         if (type === "launcher")     return compLauncher;
-        if (type === "workspaces")        return compWorkspaces;
+        if (type === "workspaces")   return compWorkspaces;
         if (type === "title")        return compTitle;
         if (type === "cpu")          return compCpu;
-        if (type === "memory")       return compMemory;
-        if (type === "filesystem")   return compFilesystem;
+        if (type === "memory" || type === "ram") return compMemory;
+        if (type === "filesystem" || type === "disk") return compFilesystem;
         if (type === "volume")       return compVolume;
         if (type === "brightness")   return compBrightness;
         if (type === "battery")      return compBattery;
         if (type === "network")      return compNetwork;
         if (type === "updates")      return compUpdates;
-        if (type === "date")         return compDate;
+        if (type === "date" || type === "clock") return compDate;
         if (type === "power")        return compPower;
-        if (type === "settings")     return compSettings;
+        if (type === "settings" || type === "theme") return compSettings;
         if (type === "sep")          return compSep;
         if (type === "bluetooth")    return compBluetooth;
         if (type === "background_tasks" || type === "tasks" || type === "bg_tasks") return compBackgroundTaskHandler;
@@ -565,14 +640,29 @@ ShellRoot {
         if (type === "mplayer")      return compMplayer;
         if (type === "weather")      return compWeather;
         if (type === "tray")         return compTray;
-        if (type === "apps")         return compApps;
+        if (type === "apps" || type === "pinnedApps") return compApps;
         if (type === "song")         return compSong;
         if (type === "arch_text")    return compArchText;
         if (type === "andrea_stats") return compAndreaStats;
         if (type === "cynthia_prompt") return compCynthiaPrompt;
         if (type === "cynthia_status") return compCynthiaStatus;
-        if (type === "compact_player") return compCompactPlayer;
+        if (type === "compact_player" || type === "media") return compCompactPlayer;
         return null;
+    }
+
+    function getModuleArray(csvStr) {
+        if (!csvStr || csvStr === "") return [];
+        var arr = csvStr.split(",");
+        var result = [];
+        var seen = {};
+        for (var i = 0; i < arr.length; i++) {
+            var m = arr[i].trim();
+            if (m !== "" && !seen[m]) {
+                seen[m] = true;
+                result.push({ type: "capsule", modules: [m] });
+            }
+        }
+        return result;
     }
 
     // Decoupled Layout configuration (Top / Bottom) mapped directly from polybar dotfiles
@@ -1055,9 +1145,9 @@ ShellRoot {
         Row {
             spacing: 6
             height: 30
-            visible: UPower.battery !== null && UPower.battery.isPresent
-            Text { text: UPower.battery && UPower.battery.charging ? "\uf0e7" : "\uf240"; color: shellRoot._brightGrn; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
-            Text { text: UPower.battery ? Math.round(UPower.battery.percentage) + "%" : ""; color: shellRoot._fg; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
+            visible: !!(UPower.battery && UPower.battery.isPresent)
+            Text { text: (UPower.battery && UPower.battery.charging) ? "\uf0e7" : "\uf240"; color: shellRoot._brightGrn; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
+            Text { text: UPower.battery ? Math.round(UPower.battery.percentage || 0) + "%" : ""; color: shellRoot._fg; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
         }
     }
 
@@ -1585,23 +1675,31 @@ ShellRoot {
             width: visible ? (childRow.implicitWidth + (modelData.type === "capsule" ? 24 : 0)) : 0
             anchors.verticalCenter: parent.verticalCenter
             visible: {
-                if (modelData.type !== "capsule") {
-                    var type = modelData.type;
-                    if (type === "song" || type === "mplayer" || type === "compact_player") {
-                        return shellRoot.songValue !== "";
+                var mods = modelData.type === "capsule" ? modelData.modules : [modelData.type];
+                var hasActiveModule = false;
+                for (var i = 0; i < mods.length; i++) {
+                    var m = mods[i];
+                    if (m === "song" || m === "media" || m === "mplayer" || m === "compact_player") {
+                        if (shellRoot.songValue !== "" && shellRoot.songValue !== "No media playing" && shellRoot.songValue !== "No player found") {
+                            hasActiveModule = true;
+                        }
+                    } else if (m === "title") {
+                        if (shellRoot.activeTitle !== "" && shellRoot.activeTitle !== "Desktop" && shellRoot.activeTitle !== "Hyprland") {
+                            hasActiveModule = true;
+                        }
+                    } else if (m === "updates") {
+                        if (shellRoot.updatesValue !== "" && shellRoot.updatesValue !== "0 updates" && shellRoot.updatesValue !== "0" && shellRoot.updatesValue !== "Up to date") {
+                            hasActiveModule = true;
+                        }
+                    } else if (m === "tray") {
+                        if (shellRoot.trayCount > 0) {
+                            hasActiveModule = true;
+                        }
+                    } else {
+                        hasActiveModule = true;
                     }
-                    return true;
                 }
-                var hasNonMedia = false;
-                for (var i = 0; i < modelData.modules.length; i++) {
-                    var m = modelData.modules[i];
-                    if (m !== "song" && m !== "mplayer" && m !== "compact_player") {
-                        hasNonMedia = true;
-                        break;
-                    }
-                }
-                if (hasNonMedia) return true;
-                return shellRoot.songValue !== "";
+                return hasActiveModule;
             }
 
             Rectangle {
@@ -1657,23 +1755,52 @@ ShellRoot {
                 id: topBar
                 required property var modelData
                 screen: modelData
-                visible: ThemeManager.barIsTop || ThemeManager.barIsDouble
+                visible: ThemeManager.barIsTop || (ThemeManager.barIsDouble && ThemeManager.topBarEnabled)
                 color: "transparent"
                 anchors { top: true; left: true; right: true }
                 implicitWidth: screen.width
                 implicitHeight: ThemeManager.barIsTopFloat ? (barHeight + 10) : barHeight
+
+                property bool isTopHovered: topHoverArea.containsMouse || shellRoot.settingsVisible || shellRoot.riceEditorVisible || shellRoot.volumePanelVisible || shellRoot.networkPanelVisible || shellRoot.powerMenuVisible
+                property bool topBarShouldHide: false
+
+                Timer {
+                    id: topHideTimer
+                    interval: 600
+                    repeat: false
+                    onTriggered: topBar.topBarShouldHide = true
+                }
+
+                onIsTopHoveredChanged: {
+                    if (isTopHovered) {
+                        topHideTimer.stop();
+                        topBarShouldHide = false;
+                    } else {
+                        topHideTimer.restart();
+                    }
+                }
+
+                property real autoHideTopOffset: (ThemeManager.autoHideBar && topBarShouldHide) ? -(shellRoot.barHeight - 4) : 0
+                Behavior on autoHideTopOffset { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
 
                 property real animatedMargin: (ThemeManager.barIsTopFloat && ThemeManager.themeName !== "melissa")
                     ? screen.width * (1.0 - shellRoot.barWidthPercent) / 2
                     : 0
                 Behavior on animatedMargin { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
 
-                // ── Bar container ─────────────────────────────────────────────
+                MouseArea {
+                    id: topHoverArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                }
+
+                // ── Theme Native Bar Container ─────────────────────────────────
                 Rectangle {
                     id: barRect
+                    visible: true
                     anchors {
                         top: parent.top
-                        topMargin: ThemeManager.barIsTopFloat ? 8 : 0
+                        topMargin: (ThemeManager.barIsTopFloat ? 8 : 0) + topBar.autoHideTopOffset
                         left: parent.left; right: parent.right
                         leftMargin:  topBar.animatedMargin
                         rightMargin: topBar.animatedMargin
@@ -1683,9 +1810,26 @@ ShellRoot {
                         if (ThemeManager.themeName === "emilia") return shellRoot._bg;
                         return (ThemeManager.barIsTopFloat || ThemeManager.barIsAndrea || ThemeManager.themeName === "melissa" || ThemeManager.themeName === "marisol") ? "transparent" : shellRoot._bg;
                     }
-                    radius: ThemeManager.themeName === "emilia" ? 4 : 0
-                    border.color: ThemeManager.themeName === "emilia" ? shellRoot._sur : "transparent"
-                    border.width: ThemeManager.themeName === "emilia" ? 1 : 0
+                    radius: ThemeManager.barRadius
+                    border.color: BarModules.editMode ? "#8ec07c" : (ThemeManager.themeName === "emilia" ? shellRoot._sur : "transparent")
+                    border.width: BarModules.editMode ? 1.5 : (ThemeManager.themeName === "emilia" ? 1 : 0)
+
+                    Rectangle {
+                        anchors.top: parent.top
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.topMargin: -8
+                        height: 16; width: 120; radius: 8
+                        color: "#8ec07c"
+                        visible: BarModules.editMode
+                        z: 99
+                        Text {
+                            anchors.centerIn: parent
+                            text: "󰏫 EDIT MODE ACTIVE"
+                            color: "#181628"
+                            font.pixelSize: 8
+                            font.bold: true
+                        }
+                    }
 
                     Item {
                         anchors.fill: parent
@@ -1704,7 +1848,7 @@ ShellRoot {
                             visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "marisol"
                             
                             Repeater {
-                                model: themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].top ? themeLayouts[ThemeManager.themeName].top.left : []
+                                model: BarModules.mode === "custom" ? shellRoot.getModuleArray(BarModules.leftModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].top ? themeLayouts[ThemeManager.themeName].top.left : [])
                                 delegate: capsuleDelegate
                             }
                         }
@@ -1718,7 +1862,7 @@ ShellRoot {
                             visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "marisol"
 
                             Repeater {
-                                model: themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].top ? themeLayouts[ThemeManager.themeName].top.center : []
+                                model: BarModules.mode === "custom" ? shellRoot.getModuleArray(BarModules.centerModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].top ? themeLayouts[ThemeManager.themeName].top.center : [])
                                 delegate: capsuleDelegate
                             }
                         }
@@ -1732,7 +1876,7 @@ ShellRoot {
                             visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "marisol"
 
                             Repeater {
-                                model: themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].top ? themeLayouts[ThemeManager.themeName].top.right : []
+                                model: BarModules.mode === "custom" ? shellRoot.getModuleArray(BarModules.rightModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].top ? themeLayouts[ThemeManager.themeName].top.right : [])
                                 delegate: capsuleDelegate
                             }
                         }
@@ -2393,7 +2537,7 @@ ShellRoot {
                                 isRightSlant: true
                                 slantWidth: 12
                                 height: parent.height
-                                visible: UPower.battery && UPower.battery.isPresent
+                                visible: !!(UPower.battery && UPower.battery.isPresent)
                             }
 
                             // Battery
@@ -2401,7 +2545,7 @@ ShellRoot {
                                 height: parent.height
                                 width: melTopBat.width + 16
                                 color: shellRoot._sur
-                                visible: UPower.battery && UPower.battery.isPresent
+                                visible: !!(UPower.battery && UPower.battery.isPresent)
                                 Row {
                                     id: melTopBat; spacing: 5; anchors.centerIn: parent; height: parent.height
                                     Text { text: UPower.battery && UPower.battery.charging ? "\uf0e7" : "\uf240"; color: contrastFg(shellRoot._sur, shellRoot._brightGrn); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize; verticalAlignment: Text.AlignVCenter; height: parent.height }
@@ -2443,6 +2587,30 @@ ShellRoot {
                     id: settingsPanel
                     modelData: topBar.screen; colors: shellRoot.colors
                     rootBar: shellRoot; visible: shellRoot.settingsVisible
+                }
+                RiceEditorWindow {
+                    id: riceEditorTop
+                    modelData: topBar.screen; colors: shellRoot.colors
+                    rootBar: shellRoot; visible: shellRoot.riceEditorVisible
+                    onCloseRequested: shellRoot.riceEditorVisible = false
+                }
+                TaskSwitcherWindow {
+                    id: taskSwitcherTop
+                    modelData: topBar.screen; colors: shellRoot.colors
+                    rootBar: shellRoot; visible: shellRoot.taskSwitcherVisible
+                    onCloseRequested: shellRoot.taskSwitcherVisible = false
+                }
+                ClipboardWindow {
+                    id: clipboardTop
+                    modelData: topBar.screen; colors: shellRoot.colors
+                    rootBar: shellRoot; visible: shellRoot.clipboardVisible
+                    onCloseRequested: shellRoot.clipboardVisible = false
+                }
+                DesktopContextMenu {
+                    id: desktopMenuTop
+                    modelData: topBar.screen; colors: shellRoot.colors
+                    rootBar: shellRoot; visible: shellRoot.desktopContextMenuVisible
+                    onCloseRequested: shellRoot.desktopContextMenuVisible = false
                 }
                 ThemeSelectorWindow {
                     id: themeWindow
@@ -2555,18 +2723,60 @@ ShellRoot {
                 id: bottomBar
                 required property var modelData
                 screen: modelData
-                visible: ThemeManager.barIsDouble || ThemeManager.barIsBottom
+                visible: ThemeManager.barIsBottom || (ThemeManager.barIsDouble && ThemeManager.bottomBarEnabled)
                 color: "transparent"
                 anchors { bottom: true; left: true; right: true }
                 implicitWidth: screen.width
-                implicitHeight: shellRoot.barHeight
+                implicitHeight: (ThemeManager.themeName === "cristina") ? (shellRoot.barHeight + 16) : shellRoot.barHeight
+
+                property bool isBottomHovered: bottomHoverArea.containsMouse || shellRoot.settingsVisible || shellRoot.riceEditorVisible || shellRoot.volumePanelVisible || shellRoot.networkPanelVisible || shellRoot.powerMenuVisible
+                property bool bottomBarShouldHide: false
+
+                Timer {
+                    id: bottomHideTimer
+                    interval: 600
+                    repeat: false
+                    onTriggered: bottomBar.bottomBarShouldHide = true
+                }
+
+                onIsBottomHoveredChanged: {
+                    if (isBottomHovered) {
+                        bottomHideTimer.stop();
+                        bottomBarShouldHide = false;
+                    } else {
+                        bottomHideTimer.restart();
+                    }
+                }
+
+                property real autoHideBottomOffset: (ThemeManager.autoHideBar && bottomBarShouldHide) ? (shellRoot.barHeight - 4) : 0
+                Behavior on autoHideBottomOffset { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
+
+                property real animatedMargin: (ThemeManager.themeName === "cristina")
+                    ? screen.width * (1.0 - shellRoot.barWidthPercent) / 2
+                    : 0
+                Behavior on animatedMargin { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
+
+                MouseArea {
+                    id: bottomHoverArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                }
 
                 Rectangle {
-                    anchors.fill: parent
+                    id: bottomBarRect
+                    anchors {
+                        bottom: parent.bottom
+                        bottomMargin: ((ThemeManager.themeName === "cristina") ? 8 : 0) - bottomBar.autoHideBottomOffset
+                        left: parent.left; right: parent.right
+                        leftMargin: bottomBar.animatedMargin
+                        rightMargin: bottomBar.animatedMargin
+                    }
+                    height: shellRoot.barHeight
                     color: ThemeManager.themeName === "melissa" ? "transparent" : shellRoot._bg
                     opacity: ThemeManager.barIsDualCynthia ? 0.85 : 1.0
-                    radius: 0
-                    border.width: 0
+                    radius: (ThemeManager.themeName === "cristina") ? 8 : 0
+                    border.color: (ThemeManager.themeName === "cristina") ? shellRoot.alphaColor(shellRoot._sur, 0.8) : "transparent"
+                    border.width: (ThemeManager.themeName === "cristina") ? 1 : 0
 
                     Item {
                         anchors.fill: parent
@@ -2582,7 +2792,7 @@ ShellRoot {
                             anchors.verticalCenter: parent.verticalCenter
                             spacing: 6
                             height: parent.height
-                            visible: ThemeManager.themeName !== "melissa"
+                            visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "cristina"
 
                             Repeater {
                                 model: themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].bottom ? themeLayouts[ThemeManager.themeName].bottom.left : []
@@ -2596,7 +2806,7 @@ ShellRoot {
                             anchors.verticalCenter: parent.verticalCenter
                             spacing: 6
                             height: parent.height
-                            visible: ThemeManager.themeName !== "melissa"
+                            visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "cristina"
 
                             Repeater {
                                 model: themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].bottom ? themeLayouts[ThemeManager.themeName].bottom.center : []
@@ -2610,11 +2820,335 @@ ShellRoot {
                             anchors.verticalCenter: parent.verticalCenter
                             spacing: 6
                             height: parent.height
-                            visible: ThemeManager.themeName !== "melissa"
+                            visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "cristina"
 
                             Repeater {
                                 model: themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].bottom ? themeLayouts[ThemeManager.themeName].bottom.right : []
                                 delegate: capsuleDelegate
+                            }
+                        }
+
+                        // ══════════════════════════════════════════════════════
+                        // ── CRISTINA BOTTOM BAR POWERLINE SLANTED BADGES ────
+                        // ══════════════════════════════════════════════════════
+                        Row {
+                            anchors.left: parent.left
+                            anchors.verticalCenter: parent.verticalCenter
+                            height: parent.height
+                            spacing: 8
+                            visible: ThemeManager.themeName === "cristina"
+
+                            // Arch / Distro Logo
+                            Text {
+                                text: "󰣇"
+                                color: shellRoot._cyn
+                                font.family: shellRoot.globalFontFamily
+                                font.pixelSize: shellRoot.iconFontSize + 2
+                                font.bold: true
+                                verticalAlignment: Text.AlignVCenter
+                                height: parent.height
+                            }
+
+                            Text { text: ":"; color: shellRoot._muted; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; verticalAlignment: Text.AlignVCenter; height: parent.height }
+
+                            // Apps Launchers
+                            Row {
+                                spacing: 10
+                                height: parent.height
+                                anchors.verticalCenter: parent.verticalCenter
+                                Text { text: "󰆍"; color: shellRoot._cyn; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize - 2; verticalAlignment: Text.AlignVCenter; height: parent.height; MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { dispatchProc.command = ["kitty"]; dispatchProc.running = true } } }
+                                Text { text: "󰉋"; color: shellRoot._yel; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize - 2; verticalAlignment: Text.AlignVCenter; height: parent.height; MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { dispatchProc.command = ["dolphin"]; dispatchProc.running = true } } }
+                                Text { text: "󰖟"; color: shellRoot._red; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize - 2; verticalAlignment: Text.AlignVCenter; height: parent.height; MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { dispatchProc.command = ["zen-browser"]; dispatchProc.running = true } } }
+                                Text { text: "󰙯"; color: shellRoot._mag; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize - 2; verticalAlignment: Text.AlignVCenter; height: parent.height; MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { dispatchProc.command = ["vesktop"]; dispatchProc.running = true } } }
+                                Text { text: "󰓓"; color: shellRoot._fg; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize - 2; verticalAlignment: Text.AlignVCenter; height: parent.height; MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { dispatchProc.command = ["steam"]; dispatchProc.running = true } } }
+                                Text { text: "󰊴"; color: shellRoot._blu; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize - 2; verticalAlignment: Text.AlignVCenter; height: parent.height; MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { dispatchProc.command = ["lutris"]; dispatchProc.running = true } } }
+                            }
+
+                            Text { text: ":"; color: shellRoot._muted; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; verticalAlignment: Text.AlignVCenter; height: parent.height }
+
+                            // Active Window Title / Distro Name
+                            Row {
+                                spacing: 6
+                                height: parent.height
+                                Text {
+                                    text: "󰖯"
+                                    color: shellRoot._muted
+                                    font.family: shellRoot.globalFontFamily
+                                    font.pixelSize: shellRoot.iconFontSize
+                                    verticalAlignment: Text.AlignVCenter
+                                    height: parent.height
+                                }
+                                Text {
+                                    text: shellRoot.activeWinTitle !== "" ? shellRoot.activeWinTitle : shellRoot.distroName
+                                    color: shellRoot._fg
+                                    font.family: shellRoot.globalFontFamily
+                                    font.pixelSize: shellRoot.globalFontSize
+                                    font.bold: true
+                                    elide: Text.ElideRight
+                                    width: Math.min(220, implicitWidth)
+                                    verticalAlignment: Text.AlignVCenter
+                                    height: parent.height
+                                }
+                            }
+                        }
+
+                        Row {
+                            anchors.right: parent.right
+                            anchors.verticalCenter: parent.verticalCenter
+                            height: parent.height
+                            spacing: 8
+                            visible: ThemeManager.themeName === "cristina"
+
+                            // Weather
+                            Row {
+                                spacing: 4
+                                height: parent.height
+                                Text { text: "󰖐"; color: shellRoot._fg; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize; verticalAlignment: Text.AlignVCenter; height: parent.height }
+                                Text { text: shellRoot.weatherTemp !== "" ? shellRoot.weatherTemp : "22°"; color: shellRoot._fg; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; verticalAlignment: Text.AlignVCenter; height: parent.height }
+                            }
+
+                            // User / Song
+                            Row {
+                                spacing: 4
+                                height: parent.height
+                                Text { text: "󰀉"; color: shellRoot._fg; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize - 2; verticalAlignment: Text.AlignVCenter; height: parent.height }
+                                Text { text: "󰎈"; color: shellRoot._fg; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize - 2; verticalAlignment: Text.AlignVCenter; height: parent.height }
+                            }
+
+                            // ── Slanted Parallelogram Badges Row ──
+                            Row {
+                                spacing: 6
+                                height: parent.height
+
+                                // Badge 1: Updates (Cyan)
+                                Item {
+                                    height: parent.height - 4
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: updatesBadgeRow.implicitWidth
+                                    Row {
+                                        id: updatesBadgeRow
+                                        anchors.fill: parent
+                                        spacing: 0
+                                        SlantSeparator { colorLeft: "transparent"; colorRight: shellRoot._cyn; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                        Rectangle {
+                                            color: shellRoot._cyn
+                                            height: parent.height
+                                            width: updatesBadgeContent.implicitWidth + 8
+                                            Row {
+                                                id: updatesBadgeContent
+                                                anchors.centerIn: parent
+                                                spacing: 4
+                                                Text { text: "󰚰"; color: shellRoot.contrastFg(shellRoot._cyn, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
+                                                Text { text: shellRoot.updatesValue; color: shellRoot.contrastFg(shellRoot._cyn, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
+                                            }
+                                        }
+                                        SlantSeparator { colorLeft: shellRoot._cyn; colorRight: "transparent"; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                    }
+                                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: checkUpdatesProc.running = true }
+                                }
+
+                                // Badge 2: Disk (Magenta/Purple)
+                                Item {
+                                    height: parent.height - 4
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: diskBadgeRow.implicitWidth
+                                    Row {
+                                        id: diskBadgeRow
+                                        anchors.fill: parent
+                                        spacing: 0
+                                        SlantSeparator { colorLeft: "transparent"; colorRight: shellRoot._mag; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                        Rectangle {
+                                            color: shellRoot._mag
+                                            height: parent.height
+                                            width: diskBadgeContent.implicitWidth + 8
+                                            Row {
+                                                id: diskBadgeContent
+                                                anchors.centerIn: parent
+                                                spacing: 4
+                                                Text { text: "󰋊"; color: shellRoot.contrastFg(shellRoot._mag, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
+                                                Text { text: shellRoot.fsValue; color: shellRoot.contrastFg(shellRoot._mag, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
+                                            }
+                                        }
+                                        SlantSeparator { colorLeft: shellRoot._mag; colorRight: "transparent"; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                    }
+                                }
+
+                                // Badge 3: CPU (Blue)
+                                Item {
+                                    height: parent.height - 4
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: cpuBadgeRow.implicitWidth
+                                    Row {
+                                        id: cpuBadgeRow
+                                        anchors.fill: parent
+                                        spacing: 0
+                                        SlantSeparator { colorLeft: "transparent"; colorRight: shellRoot._blu; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                        Rectangle {
+                                            color: shellRoot._blu
+                                            height: parent.height
+                                            width: cpuBadgeContent.implicitWidth + 8
+                                            Row {
+                                                id: cpuBadgeContent
+                                                anchors.centerIn: parent
+                                                spacing: 4
+                                                Text { text: "󰍛"; color: shellRoot.contrastFg(shellRoot._blu, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
+                                                Text { text: shellRoot.cpuValue; color: shellRoot.contrastFg(shellRoot._blu, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
+                                            }
+                                        }
+                                        SlantSeparator { colorLeft: shellRoot._blu; colorRight: "transparent"; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                    }
+                                }
+
+                                // Badge 4: RAM (Yellow)
+                                Item {
+                                    height: parent.height - 4
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: memBadgeRow.implicitWidth
+                                    Row {
+                                        id: memBadgeRow
+                                        anchors.fill: parent
+                                        spacing: 0
+                                        SlantSeparator { colorLeft: "transparent"; colorRight: shellRoot._yel; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                        Rectangle {
+                                            color: shellRoot._yel
+                                            height: parent.height
+                                            width: memBadgeContent.implicitWidth + 8
+                                            Row {
+                                                id: memBadgeContent
+                                                anchors.centerIn: parent
+                                                spacing: 4
+                                                Text { text: "󰟜"; color: shellRoot.contrastFg(shellRoot._yel, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
+                                                Text { text: shellRoot.memValue; color: shellRoot.contrastFg(shellRoot._yel, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
+                                            }
+                                        }
+                                        SlantSeparator { colorLeft: shellRoot._yel; colorRight: "transparent"; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                    }
+                                }
+
+                                // Badge 5: Volume (Red/Salmon)
+                                Item {
+                                    height: parent.height - 4
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: volBadgeRow.implicitWidth
+                                    Row {
+                                        id: volBadgeRow
+                                        anchors.fill: parent
+                                        spacing: 0
+                                        SlantSeparator { colorLeft: "transparent"; colorRight: shellRoot._red; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                        Rectangle {
+                                            color: shellRoot._red
+                                            height: parent.height
+                                            width: volBadgeContent.implicitWidth + 8
+                                            Row {
+                                                id: volBadgeContent
+                                                anchors.centerIn: parent
+                                                spacing: 4
+                                                Text { text: shellRoot.volMuted ? "󰖁" : "󰕾"; color: shellRoot.contrastFg(shellRoot._red, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
+                                                Text { text: Math.round(shellRoot.volValue * 100).toString(); color: shellRoot.contrastFg(shellRoot._red, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
+                                            }
+                                        }
+                                        SlantSeparator { colorLeft: shellRoot._red; colorRight: "transparent"; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                    }
+                                    MouseArea {
+                                        anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                        onClicked: shellRoot.volumePanelVisible = !shellRoot.volumePanelVisible
+                                    }
+                                }
+
+                                // Badge 6: Wifi / Network (Cyan/Teal)
+                                Item {
+                                    height: parent.height - 4
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: netBadgeRow.implicitWidth
+                                    Row {
+                                        id: netBadgeRow
+                                        anchors.fill: parent
+                                        spacing: 0
+                                        SlantSeparator { colorLeft: "transparent"; colorRight: shellRoot._cyn; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                        Rectangle {
+                                            color: shellRoot._cyn
+                                            height: parent.height
+                                            width: netBadgeContent.implicitWidth + 8
+                                            Row {
+                                                id: netBadgeContent
+                                                anchors.centerIn: parent
+                                                spacing: 4
+                                                Text { text: shellRoot.networkType === "wifi" ? "󰤨" : "󰖟"; color: shellRoot.contrastFg(shellRoot._cyn, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
+                                                Text { text: "2 K"; color: shellRoot.contrastFg(shellRoot._cyn, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
+                                            }
+                                        }
+                                        SlantSeparator { colorLeft: shellRoot._cyn; colorRight: "transparent"; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                    }
+                                    MouseArea {
+                                        anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                        onClicked: shellRoot.networkPanelVisible = !shellRoot.networkPanelVisible
+                                    }
+                                }
+
+                                // Badge 7: Clock / Time (Dark Surface / Muted)
+                                Item {
+                                    height: parent.height - 4
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: dateBadgeRow.implicitWidth
+                                    Row {
+                                        id: dateBadgeRow
+                                        anchors.fill: parent
+                                        spacing: 0
+                                        SlantSeparator { colorLeft: "transparent"; colorRight: shellRoot._sur; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                        Rectangle {
+                                            color: shellRoot._sur
+                                            height: parent.height
+                                            width: dateBadgeContent.implicitWidth + 8
+                                            Row {
+                                                id: dateBadgeContent
+                                                anchors.centerIn: parent
+                                                spacing: 4
+                                                Text { text: shellRoot.dateValue; color: shellRoot.contrastFg(shellRoot._sur, shellRoot._fg); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
+                                            }
+                                        }
+                                        SlantSeparator { colorLeft: shellRoot._sur; colorRight: "transparent"; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                    }
+                                }
+                            }
+
+                            // System Tray Expander (󰅀)
+                            Text {
+                                text: "󰅀"
+                                color: shellRoot._muted
+                                font.family: shellRoot.globalFontFamily
+                                font.pixelSize: shellRoot.globalFontSize
+                                verticalAlignment: Text.AlignVCenter
+                                height: parent.height
+                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: shellRoot.backgroundTasksPanelVisible = !shellRoot.backgroundTasksPanelVisible }
+                            }
+
+                            // Settings Button (󰒓)
+                            Text {
+                                text: "󰒓"
+                                color: shellRoot._cyn
+                                font.family: shellRoot.globalFontFamily
+                                font.pixelSize: shellRoot.iconFontSize - 2
+                                verticalAlignment: Text.AlignVCenter
+                                height: parent.height
+                                MouseArea {
+                                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        var next = !shellRoot.riceEditorVisible;
+                                        shellRoot.dismissPanels();
+                                        shellRoot.riceEditorVisible = next;
+                                    }
+                                }
+                            }
+
+                            // Power Button (󰐥)
+                            Text {
+                                text: "󰐥"
+                                color: shellRoot._red
+                                font.family: shellRoot.globalFontFamily
+                                font.pixelSize: shellRoot.iconFontSize
+                                verticalAlignment: Text.AlignVCenter
+                                height: parent.height
+                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: shellRoot.powerMenuVisible = !shellRoot.powerMenuVisible }
                             }
                         }
 
@@ -2795,7 +3329,28 @@ ShellRoot {
                 }
                 SettingsPanel {
                     modelData: bottomBar.screen; colors: shellRoot.colors
-                    rootBar: shellRoot; visible: ThemeManager.barIsBottom && shellRoot.settingsVisible
+                    rootBar: shellRoot; visible: shellRoot.settingsVisible
+                }
+                RiceEditorWindow {
+                    modelData: bottomBar.screen; colors: shellRoot.colors
+                    rootBar: shellRoot; visible: shellRoot.riceEditorVisible
+                    onCloseRequested: shellRoot.riceEditorVisible = false
+                }
+                TaskSwitcherWindow {
+                    id: botTaskSwitcher
+                    modelData: bottomBar.screen; colors: shellRoot.colors
+                    rootBar: shellRoot; visible: shellRoot.taskSwitcherVisible
+                    onCloseRequested: shellRoot.taskSwitcherVisible = false
+                }
+                ClipboardWindow {
+                    modelData: bottomBar.screen; colors: shellRoot.colors
+                    rootBar: shellRoot; visible: shellRoot.clipboardVisible
+                    onCloseRequested: shellRoot.clipboardVisible = false
+                }
+                DesktopContextMenu {
+                    modelData: bottomBar.screen; colors: shellRoot.colors
+                    rootBar: shellRoot; visible: shellRoot.desktopContextMenuVisible
+                    onCloseRequested: shellRoot.desktopContextMenuVisible = false
                 }
                 ThemeSelectorWindow {
                     modelData: bottomBar.screen; colors: shellRoot.colors
@@ -3284,6 +3839,96 @@ ShellRoot {
         id: volumeDaemonProc
         command: ["python3", "/home/tarzo/.config/quickshell/scripts/volume-daemon.py"]
         running: true
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // ── THEME NOTIFICATION OSD POPUP ─────────────────────────────────────────
+    // ═════════════════════════════════════════════════════════════════════════
+    PanelWindow {
+        id: themeNotificationOSD
+        screen: Quickshell.screens[0]
+        WlrLayershell.layer: WlrLayer.Overlay
+        color: "transparent"
+
+        anchors { top: true }
+        margins { top: isShowing ? 55 : 20 }
+        Behavior on margins { NumberAnimation { duration: 300; easing.type: Easing.OutBack } }
+
+        implicitWidth: osdCard.implicitWidth
+        implicitHeight: osdCard.implicitHeight
+        visible: osdOpacity > 0
+
+        property bool isShowing: false
+        property real osdOpacity: 0.0
+        Behavior on osdOpacity { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
+
+        function triggerPopup() {
+            themeNotificationOSD.isShowing = true;
+            themeNotificationOSD.osdOpacity = 1.0;
+            osdHideTimer.restart();
+        }
+
+        Timer {
+            id: osdHideTimer
+            interval: 2400
+            onTriggered: {
+                themeNotificationOSD.isShowing = false;
+                themeNotificationOSD.osdOpacity = 0.0;
+            }
+        }
+
+        Connections {
+            target: ThemeManager
+            function onThemeNameChanged() {
+                themeNotificationOSD.triggerPopup();
+            }
+        }
+
+        Component.onCompleted: {
+            themeNotificationOSD.triggerPopup();
+        }
+
+        Rectangle {
+            id: osdCard
+            implicitWidth: osdRow.implicitWidth + 40
+            implicitHeight: 48
+            color: shellRoot.alphaColor(shellRoot._bg, 0.95)
+            radius: 24
+            border.color: shellRoot.alphaColor(shellRoot._cyn, 0.8)
+            border.width: 1.5
+
+            Row {
+                id: osdRow
+                anchors.centerIn: parent
+                spacing: 12
+                Text {
+                    text: "󰏘"
+                    color: shellRoot._cyn
+                    font.family: shellRoot.globalFontFamily
+                    font.pixelSize: shellRoot.iconFontSize + 4
+                    verticalAlignment: Text.AlignVCenter
+                }
+                Column {
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: 1
+                    Text {
+                        text: "Theme Changed"
+                        color: shellRoot._muted
+                        font.family: shellRoot.globalFontFamily
+                        font.pixelSize: shellRoot.globalFontSize - 2
+                        verticalAlignment: Text.AlignVCenter
+                    }
+                    Text {
+                        text: ThemeManager.themeName.charAt(0).toUpperCase() + ThemeManager.themeName.slice(1)
+                        color: shellRoot._fg
+                        font.family: shellRoot.globalFontFamily
+                        font.pixelSize: shellRoot.globalFontSize + 2
+                        font.bold: true
+                        verticalAlignment: Text.AlignVCenter
+                    }
+                }
+            }
+        }
     }
 
 }

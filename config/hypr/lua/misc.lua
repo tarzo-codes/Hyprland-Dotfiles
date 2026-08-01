@@ -1,18 +1,12 @@
-------------------------
----- MISC & LAYOUTS ----
-------------------------
+local miscs = {
+    "misc:force_default_wallpaper = -1",
+    "misc:disable_hyprland_logo = false",
+    "input:kb_layout = us",
+    "input:follow_mouse = 1",
+    "input:sensitivity = 0",
+    "input:touchpad:natural_scroll = false"
+}
 
-hl.config({
-    dwindle = {
-        preserve_split = true,
-    },
-
-    master = {
-        new_status = "master",
-    },
-
-    misc = {
-        force_default_wallpaper = -1,
-        disable_hyprland_logo   = false,
-    },
-})
+for _, m in ipairs(miscs) do
+    os.execute("hyprctl eval '" .. m .. "' >/dev/null 2>&1")
+end

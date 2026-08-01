@@ -1,0 +1,2 @@
+-- General Layout & Appearance (end4 architecture)
+-- Configured via native hyprland.conf and dynamic overrides

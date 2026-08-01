@@ -8,9 +8,9 @@ sleep 0.5
 killall -9 quickshell 2>/dev/null || pkill -9 -x quickshell 2>/dev/null || true
 sleep 0.3
 
-# Launch quickshell
-quickshell -n -p "$HOME/.config/quickshell/shell.qml" &
-QS_PID=$!
+# Launch quickshell completely detached
+nohup quickshell -n -p "$HOME/.config/quickshell/shell.qml" >/dev/null 2>&1 &
+disown
 
 # Wait for quickshell IPC to be ready (up to 5s)
 for i in $(seq 1 25); do
@@ -29,5 +29,3 @@ if [ -f "$HOME/.cache/quickshell/prompt_light_mode" ]; then
   rm -f "$HOME/.cache/quickshell/prompt_light_mode"
   quickshell ipc --any-display call ThemeController promptLightMode 2>/dev/null || true
 fi
-
-wait $QS_PID

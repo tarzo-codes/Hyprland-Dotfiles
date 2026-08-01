@@ -1,0 +1,2 @@
+-- Keybindings Helper (end4 architecture)
+-- Keybinds registered in native hyprland.conf & custom/keybinds.lua

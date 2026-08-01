@@ -1,0 +1,2 @@
+-- Hyprland Services Initialization
+-- Background system daemons & integration services

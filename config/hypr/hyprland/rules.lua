@@ -1,0 +1,2 @@
+-- Window Rules & Application Behavior (end4 architecture)
+-- Configured via native hyprland.conf and dynamic overrides

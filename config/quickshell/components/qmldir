@@ -23,3 +23,7 @@ BackgroundTaskHandler 1.0 BackgroundTaskHandler.qml
 BackgroundTaskPanel 1.0 BackgroundTaskPanel.qml
 WallpaperSelectorWindow 1.0 WallpaperSelectorWindow.qml
 LightModePromptWindow 1.0 LightModePromptWindow.qml
+RiceEditorWindow 1.0 RiceEditorWindow.qml
+TaskSwitcherWindow 1.0 TaskSwitcherWindow.qml
+ClipboardWindow 1.0 ClipboardWindow.qml
+DesktopContextMenu 1.0 DesktopContextMenu.qml

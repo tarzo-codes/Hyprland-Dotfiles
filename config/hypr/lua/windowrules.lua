@@ -1,54 +1,19 @@
-----------------------
----- WINDOW RULES ----
-----------------------
+local windowrules = {
+    "suppressevent maximize, class:.*",
+    "nofocus,class:^$,title:^$,xwayland:1,floating:1,fullscreen:0,pinned:0",
+    "float, class:^(org.pulseaudio.pavucontrol)$",
+    "size 680 480, class:^(org.pulseaudio.pavucontrol)$",
+    "center, class:^(org.pulseaudio.pavucontrol)$",
+    "float, class:^(nm-connection-editor)$",
+    "size 620 480, class:^(nm-connection-editor)$",
+    "center, class:^(nm-connection-editor)$",
+    "float, class:^(systemsettings)$",
+    "float, class:^(kcmshell6)$",
+    "float, class:^(org.kde.plasmawindowed)$",
+    "size 450 550, class:^(org.kde.plasmawindowed)$",
+    "center, class:^(org.kde.plasmawindowed)$"
+}
 
--- Pavucontrol Volume Control
-hl.window_rule({
-    name = "pavucontrol-float",
-    match = { class = "^(org\\.pulseaudio\\.pavucontrol)$" },
-    float = true,
-    size = "680 480",
-    center = true,
-})
-
-hl.window_rule({
-    name = "volume-control-title",
-    match = { title = "^(Volume Control)$" },
-    float = true,
-})
-
--- Network Connections Editor
-hl.window_rule({
-    name = "nm-connection-editor-float",
-    match = { class = "^(nm-connection-editor)$" },
-    float = true,
-    size = "620 480",
-    center = true,
-})
-
-hl.window_rule({
-    name = "network-connections-title",
-    match = { title = "^(Network Connections)$" },
-    float = true,
-})
-
--- KDE System Settings & Plasma Windowed
-hl.window_rule({
-    name = "systemsettings-float",
-    match = { class = "^(systemsettings)$" },
-    float = true,
-})
-
-hl.window_rule({
-    name = "kcmshell6-float",
-    match = { class = "^(kcmshell6)$" },
-    float = true,
-})
-
-hl.window_rule({
-    name = "plasmawindowed-float",
-    match = { class = "^(org\\.kde\\.plasmawindowed)$" },
-    float = true,
-    size = "450 550",
-    center = true,
-})
+for _, wr in ipairs(windowrules) do
+    os.execute("hyprctl eval 'windowrulev2 = " .. wr .. "' >/dev/null 2>&1")
+end

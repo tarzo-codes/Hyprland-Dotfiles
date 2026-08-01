@@ -1,11 +1,11 @@
-# 🌀 Hyprland 0.56.1 Lua + Quickshell Dotfiles
+# 🌀 Hyprland + Quickshell Dotfiles
 
-An ultra-modern, high-performance, and visually stunning Wayland desktop environment for **Arch Linux / CachyOS**. Featuring native **Hyprland 0.56.1 Lua configuration**, **Quickshell** status bar & floating panels, **Vicinae** launcher, and an intelligent **Wallust WCAG AA contrast engine**.
+An ultra-modern, high-performance, and visually stunning Wayland desktop environment for **Arch Linux / CachyOS**. Featuring native **Hyprland modular configuration**, **Quickshell** status bar & floating panels with the **Centralized Rice Control Center**, **Vicinae** launcher, and an intelligent **Wallust WCAG AA contrast engine**.
 
 <div align="center">
 
 [![Arch Linux](https://img.shields.io/badge/OS-Arch%20Linux%20%7C%20CachyOS-blue?logo=archlinux)](https://archlinux.org)
-[![Hyprland](https://img.shields.io/badge/WM-Hyprland%200.56.1%20(Lua)-00f5d4?logo=hyprland)](https://hyprland.org)
+[![Hyprland](https://img.shields.io/badge/WM-Hyprland%200.56.1-00f5d4?logo=hyprland)](https://hyprland.org)
 [![Quickshell](https://img.shields.io/badge/Shell-Quickshell-7f5af0)](https://git.outfoxxed.me/outfoxxed/quickshell)
 [![Wallust](https://img.shields.io/badge/Theming-Wallust%20Contrast%20Engine-ff007f)](https://codeberg.org/eownerless/wallust)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -16,121 +16,32 @@ An ultra-modern, high-performance, and visually stunning Wayland desktop environ
 
 ## ⚡ Key Features
 
-### 🌙 1. Native Hyprland 0.56.1 Lua Specification
-- Fully migrated from legacy `.conf` files to Hyprland's native **Lua configuration format** (`hyprland.lua`).
-- **Modular Architecture**: Organized into clean, maintainable Lua modules (`lua/monitors.lua`, `lua/autostart.lua`, `lua/env.lua`, `lua/animations.lua`, `lua/keybinds.lua`, `lua/appearance.lua`, `lua/windowrules.lua`, `lua/misc.lua`).
-- Native Lua APIs used throughout: `hl.config()`, `hl.monitor()`, `hl.env()`, `hl.curve()`, `hl.animation()`, `hl.bind()`, and `hl.window_rule()`.
+### 🎛️ 1. Centralized Rice Control Center (`SUPER + R`)
+- **Single Source of Truth (`CentralConfig.qml`)**: All bar layouts, dimensions, theme settings, applet locations, volume levels, and brightness levels read and save from a single centralized manager.
+- **All 18 Bar Layout Selector Grid**: Switch live between **18 complete desktop bars**:
+  `emilia`, `cristina`, `marisol`, `melissa`, `andrea`, `aline`, `silvia`, `daphne`, `janet`, `katarina`, `lucia`, `noelia`, `pola`, `regina`, `teresa`, `vick`, `yuki`, `zorin`.
+- **Modular Zone Drag & Re-Ordering**: `◄` and `►` controls shift modules left/right within their zones.
+- **Position Sequence Badges (`#1`, `#2`, `#3`...)**: Displays the exact order index of active modules.
+- **Preset Overwrite Confirmation Dialogs**: Warning prompts prevent accidental layout overwrites.
+- **Interactive Edit Mode**: Displays a glowing green highlight border and active chip on the live desktop bar.
 
-### 🎛️ 2. Quickshell Bar & Floating Interactive Panels
-- Powered by **Qt6 / QML** with custom widgets:
-  - **PipeWire Volume Panel**: Native `pw-dump` JSON parsing ($< 2\text{ms}$) for sinks, sources, and per-app stream controls with zero process leaks.
-  - **Network & Bluetooth Panels**: Real-time Wi-Fi/Bluetooth status and connection management.
-  - **Wallpaper Selector & Theme Manager**: Interactive wallpaper picker (`SUPER + W`) and theme switcher (`SUPER + T`).
-  - **Power Menu & Cheat Sheet**: Sleek system controls and shortcut cheat sheet (`SUPER + /`).
+### 📍 2. Dynamic Applet Location, Resizing & Custom X/Y Coordinates
+- **4 Applet Anchoring Modes**: Cycle through `TOP` ➔ `BOTTOM` ➔ `CENTER` ➔ `CUSTOM`.
+- **Custom X / Y Screen Coordinates**: Position system applets at exact pixel locations (`Custom Position X` & `Custom Position Y`).
+- **Custom Applet Width & Height**: Resize volume, network, bluetooth, brightness, and settings popups (`240px` - `600px` width, `240px` - `700px` height).
 
-### 🎨 3. Intelligent Wallust WCAG AA Contrast Engine
-Unlike basic color generators, our custom Python color scripts enforce strict **WCAG AA ($\ge 4.5:1$) contrast ratios** against terminal backgrounds for every token:
-- **Fish Shell Syntax Highlighting (`fish-smart-colors.py`)**: Evaluates perceptual hue distance to assign distinct Wallust palette colors to commands, keywords, parameters, quotes, options, redirections, and errors. Uses `set -U` for persistent propagation.
-- **Fastfetch CachyOS Logo (`fastfetch-smart-logo.py`)**: Renders an ANSI 24-bit truecolor CachyOS logo that automatically adapts to the current wallpaper accent colors.
-- **btop System Monitor (`btop-smart-theme.py`)**: Dynamically generates `~/.config/btop/themes/wallust.theme` with high-contrast graph colors and borders.
-- **Neovim & Starship**: Enforced code syntax contrast in Neovim and high-contrast segment backgrounds in Starship (`~/.config/starship.toml`).
+### 👁️ 3. Smart Auto-Hiding for Idle/Empty Modules
+Modules automatically collapse to 0px when idle and pop up when active:
+- **Song / Media Title (`song`, `media`)**: Auto-hides when no media is playing; auto-shows when music starts.
+- **Active Window Title (`title`)**: Auto-hides on desktop; auto-shows when an app window is focused.
+- **Updates Badge (`updates`)**: Auto-hides when up to date; auto-shows when packages require update.
+- **System Tray (`tray`)**: Auto-hides when tray is empty; auto-shows when tray icons arrive.
 
-### 🚀 4. Vicinae Launcher & Tools
-- Fast, Raycast-like application launcher (`vicinae server` / `vicinae open`) mapped to `SUPER + L` or left-click launcher icon.
-- Automated region screenshot tool (`scripts/screenshot.sh`).
+### 🔊 4. Hardware Device Value Persistence
+- Master volume levels (`volValue`), screen brightness levels (`brightnessValue`), and mute states persist across reboots and shell reloads.
 
----
-
-## 🛠️ Requirements & Package Dependencies
-
-### Official Pacman Packages
-```bash
-hyprland quickshell wallust fish starship kitty fastfetch btop mako \
-grim slurp cliphist brightnessctl wireplumber pipewire playerctl \
-polkit-gnome gnome-keyring hyprlock ttf-jetbrains-mono-nerd python python-pip
-```
-
-### AUR Packages (via `yay` or `paru`)
-```bash
-yay -S vicinae-bin awww waypaper bibata-cursor-theme tela-icon-theme
-```
-
----
-
-## 📦 Installation Guide
-
-### Quick Start (Interactive TUI Installer)
-
-Clone the repository and run the interactive TUI installer script:
-
-```bash
-git clone https://github.com/tarzo-codes/Hyprland-Dotfiles.git ~/dotfiles
-cd ~/dotfiles
-chmod +x install.sh
-./install.sh
-```
-
----
-
-### 🖥️ Installer TUI Menu Walkthrough
-
-Launching `./install.sh` opens an interactive **Whiptail TUI Menu** with 6 options:
-
-```
-┌───────────────── Hyprland 0.56.1 Lua + Quickshell Installer TUI ─────────────────┐
-│                                                                                 │
-│  Select an option below:                                                        │
-│                                                                                 │
-│    1 🚀 Full Installation (Packages + Backup + Configs + Wallpapers)            │
-│    2 📂 Create Backup of Current Configurations                                 │
-│    3 🔄 Revert / Restore Previous Backup                                        │
-│    4 🖼️ Download / Update Wallpaper Collection                                  │
-│    5 🎨 Initialize Theme & Wallust Engine                                       │
-│    6 ❌ Exit                                                                    │
-│                                                                                 │
-└─────────────────────────────────────────────────────────────────────────────────┘
-```
-
-#### Menu Options Explained:
-1. **`1. 🚀 Full Installation`**:
-   - Performs distribution & dependency checks (Arch Linux / CachyOS).
-   - Creates an automatic timestamped backup in `~/.config/hypr_dotfiles_backups/`.
-   - Installs all required pacman & AUR dependencies (`hyprland`, `quickshell`, `vicinae-bin`, `wallust`, etc.).
-   - Symlinks Hyprland 0.56.1 Lua dotfiles to `~/.config/`.
-   - Asks to download/update the official wallpaper collection into `~/wallpaper`.
-   - Initializes the Wallust WCAG AA contrast engines (`fish`, `fastfetch`, `btop`).
-2. **`2. 📂 Create Backup`**: Generates an instant timestamped backup of your active configs (`~/.config/hypr_dotfiles_backups/backup_YYYYMMDD_HHMMSS/`).
-3. **`3. 🔄 Revert / Restore Backup`**: Displays an interactive menu of historical backups to restore any previous configuration state.
-4. **`4. 🖼️ Download Wallpapers`**: Clones or updates the wallpaper repository (`https://github.com/tarzo-codes/wallpapers.git`) to `~/wallpaper`.
-5. **`5. 🎨 Initialize Theme Engine`**: Runs Wallust and triggers Python smart theme scripts for Fish, Fastfetch, and btop.
-
----
-
-### ⚡ Non-Interactive CLI Shortcuts
-
-You can also bypass the TUI menu and run installer tasks directly via CLI flags:
-
-| Flag | Shortcut | Description |
-|---|---|---|
-| `./install.sh --full` | `-f` | Run full automated installation non-interactively |
-| `./install.sh --backup` | `-b` | Create an instant config backup |
-| `./install.sh --revert` | `-r` | Open historical backup restore menu |
-| `./install.sh --wallpapers` | `-w` | Download or update wallpaper collection |
-
----
-
-### 🎉 Post-Installation Steps
-
-After running the installer:
-1. **Reload Hyprland**: Press `SUPER + SHIFT + R` or run:
-   ```bash
-   hyprctl reload
-   ```
-2. **Reload Fish Shell**: Launch a fresh shell session:
-   ```bash
-   exec fish
-   ```
-3. **Select Wallpaper**: Press `SUPER + W` to open the Quickshell Wallpaper Selector and apply your first dynamic Wallust theme!
+### 🎨 5. Intelligent Wallust WCAG AA Contrast Engine
+- Enforces strict **WCAG AA ($\ge 4.5:1$) contrast ratios** against terminal backgrounds for Fish shell syntax highlighting, Fastfetch CachyOS truecolor logos, btop themes, Neovim syntax, and Starship prompts.
 
 ---
 
@@ -139,6 +50,7 @@ After running the installer:
 | Keybinding | Action |
 |---|---|
 | `SUPER + RETURN` | Open Kitty terminal |
+| `SUPER + R` | Open Centralized Rice Control Center |
 | `SUPER + Q` | Close active window |
 | `SUPER + E` | Open Dolphin file manager |
 | `SUPER + B` | Open Zen Browser |
@@ -151,11 +63,8 @@ After running the installer:
 | `SUPER + SHIFT + S` | Capture region screenshot |
 | `SUPER + Arrow Keys` | Move focus (Left / Right / Up / Down) |
 | `SUPER + SHIFT + Arrow` | Move active window |
-| `SUPER + CTRL + Arrow` | Resize active window |
 | `SUPER + 1 .. 0` | Switch to workspace 1..10 |
 | `SUPER + SHIFT + 1 .. 0` | Move active window to workspace 1..10 |
-| `SUPER + S` | Toggle Scratchpad workspace |
-| `SUPER + SHIFT + ALT + L` | Lock screen (`hyprlock`) |
 
 ---
 
@@ -165,26 +74,28 @@ After running the installer:
 .
 ├── config/
 │   ├── hypr/
-│   │   ├── hyprland.lua               # Main Hyprland Lua entry point
-│   │   ├── lua/
-│   │   │   ├── monitors.lua           # Display outputs & resolutions
-│   │   │   ├── autostart.lua          # Startup background processes
-│   │   │   ├── env.lua                # Wayland & Qt/KDE environment
-│   │   │   ├── animations.lua         # Bezier curves & animation rules
-│   │   │   ├── keybinds.lua           # Keyboard & mouse bindings
-│   │   │   ├── appearance.lua         # Gaps, borders, shadows & blur
-│   │   │   ├── windowrules.lua        # Window floating & position rules
-│   │   │   └── misc.lua               # Layouts & misc compositor settings
-│   │   └── themes/
-│   │       └── wallust.lua            # Dynamic Wallust Lua color module
+│   │   ├── hyprland.conf              # Main Hyprland entry point
+│   │   └── config/                    # Modular Hyprland configs
+│   │       ├── monitors.conf
+│   │       ├── autostart.conf
+│   │       ├── env.conf
+│   │       ├── animations.conf
+│   │       ├── keybinds.conf
+│   │       ├── appearance.conf
+│   │       ├── windowrules.conf
+│   │       └── misc.conf
 │   ├── quickshell/                    # Qt6/QML status bar & popup panels
+│   │   ├── config/
+│   │   │   ├── CentralConfig.qml      # Single centralized configuration manager
+│   │   │   └── qmldir
+│   │   ├── components/                # Rice Editor, Volume, Network, Bluetooth, Panels
+│   │   ├── themes/                    # ThemeManager & BarModules singletons
+│   │   └── shell.qml                  # Quickshell entrypoint
 │   ├── scripts/                       # Contrast engine & helper scripts
-│   ├── fish/                          # Shell configuration & universal vars
+│   ├── fish/                          # Shell configuration
 │   ├── fastfetch/                     # Fastfetch config & dynamic logo
 │   ├── btop/                          # btop config & wallust theme
-│   ├── kitty/                         # Kitty terminal config
-│   ├── wallust/                       # Wallust color generator templates
-│   └── nvim/                          # Neovim configuration
+│   └── kitty/                         # Kitty terminal config
 ├── install.sh                         # Automated installation script
 ├── LICENSE                            # MIT License
 └── README.md                          # Documentation

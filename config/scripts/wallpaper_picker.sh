@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# Wallpaper picker script with wallust color generation and Tela dark icon theme matching
-# Usage: ./wallpaper_picker.sh [path-to-image] [--wp-only] [--span] [--verbose]
+# Wallpaper picker script with wallust color caching (both Dark & Light modes)
+# and Tela icon theme matching derived strictly from the Dark Mode Accent color.
+# Usage: ./wallpaper_picker.sh [path-to-image] [--wp-only] [--span] [--regenerate] [--verbose]
 
 set -e
 
@@ -13,12 +14,13 @@ else
   WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
 fi
 CACHE_DIR="$HOME/.cache/wallust"
-TELA_BASE="Tela-dark"
+TELA_BASE="Tela-blue"
 VERBOSE="${VERBOSE:-false}"
 WP_ONLY=false
 SPAN=false
 NO_QS_RESTART=false
 REAPPLY=false
+REGENERATE=false
 IMAGE_PATH=""
 
 # Debug output function
@@ -28,63 +30,49 @@ debug() {
   fi
 }
 
-# Color name mapping for Tela base names (without -dark/-light suffix)
-declare -A TELA_COLORS
-TELA_COLORS=(
-  ["Tela-blue"]="#5297e0"
-  ["Tela-green"]="#4caf50"
-  ["Tela-red"]="#e53935"
-  ["Tela-purple"]="#9c27b0"
-  ["Tela-pink"]="#e91e63"
-  ["Tela-orange"]="#ff9800"
-  ["Tela-yellow"]="#ffeb3b"
-  ["Tela-brown"]="#795548"
-  ["Tela-grey"]="#607d8b"
-  ["Tela-black"]="#212121"
-  ["Tela-dracula"]="#bd93f9"
-  ["Tela-nord"]="#88c0d0"
-  ["Tela-manjaro"]="#16a085"
-  ["Tela-ubuntu"]="#e95420"
-)
-
-# Find the closest Tela base icon theme name based on a hex color.
-# Returns just the base (e.g. "Tela-blue") — caller appends -dark or -light.
+# Find the closest Tela base icon theme name using HSV hue-weighted color matching.
+# Returns base name (e.g. "Tela-purple", "Tela-red", "Tela-dracula").
 find_closest_tela() {
   local target_color="$1"
-  local best_match="Tela-blue"
-  local best_distance=999999
+  python3 -c "
+import colorsys
+target_color = '$target_color'.lstrip('#')
+if len(target_color) != 6:
+    print('Tela-blue')
+    exit(0)
+colors = {
+    'Tela-blue': '#5297e0', 'Tela-green': '#4caf50', 'Tela-red': '#e53935',
+    'Tela-purple': '#9c27b0', 'Tela-pink': '#e91e63', 'Tela-orange': '#ff9800',
+    'Tela-yellow': '#ffeb3b', 'Tela-brown': '#795548', 'Tela-grey': '#607d8b',
+    'Tela-black': '#212121', 'Tela-dracula': '#bd93f9', 'Tela-nord': '#88c0d0',
+    'Tela-manjaro': '#16a085', 'Tela-ubuntu': '#e95420'
+}
+tr, tg, tb = int(target_color[0:2],16)/255.0, int(target_color[2:4],16)/255.0, int(target_color[4:6],16)/255.0
+th, ts, tv = colorsys.rgb_to_hsv(tr, tg, tb)
+if ts < 0.15:
+    print('Tela-grey' if tv > 0.3 else 'Tela-black')
+    exit(0)
 
-  target_color="${target_color#\#}"
-
-  local tr=$((16#${target_color:0:2}))
-  local tg=$((16#${target_color:2:2}))
-  local tb=$((16#${target_color:4:2}))
-
-  for theme in "${!TELA_COLORS[@]}"; do
-    local theme_color="${TELA_COLORS[$theme]}"
-    theme_color="${theme_color#\#}"
-
-    local mr=$((16#${theme_color:0:2}))
-    local mg=$((16#${theme_color:2:2}))
-    local mb=$((16#${theme_color:4:2}))
-
-    local dr=$((tr - mr))
-    local dg=$((tg - mg))
-    local db=$((tb - mb))
-    local distance=$((dr * dr + dg * dg + db * db))
-
-    if (( distance < best_distance )); then
-      best_distance=$distance
-      best_match="$theme"
-    fi
-  done
-
-  echo "$best_match"
+best_name, best_dist = 'Tela-blue', 999999
+for name, hc in colors.items():
+    hc = hc.lstrip('#')
+    mr, mg, mb = int(hc[0:2],16)/255.0, int(hc[2:4],16)/255.0, int(hc[4:6],16)/255.0
+    mh, ms, mv = colorsys.rgb_to_hsv(mr, mg, mb)
+    dh = min(abs(th - mh), 1.0 - abs(th - mh))
+    ds = abs(ts - ms)
+    dv = abs(tv - mv)
+    dist = dh * 4.0 + ds * 1.0 + dv * 0.5
+    if dist < best_dist:
+        best_dist, best_name = dist, name
+print(best_name)
+" 2>/dev/null || echo "Tela-blue"
 }
 
 # Set GTK and Qt icon theme
 set_icon_theme() {
   local icon_theme="$1"
+
+  debug "Setting icon theme to: $icon_theme"
 
   if command -v gsettings &> /dev/null; then
     gsettings set org.gnome.desktop.interface icon-theme "$icon_theme" 2>/dev/null || true
@@ -140,21 +128,31 @@ update_apps() {
   if [ -f "$color_script" ]; then
     # shellcheck source=/dev/null
     source "$color_script"
-    ACCENT_COLOR="${COLOR4:-#7aa2f7}"
+
+    # ALWAYS USE DARK MODE ACCENT COLOR TO GENERATE ICON THEME!
+    local dark_accent=""
+    if [ -n "${CURRENT_WP_CACHE_DIR:-}" ] && [ -f "$CURRENT_WP_CACHE_DIR/dark_accent.txt" ]; then
+      dark_accent=$(cat "$CURRENT_WP_CACHE_DIR/dark_accent.txt" 2>/dev/null || true)
+    fi
+    if [ -z "$dark_accent" ]; then
+      dark_accent="${COLOR4:-${COLOR6:-#7aa2f7}}"
+    fi
 
     # Pick correct Tela variant (-dark or -light) based on current mode
     IS_LIGHT_MODE=$(cat "$HOME/.cache/quickshell/is_light_mode" 2>/dev/null || echo "false")
     TELA_SUFFIX="-dark"
     [ "$IS_LIGHT_MODE" = "true" ] && TELA_SUFFIX="-light"
-    if [ -n "$ACCENT_COLOR" ]; then
-      TELA_BASE=$(find_closest_tela "$ACCENT_COLOR")
+
+    if [ -n "$dark_accent" ]; then
+      TELA_BASE=$(find_closest_tela "$dark_accent")
       BEST_TELA="${TELA_BASE}${TELA_SUFFIX}"
-      # Verify it exists, fall back to base if not
+      # Verify it exists, fall back to base if variant directory missing
       if [ ! -d "$HOME/.local/share/icons/$BEST_TELA" ] && [ ! -d "/usr/share/icons/$BEST_TELA" ]; then
         BEST_TELA="$TELA_BASE"
       fi
       set_icon_theme "$BEST_TELA"
     fi
+
     if [ "$IS_LIGHT_MODE" = "true" ]; then
       read -r RUN_BG RUN_SUR RUN_FG < <(python3 -c "
 colors = ['$BACKGROUND', '$COLOR0', '$COLOR1', '$COLOR2', '$COLOR3', '$COLOR4', '$COLOR5', '$COLOR6', '$COLOR7', '$COLOR8', '$COLOR9', '$COLOR10', '$COLOR11', '$COLOR12', '$COLOR13', '$COLOR14', '$COLOR15', '$FOREGROUND']
@@ -203,29 +201,17 @@ print(f'{brightest} #ffffff #0f172a')
       hyprctl keyword "general:col.inactive_border" "rgba(${COLOR0_STRIPPED}ff)" 2>/dev/null || true
     fi
 
-    # Regenerate starship.toml with smart contrasting foreground colors
-    if [ -f "$HOME/.config/scripts/starship-smart-colors.py" ]; then
-      python3 "$HOME/.config/scripts/starship-smart-colors.py" 2>/dev/null || true
-    fi
-    # Regenerate dynamic Wallust-derived Fish colors (contrast-checked)
-    if [ -f "$HOME/.config/scripts/fish-smart-colors.py" ]; then
-      python3 "$HOME/.config/scripts/fish-smart-colors.py" 2>/dev/null || true
-    fi
-    # Regenerate dynamic Wallust-derived Fastfetch logo (contrast-checked)
-    if [ -f "$HOME/.config/scripts/fastfetch-smart-logo.py" ]; then
-      python3 "$HOME/.config/scripts/fastfetch-smart-logo.py" 2>/dev/null || true
-    fi
-    # Regenerate dynamic Wallust-derived btop theme (contrast-checked)
-    if [ -f "$HOME/.config/scripts/btop-smart-theme.py" ]; then
-      python3 "$HOME/.config/scripts/btop-smart-theme.py" 2>/dev/null || true
-    fi
+    # Regenerate starship, fish, fastfetch, btop
+    [ -f "$HOME/.config/scripts/starship-smart-colors.py" ] && python3 "$HOME/.config/scripts/starship-smart-colors.py" 2>/dev/null || true
+    [ -f "$HOME/.config/scripts/fish-smart-colors.py" ] && python3 "$HOME/.config/scripts/fish-smart-colors.py" 2>/dev/null || true
+    [ -f "$HOME/.config/scripts/fastfetch-smart-logo.py" ] && python3 "$HOME/.config/scripts/fastfetch-smart-logo.py" 2>/dev/null || true
+    [ -f "$HOME/.config/scripts/btop-smart-theme.py" ] && python3 "$HOME/.config/scripts/btop-smart-theme.py" 2>/dev/null || true
   fi
 
-  # ── Kitty & Fish color reload ─────────────────────────────────────────────
+  # Kitty reload
   if command -v kitty &>/dev/null; then
     IS_LIGHT_KITTY=$(cat "$HOME/.cache/quickshell/is_light_mode" 2>/dev/null || echo "false")
     if [ "$IS_LIGHT_KITTY" = "true" ]; then
-      # Compute brightest bg from current palette
       KITTY_BG=$(python3 -c "
 import subprocess, re
 colors_str = '''${COLOR0:-#f4f6f8} ${COLOR1:-#f4f6f8} ${COLOR2:-#f4f6f8} ${COLOR3:-#f4f6f8} ${COLOR4:-#f4f6f8} ${COLOR5:-#f4f6f8} ${COLOR6:-#f4f6f8} ${COLOR7:-#f4f6f8} ${COLOR8:-#f4f6f8} ${COLOR9:-#f4f6f8} ${COLOR10:-#f4f6f8} ${COLOR11:-#f4f6f8} ${COLOR12:-#f4f6f8} ${COLOR13:-#f4f6f8} ${COLOR14:-#f4f6f8} ${COLOR15:-#f4f6f8} ${BACKGROUND:-#f4f6f8}'''
@@ -237,7 +223,6 @@ valid_sorted = sorted(colors, key=luma, reverse=True)
 best = valid_sorted[0] if valid_sorted else '#f4f6f8'
 print(best if luma(best)>=0.85 else '#f4f6f8')
 " 2>/dev/null || echo "#f4f6f8")
-      # Patch kitty.conf: override background, foreground, cursor, selection
       cp "$HOME/.config/kitty/wallust.conf" "$HOME/.config/kitty/wallust.conf.bak" 2>/dev/null || true
       sed -i \
         -e "s/^background .*/background   $KITTY_BG/" \
@@ -311,36 +296,72 @@ set_wallpaper() {
   # Determine wallust palette mode (dark / light / auto)
   get_palette_mode "$image"
 
-  # Run wallust with the correct palette to generate fresh color templates
-  if command -v wallust &>/dev/null; then
-    wallust run -p "$PALETTE_MODE" "$image" --quiet 2>/dev/null || wallust run "$image" 2>/dev/null || true
-    sleep 0.3
+  # Wallpaper MD5 Cache Setup
+  local wp_hash
+  wp_hash=$(md5sum "$image" | awk '{print $1}')
+  export CURRENT_WP_CACHE_DIR="$HOME/.cache/wallust_cache/$wp_hash"
+
+  local is_cached=false
+  if [ "$REGENERATE" != "true" ] && [ -f "$CURRENT_WP_CACHE_DIR/dark_colors.sh" ] && [ -f "$CURRENT_WP_CACHE_DIR/light_colors.sh" ] && [ -f "$CURRENT_WP_CACHE_DIR/dark_accent.txt" ]; then
+    is_cached=true
   fi
 
-  # Update all linked apps
+  if [ "$is_cached" = "true" ]; then
+    echo "Using cached colors"
+    notify-send "Wallpaper & Theme" "Using cached colors"
+    mkdir -p "$HOME/.config/scripts/shared"
+    cp "$CURRENT_WP_CACHE_DIR/${PALETTE_MODE}_colors.sh" "$HOME/.config/scripts/shared/dynamic-color.sh"
+  else
+    echo "Generating dark & light color schemes..."
+    notify-send "Wallpaper & Theme" "Generating dark & light color schemes…"
+    mkdir -p "$CURRENT_WP_CACHE_DIR"
+
+    if command -v wallust &>/dev/null; then
+      # 1. Generate Dark mode colors
+      wallust run -p dark "$image" --quiet 2>/dev/null || wallust run "$image" 2>/dev/null || true
+      sleep 0.2
+      mkdir -p "$HOME/.config/scripts/shared"
+      cp "$HOME/.config/scripts/shared/dynamic-color.sh" "$CURRENT_WP_CACHE_DIR/dark_colors.sh" 2>/dev/null || true
+
+      # Extract Dark Mode Accent Color (COLOR4 or COLOR6)
+      python3 -c "
+import re
+src = open('$CURRENT_WP_CACHE_DIR/dark_colors.sh').read()
+m = re.search(r'COLOR4=[\"\']?(#[A-Fa-f0-9]{6})', src)
+accent = m.group(1) if m else '#7aa2f7'
+open('$CURRENT_WP_CACHE_DIR/dark_accent.txt', 'w').write(accent)
+" 2>/dev/null || echo "#7aa2f7" > "$CURRENT_WP_CACHE_DIR/dark_accent.txt"
+
+      # 2. Generate Light mode colors
+      wallust run -p light "$image" --quiet 2>/dev/null || wallust run "$image" 2>/dev/null || true
+      sleep 0.2
+      cp "$HOME/.config/scripts/shared/dynamic-color.sh" "$CURRENT_WP_CACHE_DIR/light_colors.sh" 2>/dev/null || true
+
+      # Copy active palette mode colors to dynamic-color.sh
+      cp "$CURRENT_WP_CACHE_DIR/${PALETTE_MODE}_colors.sh" "$HOME/.config/scripts/shared/dynamic-color.sh" 2>/dev/null || true
+    fi
+  fi
+
+  # Update all linked apps (including icon theme derived from dark_accent)
   update_apps
 
-  # Check wallpaper brightness — prompt for light mode if very bright (only if not auto)
+  # Check wallpaper brightness — prompt for light mode if very bright
   if [ "${MODE_CHOICE:-}" != "auto" ]; then
     LUMI_MEAN=$(python3 -c "import sys; from PIL import Image, ImageStat; im=Image.open(sys.argv[1]).convert('L'); print(int(ImageStat.Stat(im).mean[0]))" "$image" 2>/dev/null || echo 100)
     if [ "$LUMI_MEAN" -gt 160 ]; then
-      debug "Bright wallpaper detected (luma mean: $LUMI_MEAN) — will prompt for Light Mode after restart"
       touch "$HOME/.cache/quickshell/prompt_light_mode"
     else
       rm -f "$HOME/.cache/quickshell/prompt_light_mode"
     fi
   fi
 
-  notify-send "Wallpaper & Theme" "Wallpaper applied — reloading shell…"
+  notify-send "Wallpaper & Theme" "Theme applied — reloading shell…"
 
-  # Always restart quickshell so it reloads wallust-colors.qml with fresh palette
-  # startup.sh will re-open the wallpaper picker if wp_selector_open flag exists
   sleep 0.2
   nohup "$HOME/.config/quickshell/scripts/startup.sh" >/dev/null 2>&1 &
 }
 
 ## Reapply colors to all apps using the cached wallpaper
-# Used for dark/light/auto mode toggle
 reapply_colors() {
   local image
   image=$(cat "$HOME/.cache/quickshell/current_wallpaper" 2>/dev/null)
@@ -351,23 +372,28 @@ reapply_colors() {
 
   debug "Reapplying colors from: $image"
 
-  # Determine palette mode from cache flag or auto mode
   get_palette_mode "$image"
   debug "Palette mode: $PALETTE_MODE"
 
-  # Run wallust with the correct palette
-  if command -v wallust &>/dev/null; then
-    wallust run -p "$PALETTE_MODE" "$image" --quiet 2>/dev/null || wallust run "$image" 2>/dev/null || true
-    sleep 0.3
+  local wp_hash
+  wp_hash=$(md5sum "$image" | awk '{print $1}')
+  export CURRENT_WP_CACHE_DIR="$HOME/.cache/wallust_cache/$wp_hash"
+
+  if [ "$REGENERATE" != "true" ] && [ -f "$CURRENT_WP_CACHE_DIR/${PALETTE_MODE}_colors.sh" ]; then
+    echo "Using cached colors"
+    notify-send "Theme Updated" "Using cached colors ($PALETTE_MODE mode)"
+    cp "$CURRENT_WP_CACHE_DIR/${PALETTE_MODE}_colors.sh" "$HOME/.config/scripts/shared/dynamic-color.sh"
+  else
+    if command -v wallust &>/dev/null; then
+      wallust run -p "$PALETTE_MODE" "$image" --quiet 2>/dev/null || wallust run "$image" 2>/dev/null || true
+      sleep 0.3
+    fi
   fi
 
-  # Update all linked apps (kitty, GTK, KDE/Dolphin, Hyprland, mako, etc.)
   update_apps
 
   notify-send "Theme Updated" "Switched to $PALETTE_MODE mode — reloading shell…"
 
-  # Restart quickshell so wallust-colors.qml is reloaded with the new palette.
-  # No wp_selector_open flag is set, so the picker stays closed after restart.
   sleep 0.2
   nohup "$HOME/.config/quickshell/scripts/startup.sh" >/dev/null 2>&1 &
 }
@@ -388,6 +414,10 @@ while [ $# -gt 0 ]; do
       ;;
     --reapply)
       REAPPLY=true
+      shift
+      ;;
+    --regenerate|--force-regenerate|-r)
+      REGENERATE=true
       shift
       ;;
     --verbose)

@@ -9,20 +9,18 @@ PanelWindow {
     required property var modelData
     screen: modelData
     
-    // Cover the full screen
     implicitWidth: screen.width
     implicitHeight: screen.height
     
-    // Put it on overlay layer and grab keyboard focus so the user can press Escape to close it
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+    WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
     
-    color: "#cc0d0f18" // Semi-transparent dark background
+    color: "#b00d0f18"
     
     property var colors: null
+    property var rootBar: typeof shellRoot !== "undefined" ? shellRoot : null
     signal closeRequested()
     
-    // Pressing ESC closes the menu
     Shortcut {
         sequence: "Escape"
         onActivated: powerWindow.closeRequested()
@@ -35,15 +33,14 @@ PanelWindow {
     
     Rectangle {
         anchors.centerIn: parent
-        width: 650
-        height: 240
+        width: 660
+        height: 230
         color: rootBar ? rootBar._bg : "#1a1b26"
-        border.color: rootBar ? rootBar._sur : "#414868"
-        border.width: 1
+        border.color: rootBar ? rootBar._cyn : "#414868"
+        border.width: 1.5
         radius: 16
         
-        // Fluid spring-bounce entry animation
-        scale: 0.8
+        scale: 0.9
         opacity: 0
         
         Component.onCompleted: {
@@ -51,10 +48,9 @@ PanelWindow {
             opacity = 1.0;
         }
         
-        Behavior on scale { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
-        Behavior on opacity { NumberAnimation { duration: 200 } }
+        Behavior on scale { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
+        Behavior on opacity { NumberAnimation { duration: 180 } }
         
-        // Prevent click inside dialog from closing window
         MouseArea {
             anchors.fill: parent
             onClicked: (mouse) => mouse.accepted = true
@@ -62,56 +58,57 @@ PanelWindow {
         
         ColumnLayout {
             anchors.fill: parent
-            anchors.margins: 24
-            spacing: 20
+            anchors.margins: 22
+            spacing: 16
             
             Text {
-                text: "SYSTEM CONTROL"
-                color: rootBar ? rootBar._muted : "#6D8895"
-                font.family: "JetBrainsMono Nerd Font"
-                font.pixelSize: 16
+                text: "󰐥  SYSTEM POWER CONTROL"
+                color: rootBar ? rootBar._cyn : "#9bced7"
+                font.family: rootBar ? rootBar.globalFontFamily : "JetBrainsMono Nerd Font"
+                font.pixelSize: 13
                 font.bold: true
+                font.letterSpacing: 1.1
                 Layout.alignment: Qt.AlignHCenter
             }
             
             RowLayout {
-                spacing: 20
+                spacing: 14
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignHCenter
                 
-                // Button Component Helper
                 Repeater {
                     model: [
-                        { name: "Lock", icon: "\uf023", command: ["hyprlock"] },
-                        { name: "Suspend", icon: "\uf186", command: ["systemctl", "suspend"] },
-                        { name: "Logout", icon: "\uf2f5", command: ["hyprctl", "dispatch", "exit"] },
-                        { name: "Reboot", icon: "\uf021", command: ["systemctl", "reboot"] },
-                        { name: "Shutdown", icon: "\uf011", command: ["systemctl", "poweroff"] }
+                        { name: "Lock", icon: "󰌾", cmd: "hyprlock" },
+                        { name: "Suspend", icon: "󰤄", cmd: "systemctl suspend" },
+                        { name: "Logout", icon: "󰍃", cmd: "command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exec_cmd(\"hyprctl dispatch exit\")'" },
+                        { name: "Reboot", icon: "󰜉", cmd: "systemctl reboot" },
+                        { name: "Shutdown", icon: "󰐥", cmd: "systemctl poweroff" }
                     ]
                     
                     delegate: Rectangle {
                         width: 110
                         height: 110
                         radius: 14
-                        color: hoverArea.containsMouse ? (rootBar ? rootBar._sur : "#414868") : "transparent"
-                        border.color: hoverArea.containsMouse ? (rootBar ? rootBar._acc : "#7aa2f7") : (rootBar ? rootBar._sur : "#414868")
-                        border.width: 1
+                        color: hoverArea.containsMouse ? (rootBar ? rootBar._sur : "#414868") : (rootBar ? rootBar.alphaColor(rootBar._sur, 0.4) : "#1e1e2e")
+                        border.color: hoverArea.containsMouse ? (rootBar ? rootBar._cyn : "#7aa2f7") : (rootBar ? rootBar.alphaColor(rootBar._muted, 0.3) : "#414868")
+                        border.width: hoverArea.containsMouse ? 1.5 : 1
                         
                         Column {
                             anchors.centerIn: parent
                             spacing: 8
                             Text {
                                 text: modelData.icon
-                                color: hoverArea.containsMouse ? (rootBar ? rootBar._acc : "#7aa2f7") : (rootBar ? rootBar._fg : "#c0caf5")
-                                font.pixelSize: 36
-                                font.family: "JetBrainsMono Nerd Font"
+                                color: hoverArea.containsMouse ? (rootBar ? rootBar._cyn : "#7aa2f7") : (rootBar ? rootBar._fg : "#c0caf5")
+                                font.pixelSize: 34
+                                font.family: rootBar ? rootBar.globalFontFamily : "JetBrainsMono Nerd Font"
                                 anchors.horizontalCenter: parent.horizontalCenter
                             }
                             Text {
                                 text: modelData.name
                                 color: rootBar ? rootBar._fg : "#c0caf5"
-                                font.pixelSize: 13
-                                font.family: "JetBrainsMono Nerd Font"
+                                font.pixelSize: 12
+                                font.bold: true
+                                font.family: rootBar ? rootBar.globalFontFamily : "JetBrainsMono Nerd Font"
                                 anchors.horizontalCenter: parent.horizontalCenter
                             }
                         }
@@ -123,7 +120,8 @@ PanelWindow {
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
                                 powerWindow.closeRequested();
-                                actionProc.command = modelData.command;
+                                actionProc.command = ["bash", "-c", modelData.cmd];
+                                actionProc.running = false;
                                 actionProc.running = true;
                             }
                         }
@@ -135,5 +133,6 @@ PanelWindow {
     
     Process {
         id: actionProc
+        command: ["bash", "-c", "echo idle"]
     }
 }

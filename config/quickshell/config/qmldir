@@ -1,0 +1,2 @@
+module config
+singleton CentralConfig 1.0 CentralConfig.qml

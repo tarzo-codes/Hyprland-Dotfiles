@@ -72,10 +72,10 @@ PanelWindow {
         }
     }
 
-    // Process to scan wallpapers across ~/wallpaper, ~/Pictures/Wallpapers, ~/.local/share/wallpapers and custom user dirs
+    // Process to scan wallpapers across ~/anime_wallapaper, ~/wallpapers, ~/wallpaper, ~/Pictures/Wallpapers, ~/.local/share/wallpapers and custom user dirs
     Process {
         id: wpScanner
-        command: ["bash", "-c", "mkdir -p ~/.config/quickshell && touch ~/.config/quickshell/wallpaper_dirs.txt && find ~/wallpaper ~/Pictures/Wallpapers ~/.local/share/wallpapers $(cat ~/.config/quickshell/wallpaper_dirs.txt 2>/dev/null) -maxdepth 2 -type f \\( -iname \"*.jpg\" -o -iname \"*.png\" -o -iname \"*.jpeg\" -o -iname \"*.webp\" \\) 2>/dev/null | sort -u"]
+        command: ["bash", "-c", "mkdir -p ~/.config/quickshell && touch ~/.config/quickshell/wallpaper_dirs.txt && find ~/anime_wallapaper ~/wallpapers ~/wallpaper ~/Pictures/Wallpapers ~/.local/share/wallpapers ~/.config/hypr/wallpapers /usr/share/backgrounds $(cat ~/.config/quickshell/wallpaper_dirs.txt 2>/dev/null) -maxdepth 2 -type f \\( -iname \"*.jpg\" -o -iname \"*.png\" -o -iname \"*.jpeg\" -o -iname \"*.webp\" \\) 2>/dev/null | sort -u"]
         stdout: StdioCollector {
             onStreamFinished: {
                 wallpaperModel.clear();

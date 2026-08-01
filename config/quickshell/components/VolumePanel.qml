@@ -4,21 +4,15 @@ import QtQuick.Controls
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
-import "../themes"
+import "../config"
 
 PanelWindow {
     id: volumePanel
     required property var modelData
     screen: modelData
 
-    implicitWidth: 340
-    implicitHeight: {
-        var base = 270;
-        var sinkH = Math.max(1, sinksModel.count) * 30;
-        var srcH = Math.max(1, sourcesModel.count) * 30;
-        var appH = showAppsMixer ? Math.max(40, appStreamsModel.count * 46) : 0;
-        return Math.min(620, base + sinkH + srcH + appH);
-    }
+    implicitWidth: CentralConfig.useCustomAppletSize ? CentralConfig.appletWidth : (CentralConfig.appletWidth > 0 ? CentralConfig.appletWidth : 340)
+    implicitHeight: CentralConfig.useCustomAppletSize ? CentralConfig.appletHeight : Math.min(620, 270 + Math.max(1, sinksModel.count) * 30 + Math.max(1, sourcesModel.count) * 30 + (showAppsMixer ? Math.max(40, appStreamsModel.count * 46) : 0))
 
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "quickshell-volume-panel"
@@ -39,15 +33,17 @@ PanelWindow {
     }
 
     anchors {
-        top: !ThemeManager.barIsBottom
-        bottom: ThemeManager.barIsBottom
-        right: true
+        top: CentralConfig.appletLocation === "top" || CentralConfig.appletLocation === "custom" || (CentralConfig.appletLocation !== "bottom" && CentralConfig.appletLocation !== "center" && !ThemeManager.barIsBottom)
+        bottom: CentralConfig.appletLocation === "bottom"
+        left: CentralConfig.appletLocation === "custom"
+        right: CentralConfig.appletLocation === "top" || CentralConfig.appletLocation === "bottom"
     }
 
     margins {
-        top: !ThemeManager.barIsBottom ? (volumePanel.rootBar ? volumePanel.rootBar.barHeight + 6 : 48) : 0
-        bottom: ThemeManager.barIsBottom ? (volumePanel.rootBar ? volumePanel.rootBar.barHeight + 6 : 48) : 0
-        right: volumePanel.rootBar ? Math.round(volumePanel.screen.width * (1.0 - volumePanel.rootBar.barWidthPercent) / 2 + 60) : Math.round(volumePanel.screen.width * 0.1)
+        top: CentralConfig.appletLocation === "custom" ? CentralConfig.appletCustomY : ((CentralConfig.appletLocation === "top" || (CentralConfig.appletLocation !== "bottom" && CentralConfig.appletLocation !== "center" && !ThemeManager.barIsBottom)) ? (volumePanel.rootBar ? volumePanel.rootBar.barHeight + 6 : 48) : 0)
+        left: CentralConfig.appletLocation === "custom" ? CentralConfig.appletCustomX : 0
+        bottom: CentralConfig.appletLocation === "bottom" ? (volumePanel.rootBar ? volumePanel.rootBar.barHeight + 6 : 48) : 0
+        right: (CentralConfig.appletLocation === "top" || CentralConfig.appletLocation === "bottom") ? (volumePanel.rootBar ? Math.round(volumePanel.screen.width * (1.0 - volumePanel.rootBar.barWidthPercent) / 2 + 60) : Math.round(volumePanel.screen.width * 0.1)) : 0
     }
 
     color: "transparent"

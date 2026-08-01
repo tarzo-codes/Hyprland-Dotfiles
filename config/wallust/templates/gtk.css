@@ -1,13 +1,11 @@
-/* Wallust Dynamic GTK3/GTK4 Theme Template */
-
-@import 'colors.css';
+/* Wallust Dynamic GTK3/GTK4 Smart Colors Template */
 
 @define-color theme_bg_color {{ background }};
 @define-color theme_fg_color {{ foreground }};
 @define-color theme_base_color {{ background }};
 @define-color theme_text_color {{ foreground }};
 @define-color theme_selected_bg_color {{ color4 }};
-@define-color theme_selected_fg_color {{ foreground }};
+@define-color theme_selected_fg_color {{ background }};
 @define-color window_bg_color {{ background }};
 @define-color window_fg_color {{ foreground }};
 @define-color view_bg_color {{ background }};
@@ -17,16 +15,25 @@
 @define-color card_bg_color {{ color0 }};
 @define-color card_fg_color {{ foreground }};
 
-window, dialog, messagedialog, .background, widget {
-    background-color: {{ background }};
-    color: {{ foreground }};
+/* Smart Contrast Rules */
+window, .background {
+    background-color: @theme_bg_color;
+    color: @theme_fg_color;
 }
 
-headerbar, actionbar, tab, notebook header, stack {
-    background-color: {{ background }};
-    color: {{ foreground }};
+headerbar, actionbar {
+    background-color: @headerbar_bg_color;
+    color: @headerbar_fg_color;
 }
 
-label {
-    color: {{ foreground }};
+/* Selected state contrast */
+:selected, selection {
+    background-color: @theme_selected_bg_color;
+    color: @theme_selected_fg_color;
+}
+
+/* Entry input contrast */
+entry {
+    background-color: @theme_base_color;
+    color: @theme_text_color;
 }

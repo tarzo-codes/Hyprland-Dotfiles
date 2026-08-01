@@ -1,0 +1,2 @@
+-- Color Scheme Configuration (end4 architecture)
+-- Dynamically managed by Wallust

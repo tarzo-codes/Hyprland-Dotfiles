@@ -20,22 +20,46 @@ Item {
     Settings {
         id: stateStore
         category: "ThemeState"
-        property string themeName: "z0mbi3"
+        property string themeName: "cristina"
         property string colorMode: "static"
         property int    barHeight: 40
         property real   barWidthPercent: 0.96
+        property int    barRadius: 8
         property int    globalFontSize: 11
         property bool   isLightMode: false
         property string modeChoice: "dark"
+        property bool   autoHideBar: false
+        property string appColorMode: "theme"
+        property bool   topBarEnabled: true
+        property bool   bottomBarEnabled: true
+        property string customAccentColor: ""
+        property bool   showPinnedApps: true
+        property bool   showBadges: true
+        property bool   useCustomModuleLayout: false
+        property string leftModules: "launcher,workspaces,title"
+        property string centerModules: "pinnedApps,media"
+        property string rightModules: "updates,disk,cpu,ram,volume,network,clock,tray,power"
     }
 
-    property alias themeName:       stateStore.themeName
-    property alias colorMode:       stateStore.colorMode
-    property alias barHeight:       stateStore.barHeight
-    property alias barWidthPercent: stateStore.barWidthPercent
-    property alias globalFontSize:  stateStore.globalFontSize
-    property alias isLightMode:     stateStore.isLightMode
-    property alias modeChoice:      stateStore.modeChoice
+    property alias themeName:         stateStore.themeName
+    property alias colorMode:         stateStore.colorMode
+    property alias barHeight:         stateStore.barHeight
+    property alias barWidthPercent:   stateStore.barWidthPercent
+    property alias barRadius:         stateStore.barRadius
+    property alias globalFontSize:    stateStore.globalFontSize
+    property alias isLightMode:       stateStore.isLightMode
+    property alias modeChoice:       stateStore.modeChoice
+    property alias autoHideBar:       stateStore.autoHideBar
+    property alias appColorMode:     stateStore.appColorMode
+    property alias topBarEnabled:     stateStore.topBarEnabled
+    property alias bottomBarEnabled:  stateStore.bottomBarEnabled
+    property alias customAccentColor: stateStore.customAccentColor
+    property alias showPinnedApps:        stateStore.showPinnedApps
+    property alias showBadges:            stateStore.showBadges
+    property alias useCustomModuleLayout: stateStore.useCustomModuleLayout
+    property alias leftModules:           stateStore.leftModules
+    property alias centerModules:         stateStore.centerModules
+    property alias rightModules:          stateStore.rightModules
 
     // Resolved colors path
     readonly property string colorsPath: colorMode === "wallust" ?
