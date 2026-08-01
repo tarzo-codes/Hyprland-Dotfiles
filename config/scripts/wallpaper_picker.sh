@@ -179,6 +179,8 @@ if wp_path and os.path.isfile(wp_path):
         
         total_px = sum(count for count, _ in colors) if colors else 1
         avg_luma = sum(count * (0.299*r + 0.587*g + 0.114*b) for count, (r, g, b) in colors) / (total_px * 255.0) if colors else 0.5
+        avg_sat = sum(count * ((max(r,g,b) - min(r,g,b)) / (max(r,g,b) if max(r,g,b)>0 else 1)) for count, (r, g, b) in colors) / total_px if colors else 0.0
+
         if avg_luma > 0.50:
             with open(os.path.expanduser('~/.cache/quickshell/is_light_mode'), 'w') as f:
                 f.write('true')
@@ -186,50 +188,70 @@ if wp_path and os.path.isfile(wp_path):
             with open(os.path.expanduser('~/.cache/quickshell/is_light_mode'), 'w') as f:
                 f.write('false')
 
-        if colors:
+        # 1. Grayscale / Monochromatic / Gray Wallpapers (S < 0.12)
+        if avg_sat < 0.12:
+            if avg_luma > 0.65:
+                best_base = 'Tela-black'
+            elif avg_luma > 0.35:
+                best_base = 'Tela-grey'
+            else:
+                best_base = 'Tela-grey'
+        elif colors:
+            # 2. Complete 14-Theme Spectrum Resolver
             hue_scores = {
-                'Tela-pink': 0.0,
                 'Tela-red': 0.0,
-                'Tela-orange': 0.0,
+                'Tela-pink': 0.0,
                 'Tela-ubuntu': 0.0,
+                'Tela-orange': 0.0,
                 'Tela-yellow': 0.0,
                 'Tela-green': 0.0,
                 'Tela-manjaro': 0.0,
-                'Tela-blue': 0.0,
                 'Tela-nord': 0.0,
-                'Tela-purple': 0.0,
+                'Tela-blue': 0.0,
                 'Tela-dracula': 0.0,
-                'Tela-black': 0.0,
-                'Tela-grey': 0.0
+                'Tela-purple': 0.0,
+                'Tela-brown': 0.0,
+                'Tela-grey': 0.0,
+                'Tela-black': 0.0
             }
             
             for count, (r, g, b) in colors:
                 h, s, v = colorsys.rgb_to_hsv(r/255.0, g/255.0, b/255.0)
                 luma = 0.299*(r/255.0) + 0.587*(g/255.0) + 0.114*(b/255.0)
-                if s >= 0.12 and 0.10 <= luma <= 0.90:
+                if s >= 0.12 and 0.08 <= luma <= 0.92:
                     deg = h * 360.0
                     weight = count * (s ** 2)
-                    if deg >= 335 or deg < 10:
-                        hue_scores['Tela-pink'] += weight * 1.3
-                        hue_scores['Tela-red'] += weight
-                    elif 10 <= deg < 25:
-                        hue_scores['Tela-red'] += weight * 1.3
-                    elif 25 <= deg < 48:
-                        hue_scores['Tela-orange'] += weight * 1.3
-                        hue_scores['Tela-ubuntu'] += weight
+
+                    if deg >= 345 or deg < 12:
+                        if s > 0.40 and luma < 0.55:
+                            hue_scores['Tela-red'] += weight * 1.4
+                        else:
+                            hue_scores['Tela-pink'] += weight * 1.4
+                    elif 12 <= deg < 28:
+                        hue_scores['Tela-ubuntu'] += weight * 1.5
+                        hue_scores['Tela-orange'] += weight
+                    elif 28 <= deg < 48:
+                        hue_scores['Tela-orange'] += weight * 1.5
+                        hue_scores['Tela-ubuntu'] += weight * 0.8
                     elif 48 <= deg < 70:
-                        hue_scores['Tela-yellow'] += weight * 1.2
-                    elif 70 <= deg < 165:
-                        hue_scores['Tela-green'] += weight * 1.2
-                        hue_scores['Tela-manjaro'] += weight
-                    elif 165 <= deg < 255:
-                        hue_scores['Tela-blue'] += weight * 1.2
-                        hue_scores['Tela-nord'] += weight
-                        hue_scores['Tela-grey'] += weight * 0.5
-                    elif 255 <= deg < 335:
-                        hue_scores['Tela-purple'] += weight * 1.2
-                        hue_scores['Tela-dracula'] += weight
-            
+                        hue_scores['Tela-yellow'] += weight * 1.4
+                    elif 70 <= deg < 140:
+                        hue_scores['Tela-green'] += weight * 1.4
+                    elif 140 <= deg < 175:
+                        hue_scores['Tela-manjaro'] += weight * 1.5
+                        hue_scores['Tela-green'] += weight * 0.8
+                    elif 175 <= deg < 205:
+                        hue_scores['Tela-nord'] += weight * 1.5
+                        hue_scores['Tela-blue'] += weight * 0.8
+                    elif 205 <= deg < 255:
+                        hue_scores['Tela-blue'] += weight * 1.4
+                    elif 255 <= deg < 285:
+                        hue_scores['Tela-dracula'] += weight * 1.5
+                        hue_scores['Tela-purple'] += weight * 0.8
+                    elif 285 <= deg < 345:
+                        hue_scores['Tela-purple'] += weight * 1.4
+                        hue_scores['Tela-pink'] += weight * 0.8
+
             top_hue = max(hue_scores.items(), key=lambda x: x[1])
             if top_hue[1] > 1.0:
                 best_base = top_hue[0]
