@@ -405,7 +405,11 @@ ShellRoot {
 
     function c(name, fallback) {
         var raw = shellRoot.colors ? (shellRoot.colors[name] || fallback) : fallback;
-        if (!ThemeManager.isLightMode) return raw;
+        if (!ThemeManager.isLightMode) {
+            if (name === "surface") return ensureDarkEnough(raw, 0.24);
+            if (name === "background") return ensureDarkEnough(raw, 0.16);
+            return raw;
+        }
 
         // Background/surface: pick the brightest light color
         if (name === "background") return getBrightestLightBg("#f1f5f9");
@@ -450,7 +454,7 @@ ShellRoot {
 
     // Darken color iteratively until luminance drops below maxLuma
     function ensureDarkEnough(hex, maxLuma) {
-        if (!hex || hex === "transparent") return "#1d4ed8";
+        if (!hex || hex === "transparent") return "#1e1e2e";
         var col = hex.toString();
         var factor = 1.0;
         while (luma(col) > maxLuma && factor < 5.0) {
