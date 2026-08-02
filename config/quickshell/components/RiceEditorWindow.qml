@@ -746,14 +746,71 @@ PanelWindow {
                                     width: parent.width; spacing: 4
                                     Row {
                                         width: parent.width
-                                        Text { text: "Border Gradient Animation Speed:"; color: "#e0def4"; font.pixelSize: 10; font.bold: true }
+                                        Text { text: "Border Gradient Animation Speed (0.1s ultra-fast to 60s ultra-slow):"; color: "#e0def4"; font.pixelSize: 10; font.bold: true }
                                         Item { width: 10 }
                                         Text { text: CentralConfig.borderAnimSpeed.toFixed(1) + " s"; color: rootBar ? rootBar._cyn : "#9bced7"; font.pixelSize: 10; font.bold: true }
                                     }
                                     Slider {
-                                        width: parent.width; from: 1.0; to: 10.0; stepSize: 0.5
+                                        width: parent.width; from: 0.1; to: 60.0; stepSize: 0.5
                                         value: CentralConfig.borderAnimSpeed
                                         onMoved: { CentralConfig.borderAnimSpeed = value; riceWindow.markChanged(); }
+                                    }
+                                }
+
+                                Rectangle { width: parent.width; height: 1; color: "#2a283e" }
+
+                                Text { text: "🔤  Centralized System Typography & Font Size"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true }
+
+                                // Font Family Selection
+                                Column {
+                                    width: parent.width; spacing: 6
+                                    Text { text: "System Font Family:"; color: "#e0def4"; font.pixelSize: 10; font.bold: true }
+                                    Row {
+                                        spacing: 6
+                                        width: parent.width
+                                        Repeater {
+                                            model: ["JetBrainsMono Nerd Font", "FantasqueSansM Nerd Font", "DejaVuSansM Nerd Font", "Adwaita Sans", "DejaVu Sans"]
+                                            delegate: Rectangle {
+                                                width: 140; height: 26; radius: 6
+                                                color: CentralConfig.globalFontFamily === modelData ? (rootBar ? rootBar._cyn : "#9bced7") : "#2a283e"
+                                                border.color: CentralConfig.globalFontFamily === modelData ? "#ffffff" : "#31748f"
+                                                border.width: 1
+
+                                                Text {
+                                                    anchors.centerIn: parent
+                                                    text: modelData.split(" ")[0]
+                                                    color: CentralConfig.globalFontFamily === modelData ? "#181628" : "#e0def4"
+                                                    font.family: modelData
+                                                    font.pixelSize: 9
+                                                    font.bold: true
+                                                    elide: Text.ElideRight
+                                                }
+
+                                                MouseArea {
+                                                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                                    onClicked: {
+                                                        CentralConfig.globalFontFamily = modelData;
+                                                        riceWindow.markChanged("Font changed to: " + modelData);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // Font Size Slider
+                                Column {
+                                    width: parent.width; spacing: 4
+                                    Row {
+                                        width: parent.width
+                                        Text { text: "Global Font Size:"; color: "#e0def4"; font.pixelSize: 10; font.bold: true }
+                                        Item { width: 10 }
+                                        Text { text: pendingFontSize + " pt"; color: rootBar ? rootBar._cyn : "#9bced7"; font.pixelSize: 10; font.bold: true }
+                                    }
+                                    Slider {
+                                        width: parent.width; from: 8; to: 20; stepSize: 1
+                                        value: pendingFontSize
+                                        onMoved: { pendingFontSize = Math.round(value); CentralConfig.globalFontSize = pendingFontSize; riceWindow.markChanged(); }
                                     }
                                 }
 

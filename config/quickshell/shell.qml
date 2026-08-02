@@ -158,10 +158,10 @@ ShellRoot {
 
     // ─── Global typography & sizes — scale with bar height ─────────────────
     // Font sizes scale proportionally so content shrinks gracefully at low heights
-    property int globalFontSize: ThemeManager.globalFontSize
+    property int globalFontSize: CentralConfig.globalFontSize !== 0 ? CentralConfig.globalFontSize : ThemeManager.globalFontSize
     property int  iconFontSize:   Math.max(10, Math.round(ThemeManager.barHeight * 0.38))
-    property string globalFontFamily: "JetBrainsMono Nerd Font"
-    property string iconFontFamily:   "JetBrainsMono Nerd Font"
+    property string globalFontFamily: CentralConfig.globalFontFamily !== "" ? CentralConfig.globalFontFamily : "JetBrainsMono Nerd Font"
+    property string iconFontFamily:   CentralConfig.globalFontFamily !== "" ? CentralConfig.globalFontFamily : "JetBrainsMono Nerd Font"
 
     // ─── Global state ─────────────────────────────────────────────────────────
     property bool powerMenuVisible:      false

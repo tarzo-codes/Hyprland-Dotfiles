@@ -22,6 +22,7 @@ Item {
         property int    barHeight: 40
         property real   barWidthPercent: 0.96
         property int    barRadius: 8
+        property string globalFontFamily: "JetBrainsMono Nerd Font"
         property int    globalFontSize: 11
         property bool   autoHideBar: false
         property string customAccentColor: ""
@@ -88,6 +89,7 @@ Item {
     property alias barHeight:         cfgStore.barHeight
     property alias barWidthPercent:   cfgStore.barWidthPercent
     property alias barRadius:         cfgStore.barRadius
+    property alias globalFontFamily:  cfgStore.globalFontFamily
     property alias globalFontSize:    cfgStore.globalFontSize
     property alias autoHideBar:       cfgStore.autoHideBar
     property alias customAccentColor: cfgStore.customAccentColor
