@@ -34,6 +34,9 @@ PanelWindow {
     property bool showAddFolderRow: false
     property bool syncThemeColors: true
     property bool ignoreTints: true
+    property bool manualIconMode: false
+    property string manualIconTheme: "Tela-blue"
+    property string activeAppliedIconInfo: "Auto-detecting from wallpaper spectrum"
 
     ListModel {
         id: wallpaperModel
@@ -43,6 +46,7 @@ PanelWindow {
         if (visible) {
             readActiveWpProc.running = true;
             readIgnoreTintsProc.running = true;
+            readManualIconProc.running = true;
             scanWallpapersTimer.restart();
         }
     }
@@ -61,6 +65,26 @@ PanelWindow {
         id: toggleIgnoreTintsProc
         property string cmdStr: "echo true > ~/.cache/quickshell/ignore_wallpaper_tints"
         command: ["bash", "-c", cmdStr]
+    }
+
+    Process {
+        id: readManualIconProc
+        command: ["bash", "-c", "cat ~/.cache/quickshell/manual_icon_mode 2>/dev/null || echo false; echo '---'; cat ~/.cache/quickshell/manual_icon_theme 2>/dev/null || echo Tela-blue"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var parts = this.text.trim().split("---");
+                if (parts.length >= 2) {
+                    wallpaperWindow.manualIconMode = (parts[0].trim() === "true");
+                    wallpaperWindow.manualIconTheme = parts[1].trim() || "Tela-blue";
+                }
+            }
+        }
+    }
+
+    Process {
+        id: applyManualIconProc
+        property string targetTheme: "Tela-blue"
+        command: ["bash", "-c", "echo '" + (wallpaperWindow.manualIconMode ? "true" : "false") + "' > ~/.cache/quickshell/manual_icon_mode && echo '" + targetTheme + "' > ~/.cache/quickshell/manual_icon_theme && bash ~/.config/quickshell/scripts/sync-theme-externals.sh"]
     }
 
     Timer {
@@ -187,9 +211,45 @@ PanelWindow {
                     font.pixelSize: Math.round(ThemeManager.globalFontSize * 0.9)
                 }
 
-                // Experimental Tint Auto-Ignore Toggle Button
+                // Icon Color Mode: AUTO / MANUAL Toggle Button
                 Rectangle {
                     width: 135; height: 26; radius: 6
+                    color: wallpaperWindow.manualIconMode ? (rootBar ? rootBar._acc : "#e67e22") : (rootBar ? rootBar._sur : "#252836")
+                    border.color: wallpaperWindow.manualIconMode ? "#ffffff" : (rootBar ? rootBar._sur : "#313244")
+                    border.width: 1
+
+                    Row {
+                        anchors.centerIn: parent
+                        spacing: 4
+                        Text {
+                            text: wallpaperWindow.manualIconMode ? "🎨" : "🪄"
+                            font.pixelSize: 10
+                        }
+                        Text {
+                            text: "Icon: " + (wallpaperWindow.manualIconMode ? "MANUAL" : "AUTO")
+                            color: wallpaperWindow.manualIconMode ? "#181628" : (rootBar ? rootBar._fg : "#c0caf5")
+                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 9
+                            font.bold: true
+                        }
+                    }
+
+                    MouseArea {
+                        id: iconModeMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            wallpaperWindow.manualIconMode = !wallpaperWindow.manualIconMode;
+                            applyManualIconProc.targetTheme = wallpaperWindow.manualIconTheme;
+                            applyManualIconProc.running = true;
+                        }
+                    }
+                }
+
+                // Experimental Tint Auto-Ignore Toggle Button
+                Rectangle {
+                    width: 125; height: 26; radius: 6
                     color: wallpaperWindow.ignoreTints ? (rootBar ? rootBar._sur : "#252836") : "transparent"
                     border.color: wallpaperWindow.ignoreTints ? (rootBar ? rootBar._acc : "#7aa2f7") : (rootBar ? rootBar._sur : "#313244")
                     border.width: 1
@@ -280,6 +340,93 @@ PanelWindow {
                                 wallpaperWindow.rootBar.wallpaperSelectorVisible = false;
                             } else {
                                 wallpaperWindow.visible = false;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Manual Icon Palette Selection Panel (collapsible when manualIconMode is true)
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: wallpaperWindow.manualIconMode ? 46 : 0
+                visible: wallpaperWindow.manualIconMode
+                color: rootBar ? rootBar._sur : "#1e1e2e"
+                border.color: rootBar ? rootBar._acc : "#7aa2f7"
+                border.width: 1
+                radius: 6
+                clip: true
+                Behavior on Layout.preferredHeight { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.margins: 6
+                    spacing: 8
+
+                    Text {
+                        text: "🎨 Pick Accent Icon:"
+                        color: rootBar ? rootBar._fg : "#c0caf5"
+                        font.family: "JetBrainsMono Nerd Font"
+                        font.pixelSize: 10
+                        font.bold: true
+                    }
+
+                    Flickable {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        contentWidth: iconSwatchesRow.width
+                        boundsBehavior: Flickable.StopAtBounds
+                        clip: true
+
+                        Row {
+                            id: iconSwatchesRow
+                            spacing: 5
+                            anchors.verticalCenter: parent.verticalCenter
+
+                            property var swatches: [
+                                {"name": "Tela-red", "color": "#e74c3c", "label": "Red"},
+                                {"name": "Tela-pink", "color": "#ec407a", "label": "Pink"},
+                                {"name": "Tela-orange", "color": "#e67e22", "label": "Orange"},
+                                {"name": "Tela-ubuntu", "color": "#e95420", "label": "Ubuntu"},
+                                {"name": "Tela-yellow", "color": "#f39c12", "label": "Yellow"},
+                                {"name": "Tela-green", "color": "#2ecc71", "label": "Green"},
+                                {"name": "Tela-manjaro", "color": "#16a085", "label": "Manjaro"},
+                                {"name": "Tela-nord", "color": "#5e81ac", "label": "Nord"},
+                                {"name": "Tela-blue", "color": "#3584e4", "label": "Blue"},
+                                {"name": "Tela-purple", "color": "#9b59b6", "label": "Purple"},
+                                {"name": "Tela-dracula", "color": "#bd93f9", "label": "Dracula"},
+                                {"name": "Tela-brown", "color": "#8d6e63", "label": "Brown"},
+                                {"name": "Tela-grey", "color": "#787c99", "label": "Grey"},
+                                {"name": "Tela-black", "color": "#555b6e", "label": "Black"}
+                            ]
+
+                            Repeater {
+                                model: iconSwatchesRow.swatches
+                                delegate: Rectangle {
+                                    width: 66; height: 26; radius: 5
+                                    color: modelData.color
+                                    border.color: (wallpaperWindow.manualIconTheme === modelData.name) ? "#ffffff" : "transparent"
+                                    border.width: (wallpaperWindow.manualIconTheme === modelData.name) ? 2 : 0
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: modelData.label
+                                        color: "#ffffff"
+                                        font.family: "JetBrainsMono Nerd Font"
+                                        font.pixelSize: 9
+                                        font.bold: true
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: {
+                                            wallpaperWindow.manualIconTheme = modelData.name;
+                                            applyManualIconProc.targetTheme = modelData.name;
+                                            applyManualIconProc.running = true;
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

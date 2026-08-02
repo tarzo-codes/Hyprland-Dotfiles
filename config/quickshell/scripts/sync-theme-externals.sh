@@ -168,6 +168,20 @@ if wp_path and os.path.isfile(wp_path):
     except Exception:
         pass
 
+# Check if Manual Icon Selection Mode is enabled
+manual_mode_cache = os.path.expanduser('~/.cache/quickshell/manual_icon_mode')
+manual_theme_cache = os.path.expanduser('~/.cache/quickshell/manual_icon_theme')
+
+is_manual = False
+if os.path.isfile(manual_mode_cache):
+    with open(manual_mode_cache) as f:
+        is_manual = (f.read().strip() == 'true')
+
+if is_manual and os.path.isfile(manual_theme_cache):
+    with open(manual_theme_cache) as f:
+        chosen = f.read().strip()
+        if chosen: best_base = chosen
+
 suffix = '-light' if is_light_wp else '-dark'
 candidate = f'{best_base}{suffix}'
 icon_dirs = [os.path.expanduser(f'~/.local/share/icons/{candidate}'), f'/usr/share/icons/{candidate}']
