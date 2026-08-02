@@ -69,9 +69,18 @@ def ensure_contrast(col, bg, min_ratio=4.5):
         col = '#{:02X}{:02X}{:02X}'.format(int(r*255), int(g*255), int(b*255))
     return col
 
-# ── Score Wallust colors by role suitability ──────────────────────────────────
-# Remove exact BG duplicates, then sort by perceptual distance from BG
-is_light = luma(BG) > 0.50
+# Read is_light_mode cache
+is_light_cache = os.path.expanduser('~/.cache/quickshell/is_light_mode')
+if os.path.isfile(is_light_cache):
+    with open(is_light_cache) as f:
+        is_light = f.read().strip() == 'true'
+else:
+    is_light = luma(BG) > 0.50
+
+if is_light:
+    BG = '#f4f6f8' if luma(BG) < 0.50 else BG
+    FG = '#0f172a' if luma(FG) > 0.50 else FG
+
 bg_h, bg_l, bg_s = hls(BG)
 
 def hue_dist(h1, h2):
