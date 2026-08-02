@@ -1068,6 +1068,18 @@ ShellRoot {
         return name.charAt(0).toUpperCase() + name.slice(1);
     }
 
+    function getAvailableZoneSpace(item) {
+        if (!item) return 350;
+        var p = item.parent;
+        while (p) {
+            if (p.width && p.width > 200 && p.objectName !== "capsuleItem") {
+                return Math.max(100, p.width - 160);
+            }
+            p = p.parent;
+        }
+        return 350;
+    }
+
     function getAppIcon(appClass) {
         if (!appClass || appClass === "") return "󰈈";
         var c = appClass.toLowerCase();
@@ -1652,7 +1664,7 @@ ShellRoot {
             anchors.verticalCenter: parent.verticalCenter
 
             // 4-Stage Adaptive Space Pipeline Decision Sensor
-            property real zoneSpace: parent ? Math.max(80, parent.width - 220) : 300
+            property real zoneSpace: shellRoot.getAvailableZoneSpace(songItem)
 
             Row {
                 id: songRow
