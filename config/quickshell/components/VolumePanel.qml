@@ -11,8 +11,8 @@ PanelWindow {
     required property var modelData
     screen: modelData
 
-    implicitWidth: CentralConfig.useCustomAppletSize ? CentralConfig.appletWidth : (CentralConfig.appletWidth > 0 ? CentralConfig.appletWidth : 340)
-    implicitHeight: CentralConfig.useCustomAppletSize ? CentralConfig.appletHeight : Math.min(620, 270 + Math.max(1, sinksModel.count) * 30 + Math.max(1, sourcesModel.count) * 30 + (showAppsMixer ? Math.max(40, appStreamsModel.count * 46) : 0))
+    implicitWidth: Math.round((CentralConfig.useCustomAppletSize ? CentralConfig.appletWidth : (CentralConfig.appletWidth > 0 ? CentralConfig.appletWidth : 340)) * (CentralConfig.appletScale > 0 ? CentralConfig.appletScale : 1.0))
+    implicitHeight: Math.round((CentralConfig.useCustomAppletSize ? CentralConfig.appletHeight : Math.min(620, 270 + Math.max(1, sinksModel.count) * 30 + Math.max(1, sourcesModel.count) * 30 + (showAppsMixer ? Math.max(40, appStreamsModel.count * 46) : 0))) * (CentralConfig.appletScale > 0 ? CentralConfig.appletScale : 1.0))
 
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "quickshell-volume-panel"

@@ -4,15 +4,15 @@ import QtQuick.Controls
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
-import "../themes"
+import "../config"
 
 PanelWindow {
     id: brightnessPanel
     required property var modelData
     screen: modelData
 
-    implicitWidth: 320
-    implicitHeight: monitorsModel.count >= 2 ? 220 : 130
+    implicitWidth: Math.round((CentralConfig.useCustomAppletSize ? CentralConfig.appletWidth : 320) * (CentralConfig.appletScale > 0 ? CentralConfig.appletScale : 1.0))
+    implicitHeight: Math.round((CentralConfig.useCustomAppletSize ? CentralConfig.appletHeight : (monitorsModel.count >= 2 ? 220 : 130)) * (CentralConfig.appletScale > 0 ? CentralConfig.appletScale : 1.0))
 
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "quickshell-brightness-panel"
@@ -25,15 +25,17 @@ PanelWindow {
     }
 
     anchors {
-        top: !ThemeManager.barIsBottom
-        bottom: ThemeManager.barIsBottom
-        right: true
+        top: CentralConfig.appletLocation === "top" || CentralConfig.appletLocation === "custom" || (CentralConfig.appletLocation !== "bottom" && CentralConfig.appletLocation !== "center" && !ThemeManager.barIsBottom)
+        bottom: CentralConfig.appletLocation === "bottom"
+        left: CentralConfig.appletLocation === "custom"
+        right: CentralConfig.appletLocation === "top" || CentralConfig.appletLocation === "bottom"
     }
 
     margins {
-        top: !ThemeManager.barIsBottom ? (brightnessPanel.rootBar ? brightnessPanel.rootBar.barHeight + 6 : 48) : 0
-        bottom: ThemeManager.barIsBottom ? (brightnessPanel.rootBar ? brightnessPanel.rootBar.barHeight + 6 : 48) : 0
-        right: brightnessPanel.rootBar ? Math.round(brightnessPanel.screen.width * (1.0 - brightnessPanel.rootBar.barWidthPercent) / 2 + 100) : Math.round(brightnessPanel.screen.width * 0.15)
+        top: CentralConfig.appletLocation === "custom" ? CentralConfig.appletCustomY : ((CentralConfig.appletLocation === "top" || (CentralConfig.appletLocation !== "bottom" && CentralConfig.appletLocation !== "center" && !ThemeManager.barIsBottom)) ? (brightnessPanel.rootBar ? brightnessPanel.rootBar.barHeight + 6 : 48) : 0)
+        left: CentralConfig.appletLocation === "custom" ? CentralConfig.appletCustomX : 0
+        bottom: CentralConfig.appletLocation === "bottom" ? (brightnessPanel.rootBar ? brightnessPanel.rootBar.barHeight + 6 : 48) : 0
+        right: (CentralConfig.appletLocation === "top" || CentralConfig.appletLocation === "bottom") ? (brightnessPanel.rootBar ? Math.round(brightnessPanel.screen.width * (1.0 - brightnessPanel.rootBar.barWidthPercent) / 2 + 100) : Math.round(brightnessPanel.screen.width * 0.15)) : 0
     }
 
     color: "transparent"

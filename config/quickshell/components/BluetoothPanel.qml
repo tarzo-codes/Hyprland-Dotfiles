@@ -4,28 +4,32 @@ import QtQuick.Controls
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
-import "../themes"
+import "../config"
 
 PanelWindow {
     id: bluetoothPanel
     required property var modelData
     screen: modelData
 
-    implicitWidth: 320
-    implicitHeight: 380
+    implicitWidth: Math.round((CentralConfig.useCustomAppletSize ? CentralConfig.appletWidth : 320) * (CentralConfig.appletScale > 0 ? CentralConfig.appletScale : 1.0))
+    implicitHeight: Math.round((CentralConfig.useCustomAppletSize ? CentralConfig.appletHeight : 380) * (CentralConfig.appletScale > 0 ? CentralConfig.appletScale : 1.0))
 
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "quickshell-bluetooth"
     WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     anchors {
-        top: true
-        right: true
+        top: CentralConfig.appletLocation === "top" || CentralConfig.appletLocation === "custom" || (CentralConfig.appletLocation !== "bottom" && CentralConfig.appletLocation !== "center" && !ThemeManager.barIsBottom)
+        bottom: CentralConfig.appletLocation === "bottom"
+        left: CentralConfig.appletLocation === "custom"
+        right: CentralConfig.appletLocation === "top" || CentralConfig.appletLocation === "bottom"
     }
 
     margins {
-        top: bluetoothPanel.rootBar ? bluetoothPanel.rootBar.barHeight + 4 : 48
-        right: bluetoothPanel.rootBar ? Math.round(bluetoothPanel.screen.width * (1.0 - bluetoothPanel.rootBar.barWidthPercent) / 2) + 50 : Math.round(bluetoothPanel.screen.width * 0.03)
+        top: CentralConfig.appletLocation === "custom" ? CentralConfig.appletCustomY : ((CentralConfig.appletLocation === "top" || (CentralConfig.appletLocation !== "bottom" && CentralConfig.appletLocation !== "center" && !ThemeManager.barIsBottom)) ? (bluetoothPanel.rootBar ? bluetoothPanel.rootBar.barHeight + 6 : 48) : 0)
+        left: CentralConfig.appletLocation === "custom" ? CentralConfig.appletCustomX : 0
+        bottom: CentralConfig.appletLocation === "bottom" ? (bluetoothPanel.rootBar ? bluetoothPanel.rootBar.barHeight + 6 : 48) : 0
+        right: (CentralConfig.appletLocation === "top" || CentralConfig.appletLocation === "bottom") ? (bluetoothPanel.rootBar ? Math.round(bluetoothPanel.screen.width * (1.0 - bluetoothPanel.rootBar.barWidthPercent) / 2 + 50) : Math.round(bluetoothPanel.screen.width * 0.03)) : 0
     }
 
     color: "transparent"

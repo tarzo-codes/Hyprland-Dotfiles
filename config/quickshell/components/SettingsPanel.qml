@@ -4,30 +4,32 @@ import QtQuick.Controls
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
-import "../themes"
+import "../config"
 
 PanelWindow {
     id: settingsPanel
     required property var modelData
     screen: modelData
 
-    implicitWidth: 330
-    implicitHeight: 520
+    implicitWidth: Math.round((CentralConfig.useCustomAppletSize ? CentralConfig.appletWidth : 330) * (CentralConfig.appletScale > 0 ? CentralConfig.appletScale : 1.0))
+    implicitHeight: Math.round((CentralConfig.useCustomAppletSize ? CentralConfig.appletHeight : 520) * (CentralConfig.appletScale > 0 ? CentralConfig.appletScale : 1.0))
 
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "quickshell-settings"
     WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     anchors {
-        top: !ThemeManager.barIsBottom
-        bottom: ThemeManager.barIsBottom
-        right: true
+        top: CentralConfig.appletLocation === "top" || CentralConfig.appletLocation === "custom" || (CentralConfig.appletLocation !== "bottom" && CentralConfig.appletLocation !== "center" && !ThemeManager.barIsBottom)
+        bottom: CentralConfig.appletLocation === "bottom"
+        left: CentralConfig.appletLocation === "custom"
+        right: CentralConfig.appletLocation === "top" || CentralConfig.appletLocation === "bottom"
     }
 
     margins {
-        top: !ThemeManager.barIsBottom ? (settingsPanel.rootBar ? settingsPanel.rootBar.barHeight + 6 : 48) : 0
-        bottom: ThemeManager.barIsBottom ? (settingsPanel.rootBar ? settingsPanel.rootBar.barHeight + 6 : 48) : 0
-        right: settingsPanel.rootBar ? Math.round(settingsPanel.screen.width * (1.0 - settingsPanel.rootBar.barWidthPercent) / 2) : Math.round(settingsPanel.screen.width * 0.03)
+        top: CentralConfig.appletLocation === "custom" ? CentralConfig.appletCustomY : ((CentralConfig.appletLocation === "top" || (CentralConfig.appletLocation !== "bottom" && CentralConfig.appletLocation !== "center" && !ThemeManager.barIsBottom)) ? (settingsPanel.rootBar ? settingsPanel.rootBar.barHeight + 6 : 48) : 0)
+        left: CentralConfig.appletLocation === "custom" ? CentralConfig.appletCustomX : 0
+        bottom: CentralConfig.appletLocation === "bottom" ? (settingsPanel.rootBar ? settingsPanel.rootBar.barHeight + 6 : 48) : 0
+        right: (CentralConfig.appletLocation === "top" || CentralConfig.appletLocation === "bottom") ? (settingsPanel.rootBar ? Math.round(settingsPanel.screen.width * (1.0 - settingsPanel.rootBar.barWidthPercent) / 2) : Math.round(settingsPanel.screen.width * 0.03)) : 0
     }
 
     color: "transparent"

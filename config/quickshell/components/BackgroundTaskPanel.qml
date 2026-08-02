@@ -5,28 +5,32 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Services.SystemTray
-import "../themes"
+import "../config"
 
 PanelWindow {
     id: taskPanel
     required property var modelData
     screen: modelData
 
-    implicitWidth: 320
-    implicitHeight: 360
+    implicitWidth: Math.round((CentralConfig.useCustomAppletSize ? CentralConfig.appletWidth : 320) * (CentralConfig.appletScale > 0 ? CentralConfig.appletScale : 1.0))
+    implicitHeight: Math.round((CentralConfig.useCustomAppletSize ? CentralConfig.appletHeight : 360) * (CentralConfig.appletScale > 0 ? CentralConfig.appletScale : 1.0))
 
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "quickshell-background-tasks"
     WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     anchors {
-        top: true
-        right: true
+        top: CentralConfig.appletLocation === "top" || CentralConfig.appletLocation === "custom" || (CentralConfig.appletLocation !== "bottom" && CentralConfig.appletLocation !== "center" && !ThemeManager.barIsBottom)
+        bottom: CentralConfig.appletLocation === "bottom"
+        left: CentralConfig.appletLocation === "custom"
+        right: CentralConfig.appletLocation === "top" || CentralConfig.appletLocation === "bottom"
     }
 
     margins {
-        top: taskPanel.rootBar ? taskPanel.rootBar.barHeight + 4 : 48
-        right: taskPanel.rootBar ? Math.round(taskPanel.screen.width * (1.0 - taskPanel.rootBar.barWidthPercent) / 2) + 10 : Math.round(taskPanel.screen.width * 0.03)
+        top: CentralConfig.appletLocation === "custom" ? CentralConfig.appletCustomY : ((CentralConfig.appletLocation === "top" || (CentralConfig.appletLocation !== "bottom" && CentralConfig.appletLocation !== "center" && !ThemeManager.barIsBottom)) ? (taskPanel.rootBar ? taskPanel.rootBar.barHeight + 6 : 48) : 0)
+        left: CentralConfig.appletLocation === "custom" ? CentralConfig.appletCustomX : 0
+        bottom: CentralConfig.appletLocation === "bottom" ? (taskPanel.rootBar ? taskPanel.rootBar.barHeight + 6 : 48) : 0
+        right: (CentralConfig.appletLocation === "top" || CentralConfig.appletLocation === "bottom") ? (taskPanel.rootBar ? Math.round(taskPanel.screen.width * (1.0 - taskPanel.rootBar.barWidthPercent) / 2 + 20) : Math.round(taskPanel.screen.width * 0.03)) : 0
     }
 
     color: "transparent"

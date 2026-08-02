@@ -4,15 +4,15 @@ import QtQuick.Controls
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
-import "../themes"
+import "../config"
 
 PanelWindow {
     id: networkPanel
     required property var modelData
     screen: modelData
 
-    implicitWidth: 340
-    implicitHeight: 430
+    implicitWidth: Math.round((CentralConfig.useCustomAppletSize ? CentralConfig.appletWidth : 340) * (CentralConfig.appletScale > 0 ? CentralConfig.appletScale : 1.0))
+    implicitHeight: Math.round((CentralConfig.useCustomAppletSize ? CentralConfig.appletHeight : 430) * (CentralConfig.appletScale > 0 ? CentralConfig.appletScale : 1.0))
 
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "quickshell-network-panel"
@@ -26,15 +26,17 @@ PanelWindow {
     }
 
     anchors {
-        top: !ThemeManager.barIsBottom
-        bottom: ThemeManager.barIsBottom
-        right: true
+        top: CentralConfig.appletLocation === "top" || CentralConfig.appletLocation === "custom" || (CentralConfig.appletLocation !== "bottom" && CentralConfig.appletLocation !== "center" && !ThemeManager.barIsBottom)
+        bottom: CentralConfig.appletLocation === "bottom"
+        left: CentralConfig.appletLocation === "custom"
+        right: CentralConfig.appletLocation === "top" || CentralConfig.appletLocation === "bottom"
     }
 
     margins {
-        top: !ThemeManager.barIsBottom ? (networkPanel.rootBar ? networkPanel.rootBar.barHeight + 6 : 48) : 0
-        bottom: ThemeManager.barIsBottom ? (networkPanel.rootBar ? networkPanel.rootBar.barHeight + 6 : 48) : 0
-        right: networkPanel.rootBar ? Math.round(networkPanel.screen.width * (1.0 - networkPanel.rootBar.barWidthPercent) / 2 + 80) : Math.round(networkPanel.screen.width * 0.12)
+        top: CentralConfig.appletLocation === "custom" ? CentralConfig.appletCustomY : ((CentralConfig.appletLocation === "top" || (CentralConfig.appletLocation !== "bottom" && CentralConfig.appletLocation !== "center" && !ThemeManager.barIsBottom)) ? (networkPanel.rootBar ? networkPanel.rootBar.barHeight + 6 : 48) : 0)
+        left: CentralConfig.appletLocation === "custom" ? CentralConfig.appletCustomX : 0
+        bottom: CentralConfig.appletLocation === "bottom" ? (networkPanel.rootBar ? networkPanel.rootBar.barHeight + 6 : 48) : 0
+        right: (CentralConfig.appletLocation === "top" || CentralConfig.appletLocation === "bottom") ? (networkPanel.rootBar ? Math.round(networkPanel.screen.width * (1.0 - networkPanel.rootBar.barWidthPercent) / 2 + 80) : Math.round(networkPanel.screen.width * 0.12)) : 0
     }
 
     color: "transparent"
