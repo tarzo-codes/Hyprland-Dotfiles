@@ -3477,233 +3477,62 @@ ShellRoot {
                                 Text { text: "󰎈"; color: shellRoot._fg; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize - 2; verticalAlignment: Text.AlignVCenter; height: parent.height }
                             }
 
-                            // ── Slanted Parallelogram Badges Row ──
+                            // ── Slanted Parallelogram Badges Row (Dynamic for Rice Editor) ──
                             Row {
                                 spacing: 6
                                 height: parent.height
 
-                                // Badge 1: Updates (Cyan)
-                                Item {
-                                    height: parent.height - 4
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: updatesBadgeRow.implicitWidth
-                                    Row {
-                                        id: updatesBadgeRow
-                                        anchors.fill: parent
-                                        spacing: 0
-                                        SlantSeparator { colorLeft: "transparent"; colorRight: shellRoot._cyn; isRightSlant: true; slantWidth: 10; height: parent.height }
-                                        Rectangle {
-                                            color: shellRoot._cyn
-                                            height: parent.height
-                                            width: updatesBadgeContent.implicitWidth + 8
-                                            Row {
-                                                id: updatesBadgeContent
-                                                anchors.centerIn: parent
-                                                spacing: 4
-                                                Text { text: "󰚰"; color: shellRoot.contrastFg(shellRoot._cyn, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
-                                                Text { text: shellRoot.updatesValue; color: shellRoot.contrastFg(shellRoot._cyn, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
+                                Repeater {
+                                    model: (CentralConfig.mode === "custom") ? shellRoot.getModuleArray(CentralConfig.rightModules) : ["updates", "filesystem", "cpu", "memory", "volume", "network", "date", "brightness"]
+                                    delegate: Item {
+                                        id: cristinaBadgeItem
+                                        height: parent.height - 4
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        width: cristinaBadgeContentRow.implicitWidth + 20
+                                        visible: {
+                                            var m = modelData;
+                                            if (m === "song" || m === "media" || m === "mplayer" || m === "compact_player") {
+                                                return CentralConfig.editMode || (shellRoot.songValue !== "" && shellRoot.songValue !== "No media playing" && shellRoot.songValue !== "No player found");
                                             }
+                                            if (m === "title") {
+                                                return CentralConfig.editMode || (shellRoot.activeTitle !== "" && shellRoot.activeTitle !== "Desktop" && shellRoot.activeTitle !== "Hyprland");
+                                            }
+                                            if (m === "updates") {
+                                                return CentralConfig.editMode || (shellRoot.updatesValue !== "" && shellRoot.updatesValue !== "0 updates" && shellRoot.updatesValue !== "0" && shellRoot.updatesValue !== "Up to date");
+                                            }
+                                            return true;
                                         }
-                                        SlantSeparator { colorLeft: shellRoot._cyn; colorRight: "transparent"; isRightSlant: true; slantWidth: 10; height: parent.height }
-                                    }
-                                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: checkUpdatesProc.running = true }
-                                }
 
-                                // Badge 2: Disk (Magenta/Purple)
-                                Item {
-                                    height: parent.height - 4
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: diskBadgeRow.implicitWidth
-                                    Row {
-                                        id: diskBadgeRow
-                                        anchors.fill: parent
-                                        spacing: 0
-                                        SlantSeparator { colorLeft: "transparent"; colorRight: shellRoot._mag; isRightSlant: true; slantWidth: 10; height: parent.height }
-                                        Rectangle {
-                                            color: shellRoot._mag
-                                            height: parent.height
-                                            width: diskBadgeContent.implicitWidth + 8
-                                            Row {
-                                                id: diskBadgeContent
-                                                anchors.centerIn: parent
-                                                spacing: 4
-                                                Text { text: "󰋊"; color: shellRoot.contrastFg(shellRoot._mag, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
-                                                Text { text: shellRoot.fsValue; color: shellRoot.contrastFg(shellRoot._mag, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
-                                            }
+                                        property color badgeColor: {
+                                            var t = modelData;
+                                            if (t === "updates")    return shellRoot._cyn;
+                                            if (t === "filesystem" || t === "disk") return shellRoot._mag;
+                                            if (t === "cpu")        return shellRoot._blu;
+                                            if (t === "memory" || t === "ram") return shellRoot._yel;
+                                            if (t === "volume")     return shellRoot._red;
+                                            if (t === "brightness") return shellRoot._mag;
+                                            if (t === "network")    return shellRoot._cyn;
+                                            if (t === "date" || t === "clock") return shellRoot._sur;
+                                            if (t === "battery")    return shellRoot._grn;
+                                            return shellRoot._sur;
                                         }
-                                        SlantSeparator { colorLeft: shellRoot._mag; colorRight: "transparent"; isRightSlant: true; slantWidth: 10; height: parent.height }
-                                    }
-                                }
 
-                                // Badge 3: CPU (Blue)
-                                Item {
-                                    height: parent.height - 4
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: cpuBadgeRow.implicitWidth
-                                    Row {
-                                        id: cpuBadgeRow
-                                        anchors.fill: parent
-                                        spacing: 0
-                                        SlantSeparator { colorLeft: "transparent"; colorRight: shellRoot._blu; isRightSlant: true; slantWidth: 10; height: parent.height }
-                                        Rectangle {
-                                            color: shellRoot._blu
-                                            height: parent.height
-                                            width: cpuBadgeContent.implicitWidth + 8
-                                            Row {
-                                                id: cpuBadgeContent
-                                                anchors.centerIn: parent
-                                                spacing: 4
-                                                Text { text: "󰍛"; color: shellRoot.contrastFg(shellRoot._blu, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
-                                                Text { text: shellRoot.cpuValue; color: shellRoot.contrastFg(shellRoot._blu, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
+                                        Row {
+                                            id: cristinaBadgeContentRow
+                                            anchors.fill: parent
+                                            spacing: 0
+                                            SlantSeparator { colorLeft: "transparent"; colorRight: cristinaBadgeItem.badgeColor; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                            Rectangle {
+                                                color: cristinaBadgeItem.badgeColor
+                                                height: parent.height
+                                                width: cristinaWidgetLoader.implicitWidth + 8
+                                                Loader {
+                                                    id: cristinaWidgetLoader
+                                                    anchors.centerIn: parent
+                                                    sourceComponent: shellRoot.getWidget(modelData)
+                                                }
                                             }
-                                        }
-                                        SlantSeparator { colorLeft: shellRoot._blu; colorRight: "transparent"; isRightSlant: true; slantWidth: 10; height: parent.height }
-                                    }
-                                }
-
-                                // Badge 4: RAM (Yellow)
-                                Item {
-                                    height: parent.height - 4
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: memBadgeRow.implicitWidth
-                                    Row {
-                                        id: memBadgeRow
-                                        anchors.fill: parent
-                                        spacing: 0
-                                        SlantSeparator { colorLeft: "transparent"; colorRight: shellRoot._yel; isRightSlant: true; slantWidth: 10; height: parent.height }
-                                        Rectangle {
-                                            color: shellRoot._yel
-                                            height: parent.height
-                                            width: memBadgeContent.implicitWidth + 8
-                                            Row {
-                                                id: memBadgeContent
-                                                anchors.centerIn: parent
-                                                spacing: 4
-                                                Text { text: "󰟜"; color: shellRoot.contrastFg(shellRoot._yel, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
-                                                Text { text: shellRoot.memValue; color: shellRoot.contrastFg(shellRoot._yel, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
-                                            }
-                                        }
-                                        SlantSeparator { colorLeft: shellRoot._yel; colorRight: "transparent"; isRightSlant: true; slantWidth: 10; height: parent.height }
-                                    }
-                                }
-
-                                // Badge 5: Volume (Red/Salmon)
-                                Item {
-                                    height: parent.height - 4
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: volBadgeRow.implicitWidth
-                                    Row {
-                                        id: volBadgeRow
-                                        anchors.fill: parent
-                                        spacing: 0
-                                        SlantSeparator { colorLeft: "transparent"; colorRight: shellRoot._red; isRightSlant: true; slantWidth: 10; height: parent.height }
-                                        Rectangle {
-                                            color: shellRoot._red
-                                            height: parent.height
-                                            width: volBadgeContent.implicitWidth + 8
-                                            Row {
-                                                id: volBadgeContent
-                                                anchors.centerIn: parent
-                                                spacing: 4
-                                                Text { text: shellRoot.volMuted ? "󰖁" : "󰕾"; color: shellRoot.contrastFg(shellRoot._red, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
-                                                Text { text: Math.round(shellRoot.volValue * 100).toString(); color: shellRoot.contrastFg(shellRoot._red, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
-                                            }
-                                        }
-                                        SlantSeparator { colorLeft: shellRoot._red; colorRight: "transparent"; isRightSlant: true; slantWidth: 10; height: parent.height }
-                                    }
-                                    MouseArea {
-                                        anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                                        onClicked: shellRoot.volumePanelVisible = !shellRoot.volumePanelVisible
-                                    }
-                                }
-
-                                // Badge 6: Wifi / Network (Cyan/Teal)
-                                Item {
-                                    height: parent.height - 4
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: netBadgeRow.implicitWidth
-                                    Row {
-                                        id: netBadgeRow
-                                        anchors.fill: parent
-                                        spacing: 0
-                                        SlantSeparator { colorLeft: "transparent"; colorRight: shellRoot._cyn; isRightSlant: true; slantWidth: 10; height: parent.height }
-                                        Rectangle {
-                                            color: shellRoot._cyn
-                                            height: parent.height
-                                            width: netBadgeContent.implicitWidth + 8
-                                            Row {
-                                                id: netBadgeContent
-                                                anchors.centerIn: parent
-                                                spacing: 4
-                                                Text { text: shellRoot.networkType === "wifi" ? "󰤨" : "󰖟"; color: shellRoot.contrastFg(shellRoot._cyn, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
-                                                Text { text: "2 K"; color: shellRoot.contrastFg(shellRoot._cyn, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
-                                            }
-                                        }
-                                        SlantSeparator { colorLeft: shellRoot._cyn; colorRight: "transparent"; isRightSlant: true; slantWidth: 10; height: parent.height }
-                                    }
-                                    MouseArea {
-                                        anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                                        onClicked: shellRoot.networkPanelVisible = !shellRoot.networkPanelVisible
-                                    }
-                                }
-
-                                // Badge 7: Clock / Time (Dark Surface / Muted)
-                                Item {
-                                    height: parent.height - 4
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: dateBadgeRow.implicitWidth
-                                    Row {
-                                        id: dateBadgeRow
-                                        anchors.fill: parent
-                                        spacing: 0
-                                        SlantSeparator { colorLeft: "transparent"; colorRight: shellRoot._sur; isRightSlant: true; slantWidth: 10; height: parent.height }
-                                        Rectangle {
-                                            color: shellRoot._sur
-                                            height: parent.height
-                                            width: dateBadgeContent.implicitWidth + 8
-                                            Row {
-                                                id: dateBadgeContent
-                                                anchors.centerIn: parent
-                                                spacing: 4
-                                                Text { text: shellRoot.dateValue; color: shellRoot.contrastFg(shellRoot._sur, shellRoot._fg); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
-                                            }
-                                        }
-                                        SlantSeparator { colorLeft: shellRoot._sur; colorRight: "transparent"; isRightSlant: true; slantWidth: 10; height: parent.height }
-                                    }
-                                }
-
-                                // Badge 8: Brightness Badge (Magenta Slanted Parallelogram)
-                                Item {
-                                    height: parent.height - 4
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: brightBadgeRow.implicitWidth
-                                    Row {
-                                        id: brightBadgeRow
-                                        anchors.fill: parent
-                                        spacing: 0
-                                        SlantSeparator { colorLeft: "transparent"; colorRight: shellRoot._mag; isRightSlant: true; slantWidth: 10; height: parent.height }
-                                        Rectangle {
-                                            color: shellRoot._mag
-                                            height: parent.height
-                                            width: brightBadgeContent.implicitWidth + 8
-                                            Row {
-                                                id: brightBadgeContent
-                                                anchors.centerIn: parent
-                                                spacing: 4
-                                                Text { text: "⚙"; color: shellRoot.contrastFg(shellRoot._mag, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
-                                                Text { text: Math.round(shellRoot.brightnessValue * 100) + "%"; color: shellRoot.contrastFg(shellRoot._mag, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
-                                            }
-                                        }
-                                        SlantSeparator { colorLeft: shellRoot._mag; colorRight: "transparent"; isRightSlant: true; slantWidth: 10; height: parent.height }
-                                    }
-                                    MouseArea {
-                                        anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                                        onClicked: shellRoot.brightnessPanelVisible = !shellRoot.brightnessPanelVisible
-                                        onWheel: (wheel) => {
-                                            var delta = wheel.angleDelta.y > 0 ? 0.05 : -0.05;
-                                            shellRoot.isAdjustingBrightness = true;
-                                            shellRoot.brightnessValue = Math.max(0.05, Math.min(1.0, shellRoot.brightnessValue + delta));
-                                            brightCooldownTimer.restart();
+                                            SlantSeparator { colorLeft: cristinaBadgeItem.badgeColor; colorRight: "transparent"; isRightSlant: true; slantWidth: 10; height: parent.height }
                                         }
                                     }
                                 }
