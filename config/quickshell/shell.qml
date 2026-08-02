@@ -1663,8 +1663,8 @@ ShellRoot {
             visible: shellRoot.songValue !== "" || (CentralConfig.editMode)
             anchors.verticalCenter: parent.verticalCenter
 
-            // 4-Stage Adaptive Space Pipeline Decision Sensor (Screen-relative to prevent binding loops)
-            property real zoneSpace: (Quickshell.screens.length > 0 ? Quickshell.screens[0].width : 1920) * 0.40
+            // 4-Stage Adaptive Space Pipeline Decision Sensor
+            property real zoneSpace: CentralConfig.editMode ? 140 : ((Quickshell.screens.length > 0 ? Quickshell.screens[0].width : 1920) * 0.40)
 
             Row {
                 id: songRow
@@ -1699,7 +1699,7 @@ ShellRoot {
                 // 2. Playback Controls (Prev, Play/Pause, Next) - Shown in Stages 1, 2, 3
                 Row {
                     id: controlsRow
-                    visible: songItem.zoneSpace >= 120 || CentralConfig.editMode
+                    visible: songItem.zoneSpace >= 120
                     spacing: 6
                     anchors.verticalCenter: parent.verticalCenter
 
@@ -1750,7 +1750,7 @@ ShellRoot {
                 // 3. Dynamic Responsive Song Title & Artist Text - Shown in Stages 1 & 2
                 Text {
                     id: songText
-                    visible: songItem.zoneSpace >= 200 || CentralConfig.editMode
+                    visible: songItem.zoneSpace >= 200
                     text: {
                         if (shellRoot.songValue === "") return "[ EDIT: Song Title ]";
                         // Stage 1: Title + Artist if zoneSpace >= 300
@@ -2004,26 +2004,29 @@ ShellRoot {
                 return "L";
             }
 
+            property bool isSelectedInEdit: CentralConfig.editMode && CentralConfig.selectedEditModuleKey === (capItem.zoneTag + (index + 1))
+
             visible: {
-                if (CentralConfig.editMode) return true;
                 var mods = modelData.type === "capsule" ? modelData.modules : [modelData.type];
+                if (!mods || mods.length === 0) return false;
+
                 var hasActiveModule = false;
                 for (var i = 0; i < mods.length; i++) {
                     var m = mods[i];
                     if (m === "song" || m === "media" || m === "mplayer" || m === "compact_player") {
-                        if (shellRoot.songValue !== "" && shellRoot.songValue !== "No media playing" && shellRoot.songValue !== "No player found") {
+                        if (CentralConfig.editMode || (shellRoot.songValue !== "" && shellRoot.songValue !== "No media playing" && shellRoot.songValue !== "No player found")) {
                             hasActiveModule = true;
                         }
                     } else if (m === "title") {
-                        if (shellRoot.activeTitle !== "" && shellRoot.activeTitle !== "Desktop" && shellRoot.activeTitle !== "Hyprland") {
+                        if (CentralConfig.editMode || (shellRoot.activeTitle !== "" && shellRoot.activeTitle !== "Desktop" && shellRoot.activeTitle !== "Hyprland")) {
                             hasActiveModule = true;
                         }
                     } else if (m === "updates") {
-                        if (shellRoot.updatesValue !== "" && shellRoot.updatesValue !== "0 updates" && shellRoot.updatesValue !== "0" && shellRoot.updatesValue !== "Up to date") {
+                        if (CentralConfig.editMode || (shellRoot.updatesValue !== "" && shellRoot.updatesValue !== "0 updates" && shellRoot.updatesValue !== "0" && shellRoot.updatesValue !== "Up to date")) {
                             hasActiveModule = true;
                         }
                     } else if (m === "tray") {
-                        if (shellRoot.trayCount > 0) {
+                        if (CentralConfig.editMode || shellRoot.trayCount > 0) {
                             hasActiveModule = true;
                         }
                     } else {
@@ -2033,11 +2036,27 @@ ShellRoot {
                 return hasActiveModule;
             }
 
+            // Outer Capsule Container with Selection Highlight in Edit Mode
             Rectangle {
                 anchors.fill: parent
                 radius: ThemeManager.themeName === "emilia" ? 4 : 15
-                color: modelData.type === "capsule" ? shellRoot._sur : "transparent"
-                border.width: 0
+                color: capItem.isSelectedInEdit ? shellRoot.alphaColor("#8ec07c", 0.30) : (modelData.type === "capsule" ? shellRoot._sur : "transparent")
+                border.color: capItem.isSelectedInEdit ? "#8ec07c" : "transparent"
+                border.width: capItem.isSelectedInEdit ? 2 : 0
+
+                Behavior on color { ColorAnimation { duration: 150 } }
+                Behavior on border.color { ColorAnimation { duration: 150 } }
+            }
+
+            // Click Handler to select module in Edit Mode
+            MouseArea {
+                anchors.fill: parent
+                enabled: CentralConfig.editMode
+                z: 100
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                    CentralConfig.selectedEditModuleKey = capItem.zoneTag + (index + 1);
+                }
             }
 
             // Position Index Badge on Bar in Edit Mode (matching Rice Editor #L1, #C1, #R1...)
@@ -2047,10 +2066,10 @@ ShellRoot {
                 anchors.topMargin: -5
                 anchors.rightMargin: -3
                 width: 22; height: 14; radius: 7
-                color: "#8ec07c"
+                color: capItem.isSelectedInEdit ? "#50fa7b" : "#8ec07c"
                 border.color: "#181628"
                 border.width: 1
-                z: 99
+                z: 101
                 visible: CentralConfig.editMode
 
                 Text {

@@ -25,6 +25,7 @@ Item {
         property string globalFontFamily: "JetBrainsMono Nerd Font"
         property int    globalFontSize: 11
         property bool   autoHideBar: false
+        property string selectedEditModuleKey: ""
         property string customAccentColor: ""
         property bool   gradientAnimated: true
 
