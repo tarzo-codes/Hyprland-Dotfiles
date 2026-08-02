@@ -31,9 +31,4 @@ if [ -f "$HOME/.cache/quickshell/rice_editor_open" ]; then
     quickshell ipc --any-display call RiceEditorController open 2>/dev/null || true
   fi
 fi
-
-# If a bright wallpaper was detected, show the light mode prompt
-if [ -f "$HOME/.cache/quickshell/prompt_light_mode" ]; then
-  rm -f "$HOME/.cache/quickshell/prompt_light_mode"
-  quickshell ipc --any-display call ThemeController promptLightMode 2>/dev/null || true
-fi
+rm -f "$HOME/.cache/quickshell/prompt_light_mode" 2>/dev/null || true

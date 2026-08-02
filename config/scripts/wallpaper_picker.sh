@@ -455,16 +455,7 @@ set_wallpaper() {
   # Update all linked apps
   update_apps
 
-  # Check wallpaper brightness — prompt for light mode if very bright (only if not auto)
-  if [ "${MODE_CHOICE:-}" != "auto" ]; then
-    LUMI_MEAN=$(python3 -c "import sys; from PIL import Image, ImageStat; im=Image.open(sys.argv[1]).convert('L'); print(int(ImageStat.Stat(im).mean[0]))" "$image" 2>/dev/null || echo 100)
-    if [ "$LUMI_MEAN" -gt 160 ]; then
-      debug "Bright wallpaper detected (luma mean: $LUMI_MEAN) — will prompt for Light Mode after restart"
-      touch "$HOME/.cache/quickshell/prompt_light_mode"
-    else
-      rm -f "$HOME/.cache/quickshell/prompt_light_mode"
-    fi
-  fi
+  rm -f "$HOME/.cache/quickshell/prompt_light_mode" 2>/dev/null || true
 
   notify-send "Wallpaper & Theme" "Wallpaper applied — reloading shell…"
 
@@ -479,25 +470,14 @@ set_wallpaper() {
 reapply_colors() {
   local image
   image=$(cat "$HOME/.cache/quickshell/current_wallpaper" 2>/dev/null || echo "")
-  if [ -f "$image" ] && file -b --mime-type "$image" 2>/dev/null | grep -q "^text/"; then
-    local target
-    target=$(cat "$image" 2>/dev/null || echo "")
-    if [ -f "$target" ]; then
-      image="$target"
-    fi
+  if [ -f "$image" ] && [ -f "$(cat "$image" 2>/dev/null || echo "")" ]; then
+    image=$(cat "$image" 2>/dev/null || echo "")
   fi
-
   if [ -z "$image" ] || [ ! -f "$image" ]; then
     image=$(cat "$HOME/.cache/wallust/current_wallpaper" 2>/dev/null || echo "")
   fi
-
   if [ -z "$image" ] || [ ! -f "$image" ]; then
     image=$(find "$HOME/Pictures/Wallpapers" "$HOME/wallpaper" "$HOME/anime_wallapaper" -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.jpeg" -o -iname "*.webp" \) 2>/dev/null | head -n 1)
-  fi
-
-  if [ -z "$image" ] || [ ! -f "$image" ]; then
-    notify-send -u critical "Theme" "No valid wallpaper found to reapply."
-    exit 1
   fi
 
   debug "Reapplying colors from: $image"

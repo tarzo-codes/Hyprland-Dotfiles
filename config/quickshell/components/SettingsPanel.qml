@@ -352,20 +352,20 @@ PanelWindow {
                                 anchors.fill: parent
                                 Rectangle {
                                     width: parent.width / 3; height: parent.height; radius: 7
-                                    color: settingsPanel.modeChoice === "dark" ? (settingsPanel.rootBar ? settingsPanel.rootBar._cyn : "#9bced7") : "transparent"
-                                    Text { anchors.centerIn: parent; text: "🌙 Dark"; color: settingsPanel.modeChoice === "dark" ? "#181628" : (settingsPanel.rootBar ? settingsPanel.rootBar._fg : "#e0def4"); font.pixelSize: 9; font.bold: true }
+                                    color: CentralConfig.modeChoice === "dark" ? (settingsPanel.rootBar ? settingsPanel.rootBar._cyn : "#9bced7") : "transparent"
+                                    Text { anchors.centerIn: parent; text: "🌙 Dark"; color: CentralConfig.modeChoice === "dark" ? "#181628" : (settingsPanel.rootBar ? settingsPanel.rootBar._fg : "#e0def4"); font.pixelSize: 9; font.bold: true }
                                     MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: applyWallustMode("dark") }
                                 }
                                 Rectangle {
                                     width: parent.width / 3; height: parent.height
-                                    color: settingsPanel.modeChoice === "auto" ? "#16a34a" : "transparent"
-                                    Text { anchors.centerIn: parent; text: "🔆 Auto"; color: settingsPanel.modeChoice === "auto" ? "#ffffff" : (settingsPanel.rootBar ? settingsPanel.rootBar._fg : "#e0def4"); font.pixelSize: 9; font.bold: true }
+                                    color: CentralConfig.modeChoice === "auto" ? "#16a34a" : "transparent"
+                                    Text { anchors.centerIn: parent; text: "🔆 Auto"; color: CentralConfig.modeChoice === "auto" ? "#ffffff" : (settingsPanel.rootBar ? settingsPanel.rootBar._fg : "#e0def4"); font.pixelSize: 9; font.bold: true }
                                     MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: applyWallustMode("auto") }
                                 }
                                 Rectangle {
                                     width: parent.width / 3; height: parent.height; radius: 7
-                                    color: settingsPanel.modeChoice === "light" ? "#2563eb" : "transparent"
-                                    Text { anchors.centerIn: parent; text: "☀️ Light"; color: settingsPanel.modeChoice === "light" ? "#ffffff" : (settingsPanel.rootBar ? settingsPanel.rootBar._fg : "#e0def4"); font.pixelSize: 9; font.bold: true }
+                                    color: CentralConfig.modeChoice === "light" ? "#2563eb" : "transparent"
+                                    Text { anchors.centerIn: parent; text: "☀️ Light"; color: CentralConfig.modeChoice === "light" ? "#ffffff" : (settingsPanel.rootBar ? settingsPanel.rootBar._fg : "#e0def4"); font.pixelSize: 9; font.bold: true }
                                     MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: applyWallustMode("light") }
                                 }
                             }
@@ -523,13 +523,12 @@ PanelWindow {
     }
 
     function applyWallustMode(mode) {
+        CentralConfig.modeChoice = mode;
         ThemeManager.modeChoice = mode;
         var flagCmd = "";
         if (mode === "light") {
-            ThemeManager.isLightMode = true;
             flagCmd = "echo true > ~/.cache/quickshell/is_light_mode && ";
         } else if (mode === "dark") {
-            ThemeManager.isLightMode = false;
             flagCmd = "echo false > ~/.cache/quickshell/is_light_mode && ";
         }
         var script = "mkdir -p ~/.cache/quickshell && " +
