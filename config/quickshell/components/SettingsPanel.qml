@@ -534,7 +534,7 @@ PanelWindow {
         var script = "mkdir -p ~/.cache/quickshell && " +
                      "echo '" + mode + "' > ~/.cache/quickshell/mode_choice && " +
                      flagCmd +
-                     "bash $HOME/.config/scripts/wallpaper_picker.sh --reapply";
+                     "bash \"$HOME/.config/scripts/wallpaper_picker.sh\" --reapply";
         toggleWallustProc.command = ["bash", "-c", script];
         toggleWallustProc.running = false;
         toggleWallustProc.running = true;
