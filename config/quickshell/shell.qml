@@ -709,6 +709,22 @@ ShellRoot {
         return result;
     }
 
+    function getCristinaBadgeData(m) {
+        if (m === "updates")    return { icon: "󰚰", text: shellRoot.updatesValue, color: shellRoot._cyn, action: function() { checkUpdatesProc.running = true; } };
+        if (m === "filesystem" || m === "disk") return { icon: "󰋊", text: shellRoot.fsValue, color: shellRoot._mag, action: null };
+        if (m === "cpu")        return { icon: "󰍛", text: shellRoot.cpuValue, color: shellRoot._blu, action: null };
+        if (m === "memory" || m === "ram") return { icon: "󰟜", text: shellRoot.memValue, color: shellRoot._yel, action: null };
+        if (m === "volume")     return { icon: shellRoot.volMuted ? "󰖁" : "󰕾", text: Math.round(shellRoot.volValue * 100).toString(), color: shellRoot._red, action: function() { shellRoot.volumePanelVisible = !shellRoot.volumePanelVisible; } };
+        if (m === "brightness") return { icon: "⚙", text: Math.round(shellRoot.brightnessValue * 100) + "%", color: shellRoot._mag, action: function() { shellRoot.brightnessPanelVisible = !shellRoot.brightnessPanelVisible; } };
+        if (m === "network")    return { icon: shellRoot.networkType === "wifi" ? "󰤨" : "󰖟", text: "2 K", color: shellRoot._cyn, action: function() { shellRoot.networkPanelVisible = !shellRoot.networkPanelVisible; } };
+        if (m === "date" || m === "clock") return { icon: "󰅐", text: shellRoot.dateValue, color: shellRoot._sur, action: null };
+        if (m === "battery")    return { icon: "󰁹", text: shellRoot.batteryPercent + "%", color: shellRoot._grn, action: null };
+        if (m === "weather")    return { icon: "󰖐", text: shellRoot.weatherTemp !== "" ? shellRoot.weatherTemp : "22°", color: shellRoot._yel, action: null };
+        if (m === "power")      return { icon: "󰐥", text: "", color: shellRoot._red, action: function() { shellRoot.powerMenuVisible = !shellRoot.powerMenuVisible; } };
+        if (m === "settings")   return { icon: "󰒓", text: "", color: shellRoot._cyn, action: function() { shellRoot.riceEditorVisible = !shellRoot.riceEditorVisible; } };
+        return { icon: "󰄬", text: m, color: shellRoot._sur, action: null };
+    }
+
     // Decoupled Layout configuration (Top / Bottom) mapped directly from polybar dotfiles
     property var themeLayouts: ({
         aline: {
@@ -3488,9 +3504,9 @@ ShellRoot {
                                         id: cristinaBadgeItem
                                         height: parent.height - 4
                                         anchors.verticalCenter: parent.verticalCenter
-                                        width: (cristinaWidgetLoader.item ? (cristinaWidgetLoader.item.implicitWidth > 0 ? cristinaWidgetLoader.item.implicitWidth : cristinaWidgetLoader.item.width) : 40) + 32
+                                        width: cristinaContentRow.implicitWidth + 24
                                         visible: {
-                                            var m = modelData;
+                                            var m = (typeof modelData === "object") ? modelData.type : modelData;
                                             if (m === "song" || m === "media" || m === "mplayer" || m === "compact_player") {
                                                 return CentralConfig.editMode || (shellRoot.songValue !== "" && shellRoot.songValue !== "No media playing" && shellRoot.songValue !== "No player found");
                                             }
@@ -3503,36 +3519,62 @@ ShellRoot {
                                             return true;
                                         }
 
-                                        property color badgeColor: {
-                                            var t = modelData;
-                                            if (t === "updates")    return shellRoot._cyn;
-                                            if (t === "filesystem" || t === "disk") return shellRoot._mag;
-                                            if (t === "cpu")        return shellRoot._blu;
-                                            if (t === "memory" || t === "ram") return shellRoot._yel;
-                                            if (t === "volume")     return shellRoot._red;
-                                            if (t === "brightness") return shellRoot._mag;
-                                            if (t === "network")    return shellRoot._cyn;
-                                            if (t === "date" || t === "clock") return shellRoot._sur;
-                                            if (t === "battery")    return shellRoot._grn;
-                                            return shellRoot._sur;
-                                        }
+                                        property var moduleInfo: shellRoot.getCristinaBadgeData((typeof modelData === "object") ? modelData.type : modelData)
 
                                         Row {
-                                            id: cristinaBadgeContentRow
                                             anchors.fill: parent
                                             spacing: 0
-                                            SlantSeparator { colorLeft: "transparent"; colorRight: cristinaBadgeItem.badgeColor; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                            SlantSeparator { colorLeft: "transparent"; colorRight: cristinaBadgeItem.moduleInfo.color; isRightSlant: true; slantWidth: 10; height: parent.height }
                                             Rectangle {
-                                                color: cristinaBadgeItem.badgeColor
+                                                color: cristinaBadgeItem.moduleInfo.color
                                                 height: parent.height
-                                                width: cristinaWidgetLoader.implicitWidth + 8
-                                                Loader {
-                                                    id: cristinaWidgetLoader
+                                                width: cristinaContentRow.implicitWidth + 8
+                                                Row {
+                                                    id: cristinaContentRow
                                                     anchors.centerIn: parent
-                                                    sourceComponent: shellRoot.getWidget(modelData)
+                                                    spacing: 5
+                                                    Text {
+                                                        text: cristinaBadgeItem.moduleInfo.icon
+                                                        color: shellRoot.contrastFg(cristinaBadgeItem.moduleInfo.color, "#111217")
+                                                        font.family: shellRoot.globalFontFamily
+                                                        font.pixelSize: shellRoot.globalFontSize + 1
+                                                        font.bold: true
+                                                        verticalAlignment: Text.AlignVCenter
+                                                    }
+                                                    Text {
+                                                        visible: cristinaBadgeItem.moduleInfo.text !== ""
+                                                        text: cristinaBadgeItem.moduleInfo.text
+                                                        color: shellRoot.contrastFg(cristinaBadgeItem.moduleInfo.color, "#111217")
+                                                        font.family: shellRoot.globalFontFamily
+                                                        font.pixelSize: shellRoot.globalFontSize
+                                                        font.bold: true
+                                                        verticalAlignment: Text.AlignVCenter
+                                                    }
                                                 }
                                             }
-                                            SlantSeparator { colorLeft: cristinaBadgeItem.badgeColor; colorRight: "transparent"; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                            SlantSeparator { colorLeft: cristinaBadgeItem.moduleInfo.color; colorRight: "transparent"; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                        }
+
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: {
+                                                if (cristinaBadgeItem.moduleInfo.action) cristinaBadgeItem.moduleInfo.action();
+                                            }
+                                            onWheel: (wheel) => {
+                                                var key = (typeof modelData === "object") ? modelData.type : modelData;
+                                                if (key === "brightness") {
+                                                    var delta = wheel.angleDelta.y > 0 ? 0.05 : -0.05;
+                                                    shellRoot.isAdjustingBrightness = true;
+                                                    shellRoot.brightnessValue = Math.max(0.05, Math.min(1.0, shellRoot.brightnessValue + delta));
+                                                    brightCooldownTimer.restart();
+                                                } else if (key === "volume") {
+                                                    var deltaV = wheel.angleDelta.y > 0 ? 0.05 : -0.05;
+                                                    shellRoot.isAdjustingVolume = true;
+                                                    shellRoot.volValue = Math.max(0.0, Math.min(1.0, shellRoot.volValue + deltaV));
+                                                    volCooldownTimer.restart();
+                                                }
+                                            }
                                         }
                                     }
                                 }
