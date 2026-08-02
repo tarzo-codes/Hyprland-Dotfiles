@@ -1620,8 +1620,9 @@ ShellRoot {
         Row {
             spacing: 6
             height: 30
+            visible: CentralConfig.editMode || (shellRoot.weatherTemp !== "" && shellRoot.weatherTemp !== "--°")
             Text { text: "☁"; color: shellRoot._cyn; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
-            Text { text: "--°"; color: shellRoot._fg; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
+            Text { text: shellRoot.weatherTemp !== "" ? shellRoot.weatherTemp : "22°"; color: shellRoot._fg; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
         }
     }
 
@@ -1687,10 +1688,11 @@ ShellRoot {
         id: compSong
         Item {
             id: songItem
+            property bool hasActiveSong: shellRoot.songValue !== "" && shellRoot.songValue !== "No media playing" && shellRoot.songValue !== "No player found"
+            visible: songItem.hasActiveSong || CentralConfig.editMode
             implicitWidth: visible ? (songRow.implicitWidth + 8) : 0
             implicitHeight: 30
             height: 30
-            visible: shellRoot.songValue !== "" || (CentralConfig.editMode)
             anchors.verticalCenter: parent.verticalCenter
 
             // 4-Stage Adaptive Space Pipeline Decision Sensor
@@ -1726,10 +1728,10 @@ ShellRoot {
                     }
                 }
 
-                // 2. Playback Controls (Prev, Play/Pause, Next) - Shown in Stages 1, 2, 3
+                // 2. Playback Controls (Prev, Play/Pause, Next)
                 Row {
                     id: controlsRow
-                    visible: songItem.zoneSpace >= 120
+                    visible: songItem.zoneSpace >= 120 && songItem.hasActiveSong
                     spacing: 6
                     anchors.verticalCenter: parent.verticalCenter
 
@@ -1777,17 +1779,15 @@ ShellRoot {
                     }
                 }
 
-                // 3. Dynamic Responsive Song Title & Artist Text - Shown in Stages 1 & 2
+                // 3. Dynamic Responsive Song Title & Artist Text
                 Text {
                     id: songText
-                    visible: songItem.zoneSpace >= 200
+                    visible: songItem.zoneSpace >= 140
                     text: {
-                        if (shellRoot.songValue === "") return "[ EDIT: Song Title ]";
-                        // Stage 1: Title + Artist if zoneSpace >= 300
+                        if (!songItem.hasActiveSong) return "[ Media Player ]";
                         if (songItem.zoneSpace >= 300 && CentralConfig.showSongArtist && shellRoot.artistValue !== "") {
                             return shellRoot.songValue + " • " + shellRoot.artistValue;
                         }
-                        // Stage 2: Title Only
                         return shellRoot.songValue;
                     }
                     color: shellRoot.contrastFg(shellRoot._sur, shellRoot._fg)
@@ -1797,7 +1797,7 @@ ShellRoot {
                     verticalAlignment: Text.AlignVCenter
                     height: 30
                     elide: Text.ElideRight
-                    width: text !== "" ? Math.min(200, implicitWidth) : 0
+                    width: text !== "" ? Math.min(240, implicitWidth) : 0
                     clip: true
 
                     MouseArea {
@@ -2053,6 +2053,10 @@ ShellRoot {
                         }
                     } else if (m === "updates") {
                         if (CentralConfig.editMode || (shellRoot.updatesValue !== "" && shellRoot.updatesValue !== "0 updates" && shellRoot.updatesValue !== "0" && shellRoot.updatesValue !== "Up to date")) {
+                            hasActiveModule = true;
+                        }
+                    } else if (m === "weather") {
+                        if (CentralConfig.editMode || (shellRoot.weatherTemp !== "" && shellRoot.weatherTemp !== "--°")) {
                             hasActiveModule = true;
                         }
                     } else if (m === "tray") {
