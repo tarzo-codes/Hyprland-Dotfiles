@@ -415,6 +415,73 @@ PanelWindow {
                 }
             }
 
+            // 🪄 RECOMMENDED & SAVED MEMORY DISPLAY CARD
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 38
+                visible: wallpaperWindow.selectedWallpaperPath !== ""
+                color: rootBar ? rootBar._sur : "#252836"
+                border.color: rootBar ? rootBar._acc : "#7aa2f7"
+                border.width: 1
+                radius: 6
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.margins: 6
+                    spacing: 12
+
+                    // Auto Recommended Section
+                    Row {
+                        spacing: 6
+                        Text {
+                            text: "🪄 AUTO RECOMMENDED:"
+                            color: rootBar ? rootBar._acc : "#7aa2f7"
+                            font.family: "JetBrainsMono Nerd Font"; font.pixelSize: 10; font.bold: true
+                        }
+                        Rectangle {
+                            width: 90; height: 24; radius: 4
+                            color: wallpaperWindow.recommendedIconColor
+                            border.color: "#ffffff"; border.width: 1
+                            Row {
+                                anchors.centerIn: parent; spacing: 3
+                                Text {
+                                    text: wallpaperWindow.recommendedIconTheme.replace("Tela-", "")
+                                    color: "#ffffff"
+                                    font.family: "JetBrainsMono Nerd Font"; font.pixelSize: 9; font.bold: true
+                                }
+                            }
+                            MouseArea {
+                                anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    wallpaperWindow.manualIconTheme = wallpaperWindow.recommendedIconTheme;
+                                    applyManualIconProc.targetTheme = wallpaperWindow.recommendedIconTheme;
+                                    applyManualIconProc.running = true;
+                                }
+                            }
+                        }
+                    }
+
+                    // Saved Memory Section
+                    Row {
+                        Layout.fillWidth: true
+                        spacing: 6
+                        Text {
+                            text: "💾 MEMORY:"
+                            color: rootBar ? rootBar._muted : "#6D8895"
+                            font.family: "JetBrainsMono Nerd Font"; font.pixelSize: 10; font.bold: true
+                        }
+                        Text {
+                            text: wallpaperWindow.hasWallpaperMemory
+                                ? ("Icon: " + (wallpaperWindow.savedIconTheme || "Auto") + " | Bar: " + (wallpaperWindow.savedBarTheme || "Current"))
+                                : "No memory saved yet for this wallpaper"
+                            color: rootBar ? rootBar._fg : "#c0caf5"
+                            font.family: "JetBrainsMono Nerd Font"; font.pixelSize: 9
+                            elide: Text.ElideMiddle; Layout.fillWidth: true
+                        }
+                    }
+                }
+            }
+
             // Manual Icon Palette Selection Panel (collapsible when manualIconMode is true)
             Rectangle {
                 Layout.fillWidth: true
@@ -533,6 +600,87 @@ PanelWindow {
                                         wallpaperWindow.manualIconTheme = wallpaperWindow.recommendedIconTheme;
                                         applyManualIconProc.targetTheme = wallpaperWindow.recommendedIconTheme;
                                         applyManualIconProc.running = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 🎨 18 BAR THEMES SELECTION PANEL (collapsible when manualIconMode is true)
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: wallpaperWindow.manualIconMode ? 46 : 0
+                visible: wallpaperWindow.manualIconMode
+                color: rootBar ? rootBar._sur : "#1e1e2e"
+                border.color: rootBar ? rootBar._acc : "#7aa2f7"
+                border.width: 1
+                radius: 6
+                clip: true
+                Behavior on Layout.preferredHeight { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.margins: 6
+                    spacing: 8
+
+                    Text {
+                        text: "🎨 Bar Theme (18):"
+                        color: rootBar ? rootBar._fg : "#c0caf5"
+                        font.family: "JetBrainsMono Nerd Font"
+                        font.pixelSize: 10; font.bold: true
+                    }
+
+                    Flickable {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        contentWidth: barThemeRow.width
+                        boundsBehavior: Flickable.StopAtBounds
+                        clip: true
+
+                        Row {
+                            id: barThemeRow
+                            spacing: 5
+                            anchors.verticalCenter: parent.verticalCenter
+
+                            property var themes: [
+                                "aline", "andrea", "brenda", "cristina", "cynthia", "daniela",
+                                "emilia", "h4ck3r", "isabel", "jan", "karla", "marisol",
+                                "melissa", "pamela", "silvia", "varinka", "yael", "z0mbi3"
+                            ]
+
+                            Repeater {
+                                model: barThemeRow.themes
+                                delegate: Rectangle {
+                                    width: 68; height: 26; radius: 5
+                                    color: (ThemeManager.themeName === modelData) ? (rootBar ? rootBar._acc : "#7aa2f7") : (rootBar ? rootBar._bg : "#313244")
+                                    border.color: (wallpaperWindow.savedBarTheme === modelData) ? "#fabd2f" : "transparent"
+                                    border.width: (wallpaperWindow.savedBarTheme === modelData) ? 1.5 : 0
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: modelData
+                                        color: (ThemeManager.themeName === modelData) ? "#ffffff" : (rootBar ? rootBar._fg : "#c0caf5")
+                                        font.family: "JetBrainsMono Nerd Font"
+                                        font.pixelSize: 9
+                                        font.bold: true
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: {
+                                            ThemeManager.themeName = modelData;
+                                            if (wallpaperWindow.selectedWallpaperPath !== "") {
+                                                saveWpMemoryProc.iconToSave = wallpaperWindow.manualIconTheme;
+                                                saveWpMemoryProc.barToSave = modelData;
+                                                saveWpMemoryProc.running = false;
+                                                saveWpMemoryProc.running = true;
+                                                wallpaperWindow.savedBarTheme = modelData;
+                                                wallpaperWindow.hasWallpaperMemory = true;
+                                            }
+                                        }
                                     }
                                 }
                             }
