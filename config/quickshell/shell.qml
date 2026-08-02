@@ -1988,9 +1988,22 @@ ShellRoot {
     Component {
         id: capsuleDelegate
         Item {
+            id: capItem
             height: 30
             width: visible ? (childRow.implicitWidth + (modelData.type === "capsule" ? 24 : 0)) : 0
             anchors.verticalCenter: parent.verticalCenter
+
+            property string zoneTag: {
+                var p = capItem.parent;
+                while (p) {
+                    if (p.objectName === "leftZone") return "L";
+                    if (p.objectName === "centerZone") return "C";
+                    if (p.objectName === "rightZone") return "R";
+                    p = p.parent;
+                }
+                return "L";
+            }
+
             visible: {
                 if (CentralConfig.editMode) return true;
                 var mods = modelData.type === "capsule" ? modelData.modules : [modelData.type];
@@ -2027,13 +2040,13 @@ ShellRoot {
                 border.width: 0
             }
 
-            // Position Index Badge on Bar in Edit Mode (matching Rice Editor #1, #2...)
+            // Position Index Badge on Bar in Edit Mode (matching Rice Editor #L1, #C1, #R1...)
             Rectangle {
                 anchors.top: parent.top
                 anchors.right: parent.right
                 anchors.topMargin: -5
                 anchors.rightMargin: -3
-                width: 18; height: 14; radius: 7
+                width: 22; height: 14; radius: 7
                 color: "#8ec07c"
                 border.color: "#181628"
                 border.width: 1
@@ -2042,7 +2055,7 @@ ShellRoot {
 
                 Text {
                     anchors.centerIn: parent
-                    text: "#" + (index + 1)
+                    text: "#" + capItem.zoneTag + (index + 1)
                     color: "#181628"
                     font.family: shellRoot.globalFontFamily
                     font.pixelSize: 8
@@ -2237,6 +2250,7 @@ ShellRoot {
                         // ══ CENTER ZONE ══
                         Row {
                             id: topCenterZoneRow
+                            objectName: "centerZone"
                             anchors.horizontalCenter: parent.horizontalCenter
                             anchors.verticalCenter: parent.verticalCenter
                             spacing: 6
@@ -2253,6 +2267,7 @@ ShellRoot {
                         // ══ LEFT ZONE ══
                         Row {
                             id: topLeftZoneRow
+                            objectName: "leftZone"
                             anchors.left: parent.left
                             anchors.right: topCenterZoneRow.left
                             anchors.rightMargin: 12
@@ -2271,6 +2286,7 @@ ShellRoot {
                         // ══ RIGHT ZONE ══
                         Row {
                             id: topRightZoneRow
+                            objectName: "rightZone"
                             anchors.right: parent.right
                             anchors.left: topCenterZoneRow.right
                             anchors.leftMargin: 12
@@ -3249,6 +3265,7 @@ ShellRoot {
                         // ══ CENTER ZONE ══
                         Row {
                             id: bottomCenterZoneRow
+                            objectName: "centerZone"
                             anchors.horizontalCenter: parent.horizontalCenter
                             anchors.verticalCenter: parent.verticalCenter
                             spacing: 6
@@ -3265,6 +3282,7 @@ ShellRoot {
                         // ══ LEFT ZONE ══
                         Row {
                             id: bottomLeftZoneRow
+                            objectName: "leftZone"
                             anchors.left: parent.left
                             anchors.right: bottomCenterZoneRow.left
                             anchors.rightMargin: 12
@@ -3283,6 +3301,7 @@ ShellRoot {
                         // ══ RIGHT ZONE ══
                         Row {
                             id: bottomRightZoneRow
+                            objectName: "rightZone"
                             anchors.right: parent.right
                             anchors.left: bottomCenterZoneRow.right
                             anchors.leftMargin: 12
