@@ -1644,19 +1644,23 @@ ShellRoot {
     Component {
         id: compSong
         Item {
+            id: songItem
             implicitWidth: visible ? (songRow.implicitWidth + 8) : 0
             implicitHeight: 30
             height: 30
             visible: shellRoot.songValue !== "" || (CentralConfig.editMode)
             anchors.verticalCenter: parent.verticalCenter
 
+            // 4-Stage Adaptive Space Pipeline Decision Sensor
+            property real zoneSpace: parent ? Math.max(80, parent.width - 220) : 300
+
             Row {
                 id: songRow
-                spacing: 8
+                spacing: 6
                 height: 30
                 anchors.verticalCenter: parent.verticalCenter
 
-                // 1. Player App Logo SVG
+                // 1. App Logo / Animated Icon (Always Shown)
                 Item {
                     width: 20; height: 20
                     anchors.verticalCenter: parent.verticalCenter
@@ -1680,8 +1684,10 @@ ShellRoot {
                     }
                 }
 
-                // 2. Interactive Playback Controls (Prev, Play/Pause, Next)
+                // 2. Playback Controls (Prev, Play/Pause, Next) - Shown in Stages 1, 2, 3
                 Row {
+                    id: controlsRow
+                    visible: songItem.zoneSpace >= 120 || CentralConfig.editMode
                     spacing: 6
                     anchors.verticalCenter: parent.verticalCenter
 
@@ -1693,10 +1699,7 @@ ShellRoot {
                         verticalAlignment: Text.AlignVCenter
                         height: 30
                         MouseArea {
-                            id: prevMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
+                            id: prevMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
                             onClicked: prevProc.running = true
                         }
                     }
@@ -1710,10 +1713,7 @@ ShellRoot {
                         verticalAlignment: Text.AlignVCenter
                         height: 30
                         MouseArea {
-                            id: playMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
+                            id: playMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
                             onClicked: {
                                 shellRoot.isPlaying = !shellRoot.isPlaying;
                                 playProc.running = true;
@@ -1729,22 +1729,23 @@ ShellRoot {
                         verticalAlignment: Text.AlignVCenter
                         height: 30
                         MouseArea {
-                            id: nextMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
+                            id: nextMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
                             onClicked: nextProc.running = true
                         }
                     }
                 }
 
-                // 3. Dynamic Responsive Song Title & Artist Text
+                // 3. Dynamic Responsive Song Title & Artist Text - Shown in Stages 1 & 2
                 Text {
+                    id: songText
+                    visible: songItem.zoneSpace >= 200 || CentralConfig.editMode
                     text: {
                         if (shellRoot.songValue === "") return "[ EDIT: Song Title ]";
-                        if (CentralConfig.showSongArtist && shellRoot.artistValue !== "") {
+                        // Stage 1: Title + Artist if zoneSpace >= 300
+                        if (songItem.zoneSpace >= 300 && CentralConfig.showSongArtist && shellRoot.artistValue !== "") {
                             return shellRoot.songValue + " • " + shellRoot.artistValue;
                         }
+                        // Stage 2: Title Only
                         return shellRoot.songValue;
                     }
                     color: shellRoot.contrastFg(shellRoot._sur, shellRoot._fg)
@@ -1754,7 +1755,7 @@ ShellRoot {
                     verticalAlignment: Text.AlignVCenter
                     height: 30
                     elide: Text.ElideRight
-                    width: text !== "" ? Math.min(shellRoot.maxDynamicModuleWidth, implicitWidth) : 0
+                    width: text !== "" ? Math.min(200, implicitWidth) : 0
                     clip: true
 
                     MouseArea {
@@ -2012,18 +2013,41 @@ ShellRoot {
                 radius: ThemeManager.themeName === "emilia" ? 4 : 15
                 color: modelData.type === "capsule" ? shellRoot._sur : "transparent"
                 border.width: 0
+            }
 
-                RowLayout {
-                    id: childRow
+            // Position Index Badge on Bar in Edit Mode (matching Rice Editor #1, #2...)
+            Rectangle {
+                anchors.top: parent.top
+                anchors.right: parent.right
+                anchors.topMargin: -5
+                anchors.rightMargin: -3
+                width: 18; height: 14; radius: 7
+                color: "#8ec07c"
+                border.color: "#181628"
+                border.width: 1
+                z: 99
+                visible: CentralConfig.editMode
+
+                Text {
                     anchors.centerIn: parent
-                    spacing: 10
+                    text: "#" + (index + 1)
+                    color: "#181628"
+                    font.family: shellRoot.globalFontFamily
+                    font.pixelSize: 8
+                    font.bold: true
+                }
+            }
 
-                    Repeater {
-                        model: modelData.type === "capsule" ? modelData.modules : [modelData.type]
-                        delegate: Loader {
-                            Layout.alignment: Qt.AlignVCenter
-                            sourceComponent: getWidget(modelData)
-                        }
+            RowLayout {
+                id: childRow
+                anchors.centerIn: parent
+                spacing: 10
+
+                Repeater {
+                    model: modelData.type === "capsule" ? modelData.modules : [modelData.type]
+                    delegate: Loader {
+                        Layout.alignment: Qt.AlignVCenter
+                        sourceComponent: getWidget(modelData)
                     }
                 }
             }
@@ -2075,7 +2099,7 @@ ShellRoot {
                 Timer {
                     id: topHideTimer
                     interval: 1000
-                    running: CentralConfig.autoHideBar && !topBar.isTopHovered
+                    running: CentralConfig.autoHideBar && !topBar.isTopHovered && !CentralConfig.editMode && !shellRoot.riceEditorVisible
                     repeat: false
                     onTriggered: topBar.topBarShouldHide = true
                 }
@@ -2083,12 +2107,12 @@ ShellRoot {
                 onIsTopHoveredChanged: {
                     if (isTopHovered) {
                         topHideTimer.stop();
-                    } else if (CentralConfig.autoHideBar) {
+                    } else if (CentralConfig.autoHideBar && !CentralConfig.editMode && !shellRoot.riceEditorVisible) {
                         topHideTimer.restart();
                     }
                 }
 
-                property real autoHideTopOffset: (CentralConfig.autoHideBar && topBarShouldHide) ? -(topBar.implicitHeight + 16) : 0
+                property real autoHideTopOffset: (CentralConfig.autoHideBar && topBarShouldHide && !CentralConfig.editMode && !shellRoot.riceEditorVisible) ? -(topBar.implicitHeight + 16) : 0
                 Behavior on autoHideTopOffset { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
 
                 property real animatedMargin: (ThemeManager.barIsTopFloat && ThemeManager.themeName !== "melissa")
@@ -3108,7 +3132,7 @@ ShellRoot {
                 Timer {
                     id: bottomHideTimer
                     interval: 1000
-                    running: CentralConfig.autoHideBar && !bottomBar.isBottomHovered
+                    running: CentralConfig.autoHideBar && !bottomBar.isBottomHovered && !CentralConfig.editMode && !shellRoot.riceEditorVisible
                     repeat: false
                     onTriggered: bottomBar.bottomBarShouldHide = true
                 }
@@ -3116,12 +3140,12 @@ ShellRoot {
                 onIsBottomHoveredChanged: {
                     if (isBottomHovered) {
                         bottomHideTimer.stop();
-                    } else if (CentralConfig.autoHideBar) {
+                    } else if (CentralConfig.autoHideBar && !CentralConfig.editMode && !shellRoot.riceEditorVisible) {
                         bottomHideTimer.restart();
                     }
                 }
 
-                property real autoHideBottomOffset: (CentralConfig.autoHideBar && bottomBarShouldHide) ? (bottomBar.implicitHeight + 16) : 0
+                property real autoHideBottomOffset: (CentralConfig.autoHideBar && bottomBarShouldHide && !CentralConfig.editMode && !shellRoot.riceEditorVisible) ? (bottomBar.implicitHeight + 16) : 0
                 Behavior on autoHideBottomOffset { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
 
                 property real animatedMargin: (ThemeManager.themeName === "cristina")
