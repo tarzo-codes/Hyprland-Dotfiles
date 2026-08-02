@@ -36,6 +36,20 @@ Item {
         property int    appletCustomX: 100
         property int    appletCustomY: 100
 
+        property real   borderAnimSpeed: 4.0 // In seconds
+        property bool   lockHardwareDefaults: true
+        property real   lockedVolValue: 0.50
+        property real   lockedBrightnessValue: 0.80
+
+        // Dual Bar & Applet Target Options
+        property string activeBarTarget: "top" // "top" or "bottom"
+        property string topBarModulesLeft: "launcher,cpu,ram,disk"
+        property string topBarModulesCenter: "workspaces"
+        property string topBarModulesRight: "song,network,volume,clock,power"
+        property string bottomBarModulesLeft: "title"
+        property string bottomBarModulesCenter: "pinnedApps"
+        property string bottomBarModulesRight: "tray,settings"
+
         // Saved Hardware Device Values (Volume & Brightness)
         property real   volValue: 0.48
         property real   brightnessValue: 0.88
@@ -45,8 +59,8 @@ Item {
         property bool showTitleLogo: true
         property bool showTitleAppName: true
         property bool showTitleWindowName: true
-        property bool showSongCoverArt: true
-        property bool showSongEqualizer: true
+        property bool showSongCoverArt: false // Cover art in expanded player only
+        property bool showSongEqualizer: false
         property bool showSongArtist: false
 
         // Bar Layout Mode & Modules
@@ -58,6 +72,17 @@ Item {
     }
 
     // Property Aliases
+    property alias borderAnimSpeed:      cfgStore.borderAnimSpeed
+    property alias lockHardwareDefaults: cfgStore.lockHardwareDefaults
+    property alias lockedVolValue:       cfgStore.lockedVolValue
+    property alias lockedBrightnessValue: cfgStore.lockedBrightnessValue
+    property alias activeBarTarget:      cfgStore.activeBarTarget
+    property alias topBarModulesLeft:    cfgStore.topBarModulesLeft
+    property alias topBarModulesCenter:  cfgStore.topBarModulesCenter
+    property alias topBarModulesRight:   cfgStore.topBarModulesRight
+    property alias bottomBarModulesLeft: cfgStore.bottomBarModulesLeft
+    property alias bottomBarModulesCenter: cfgStore.bottomBarModulesCenter
+    property alias bottomBarModulesRight: cfgStore.bottomBarModulesRight
     property alias themeName:         cfgStore.themeName
     property alias colorMode:         cfgStore.colorMode
     property alias barHeight:         cfgStore.barHeight

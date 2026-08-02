@@ -1083,6 +1083,8 @@ ShellRoot {
                         id: titleIconImg
                         source: shellRoot.getAppIconPath(shellRoot.activeWinClass)
                         anchors.fill: parent
+                        sourceSize.width: 18
+                        sourceSize.height: 18
                         fillMode: Image.PreserveAspectFit
                         visible: status === Image.Ready
                     }
@@ -1631,28 +1633,22 @@ ShellRoot {
                 height: 30
                 anchors.verticalCenter: parent.verticalCenter
 
-                // 1. Player App Logo / Album Cover Art
+                // 1. Player App Logo SVG
                 Item {
                     width: 20; height: 20
                     anchors.verticalCenter: parent.verticalCenter
-                    visible: CentralConfig.showSongCoverArt
 
                     Image {
-                        id: coverArtImg
-                        visible: shellRoot.artUrl !== ""
-                        source: shellRoot.artUrl
-                        anchors.fill: parent
-                        fillMode: Image.PreserveAspectCrop
-                    }
-                    Image {
                         id: playerIconImg
-                        visible: !coverArtImg.visible && status === Image.Ready
+                        visible: status === Image.Ready
                         source: shellRoot.getAppIconPath(shellRoot.selectedPlayer !== "" ? shellRoot.selectedPlayer : "spotify")
                         anchors.fill: parent
+                        sourceSize.width: 20
+                        sourceSize.height: 20
                         fillMode: Image.PreserveAspectFit
                     }
                     Text {
-                        visible: !coverArtImg.visible && playerIconImg.status !== Image.Ready
+                        visible: playerIconImg.status !== Image.Ready
                         text: "󰎈"
                         color: shellRoot._cyn
                         font.family: shellRoot.globalFontFamily

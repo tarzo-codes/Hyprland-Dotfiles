@@ -182,8 +182,8 @@ PanelWindow {
     Rectangle {
         id: mainCard
         anchors.centerIn: parent
-        width: 980
-        height: 700
+        width: Math.min(980, Math.floor(riceWindow.screen.width * 0.62))
+        height: Math.min(700, Math.floor(riceWindow.screen.height * 0.82))
         color: rootBar ? rootBar._bg : "#161622"
         border.color: hasUnappliedChanges ? (rootBar ? rootBar._yel : "#f1ca93") : (rootBar ? rootBar._acc : "#31748f")
         border.width: hasUnappliedChanges ? 2.5 : 1.5
@@ -742,6 +742,57 @@ PanelWindow {
                                     }
                                 }
 
+                                Column {
+                                    width: parent.width; spacing: 4
+                                    Row {
+                                        width: parent.width
+                                        Text { text: "Border Gradient Animation Speed:"; color: "#e0def4"; font.pixelSize: 10; font.bold: true }
+                                        Item { width: 10 }
+                                        Text { text: CentralConfig.borderAnimSpeed.toFixed(1) + " s"; color: rootBar ? rootBar._cyn : "#9bced7"; font.pixelSize: 10; font.bold: true }
+                                    }
+                                    Slider {
+                                        width: parent.width; from: 1.0; to: 10.0; stepSize: 0.5
+                                        value: CentralConfig.borderAnimSpeed
+                                        onMoved: { CentralConfig.borderAnimSpeed = value; riceWindow.markChanged(); }
+                                    }
+                                }
+
+                                Rectangle { width: parent.width; height: 1; color: "#2a283e" }
+
+                                Text { text: "🔒  Hardware Defaults Reboot Lock"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true }
+
+                                Row {
+                                    width: parent.width
+                                    Text { text: "Lock Volume & Brightness Defaults across Reboot"; color: "#e0def4"; font.pixelSize: 10; anchors.verticalCenter: parent.verticalCenter }
+                                    Item { Layout.fillWidth: true }
+                                    Rectangle {
+                                        width: 90; height: 26; radius: 4
+                                        color: CentralConfig.lockHardwareDefaults ? "#8ec07c" : "#2a283e"
+                                        Text { anchors.centerIn: parent; text: CentralConfig.lockHardwareDefaults ? "LOCKED" : "OFF"; color: CentralConfig.lockHardwareDefaults ? "#181628" : "#e0def4"; font.pixelSize: 10; font.bold: true }
+                                        MouseArea {
+                                            anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                            onClicked: CentralConfig.lockHardwareDefaults = !CentralConfig.lockHardwareDefaults
+                                        }
+                                    }
+                                }
+
+                                Row {
+                                    width: parent.width; spacing: 10
+                                    Rectangle {
+                                        width: 250; height: 28; radius: 6; color: "#312a4a"; border.color: "#f1ca93"; border.width: 1
+                                        Text { anchors.centerIn: parent; text: "💾 Lock Current Vol/Brightness as Boot Default"; color: "#f1ca93"; font.pixelSize: 9; font.bold: true }
+                                        MouseArea {
+                                            anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                            onClicked: {
+                                                CentralConfig.lockedVolValue = CentralConfig.volValue;
+                                                CentralConfig.lockedBrightnessValue = CentralConfig.brightnessValue;
+                                                CentralConfig.lockHardwareDefaults = true;
+                                                riceWindow.showStatus("Locked current Vol/Brightness defaults for reboot!");
+                                            }
+                                        }
+                                    }
+                                }
+
                                 Row {
                                     width: parent.width
                                     Text { text: "Saved Master Volume (" + Math.round(CentralConfig.volValue * 100) + "%)"; color: "#e0def4"; font.pixelSize: 11; anchors.verticalCenter: parent.verticalCenter }
@@ -845,6 +896,30 @@ PanelWindow {
                                 // Presets Bar
                                 Column {
                                     width: parent.width; spacing: 6
+
+                                    // Bar Selection Row for Dual-Bar Themes (like Melissa)
+                                    Row {
+                                        width: parent.width
+                                        visible: ThemeManager.themeName === "melissa" || ThemeManager.themeName.indexOf("double") !== -1
+                                        spacing: 8
+
+                                        Text { text: "Target Bar:"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true; anchors.verticalCenter: parent.verticalCenter }
+
+                                        Rectangle {
+                                            width: 100; height: 26; radius: 6
+                                            color: CentralConfig.activeBarTarget === "top" ? "#9bced7" : "#2a283e"
+                                            Text { anchors.centerIn: parent; text: "🔝 Top Bar"; color: CentralConfig.activeBarTarget === "top" ? "#181628" : "#e0def4"; font.pixelSize: 9; font.bold: true }
+                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.activeBarTarget = "top" }
+                                        }
+
+                                        Rectangle {
+                                            width: 110; height: 26; radius: 6
+                                            color: CentralConfig.activeBarTarget === "bottom" ? "#c3a5e6" : "#2a283e"
+                                            Text { anchors.centerIn: parent; text: "⬇️ Bottom Bar"; color: CentralConfig.activeBarTarget === "bottom" ? "#181628" : "#e0def4"; font.pixelSize: 9; font.bold: true }
+                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.activeBarTarget = "bottom" }
+                                        }
+                                    }
+
                                     Text { text: "󰆓  Quick Presets:"; color: "#9bced7"; font.pixelSize: 10; font.bold: true }
 
                                     Row {
