@@ -1955,6 +1955,9 @@ ShellRoot {
                         topBarShouldHide = false;
                     } else if (CentralConfig.autoHideBar || ThemeManager.autoHideBar) {
                         topHideTimer.restart();
+                    } else {
+                        topHideTimer.stop();
+                        topBarShouldHide = false;
                     }
                 }
 
@@ -2936,6 +2939,9 @@ ShellRoot {
                         bottomBarShouldHide = false;
                     } else if (CentralConfig.autoHideBar || ThemeManager.autoHideBar) {
                         bottomHideTimer.restart();
+                    } else {
+                        bottomHideTimer.stop();
+                        bottomBarShouldHide = false;
                     }
                 }
 
