@@ -56,15 +56,34 @@ PanelWindow {
         return map[name] || "#3584e4";
     }
 
+    function refreshSwatches(wpPath) {
+        if (!wpPath || wpPath === "") return;
+        fetchSwatchesProc.command = ["bash", "-c", "python3 $HOME/.config/quickshell/scripts/wallpaper_cache_builder.py get_swatches \"$1\"", "--", wpPath];
+        fetchSwatchesProc.running = false;
+        fetchSwatchesProc.running = true;
+    }
+
+    onVisibleChanged: {
+        if (visible) {
+            if (selectedWallpaperPath === "" && activeWallpaperPath !== "") {
+                selectedWallpaperPath = activeWallpaperPath;
+            }
+            if (selectedWallpaperPath !== "") {
+                refreshSwatches(selectedWallpaperPath);
+                fetchWpMemoryProc.command = ["bash", "-c", "python3 $HOME/.config/quickshell/scripts/wallpaper_memory.py get \"$1\"", "--", selectedWallpaperPath];
+                fetchWpMemoryProc.running = false;
+                fetchWpMemoryProc.running = true;
+            }
+        }
+    }
+
     onSelectedWallpaperPathChanged: {
         if (selectedWallpaperPath !== "") {
             fetchWpMemoryProc.command = ["bash", "-c", "python3 $HOME/.config/quickshell/scripts/wallpaper_memory.py get \"$1\"", "--", selectedWallpaperPath];
             fetchWpMemoryProc.running = false;
             fetchWpMemoryProc.running = true;
 
-            fetchSwatchesProc.command = ["bash", "-c", "python3 $HOME/.config/quickshell/scripts/wallpaper_cache_builder.py get_swatches \"$1\"", "--", selectedWallpaperPath];
-            fetchSwatchesProc.running = false;
-            fetchSwatchesProc.running = true;
+            refreshSwatches(selectedWallpaperPath);
         }
     }
 

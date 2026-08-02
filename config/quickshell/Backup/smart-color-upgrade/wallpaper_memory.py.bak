@@ -22,34 +22,14 @@ def auto_recommend(wp_path):
     if not wp_path or not os.path.isfile(wp_path):
         return 'Tela-blue'
     try:
-        # Check if smart analyzer is enabled
-        config_path = os.path.expanduser('~/.config/quickshell/smart_color_config.json')
-        use_smart = False
-        if os.path.isfile(config_path):
-            try:
-                with open(config_path, 'r') as f:
-                    config = json.load(f)
-                    use_smart = config.get('cielab', False) or config.get('kmeans', False) or config.get('hybrid_extraction', False)
-            except Exception:
-                pass
-        
-        if use_smart:
-            # Use smart color analyzer for better recommendations
-            from smart_color_analyzer import SmartColorAnalyzer
-            analyzer = SmartColorAnalyzer(config_path)
-            result = analyzer.analyze_image(wp_path)
-            if result:
-                return result.recommended_icon
-        else:
-            # Fallback to cache builder
-            from wallpaper_cache_builder import load_cache, analyze_image
-            fn = os.path.basename(wp_path)
-            cache = load_cache()
-            if fn in cache:
-                return cache[fn].get('recommendedIcon', 'Tela-blue')
-            res = analyze_image(wp_path)
-            if res:
-                return res.get('recommendedIcon', 'Tela-blue')
+        from wallpaper_cache_builder import load_cache, analyze_image
+        fn = os.path.basename(wp_path)
+        cache = load_cache()
+        if fn in cache:
+            return cache[fn].get('recommendedIcon', 'Tela-blue')
+        res = analyze_image(wp_path)
+        if res:
+            return res.get('recommendedIcon', 'Tela-blue')
         return 'Tela-blue'
     except Exception:
         return 'Tela-blue'

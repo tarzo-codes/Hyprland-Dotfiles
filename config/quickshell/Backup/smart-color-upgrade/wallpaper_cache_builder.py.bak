@@ -33,34 +33,6 @@ def save_cache(data):
         json.dump(data, f, indent=2)
 
 def hex_to_tela(hex_str):
-    # Check if smart analyzer is enabled
-    config_path = os.path.expanduser('~/.config/quickshell/smart_color_config.json')
-    use_smart = False
-    if os.path.isfile(config_path):
-        try:
-            with open(config_path, 'r') as f:
-                config = json.load(f)
-                use_smart = config.get('cielab', False) or config.get('kmeans', False)
-        except Exception:
-            pass
-    
-    if use_smart:
-        try:
-            from smart_color_analyzer import SmartColorAnalyzer
-            analyzer = SmartColorAnalyzer(config_path)
-            # Create a temporary analysis for just this hex color
-            # This is a simplified approach - for full accuracy, use the full image
-            rgb = tuple(int(hex_str.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
-            if analyzer.config['cielab']:
-                # Use CIELAB matching
-                return analyzer._find_closest_tela_cielab(hex_str)
-            else:
-                # Use RGB matching
-                return analyzer._find_closest_tela_rgb(hex_str)
-        except Exception:
-            pass
-    
-    # Fallback to original HSV-based analysis
     hex_str = hex_str.lstrip('#')
     if len(hex_str) != 6:
         return 'Tela-blue'

@@ -405,11 +405,7 @@ ShellRoot {
 
     function c(name, fallback) {
         var raw = shellRoot.colors ? (shellRoot.colors[name] || fallback) : fallback;
-        if (!ThemeManager.isLightMode) {
-            if (name === "surface") return ensureDarkEnough(raw, 0.24);
-            if (name === "background") return ensureDarkEnough(raw, 0.16);
-            return raw;
-        }
+        if (!ThemeManager.isLightMode) return raw;
 
         // Background/surface: pick the brightest light color
         if (name === "background") return getBrightestLightBg("#f1f5f9");
@@ -454,7 +450,7 @@ ShellRoot {
 
     // Darken color iteratively until luminance drops below maxLuma
     function ensureDarkEnough(hex, maxLuma) {
-        if (!hex || hex === "transparent") return "#1e1e2e";
+        if (!hex || hex === "transparent") return "#1d4ed8";
         var col = hex.toString();
         var factor = 1.0;
         while (luma(col) > maxLuma && factor < 5.0) {
@@ -1087,31 +1083,52 @@ ShellRoot {
 
     Component {
         id: compCpu
-        Row {
-            spacing: 6
+        Item {
+            implicitWidth: visible ? (cpuRow.implicitWidth + 4) : 0
+            implicitHeight: 30
             height: 30
-            Text { text: "\uf2db"; color: shellRoot._brightRed; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
-            Text { text: shellRoot.cpuValue; color: shellRoot._fg; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
+            Row {
+                id: cpuRow
+                spacing: 6
+                height: 30
+                anchors.verticalCenter: parent.verticalCenter
+                Text { text: "\uf2db"; color: shellRoot._brightRed; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
+                Text { text: shellRoot.cpuValue; color: shellRoot._fg; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
+            }
         }
     }
 
     Component {
         id: compMemory
-        Row {
-            spacing: 6
+        Item {
+            implicitWidth: visible ? (memRow.implicitWidth + 4) : 0
+            implicitHeight: 30
             height: 30
-            Text { text: "󰍛"; color: shellRoot._brightCyn; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
-            Text { text: shellRoot.memValue; color: shellRoot._fg; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
+            Row {
+                id: memRow
+                spacing: 6
+                height: 30
+                anchors.verticalCenter: parent.verticalCenter
+                Text { text: "󰍛"; color: shellRoot._brightCyn; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
+                Text { text: shellRoot.memValue; color: shellRoot._fg; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
+            }
         }
     }
 
     Component {
         id: compFilesystem
-        Row {
-            spacing: 6
+        Item {
+            implicitWidth: visible ? (fsRow.implicitWidth + 4) : 0
+            implicitHeight: 30
             height: 30
-            Text { text: "\uf200"; color: shellRoot._brightYel; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
-            Text { text: shellRoot.fsValue; color: shellRoot._fg; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
+            Row {
+                id: fsRow
+                spacing: 6
+                height: 30
+                anchors.verticalCenter: parent.verticalCenter
+                Text { text: "\uf200"; color: shellRoot._brightYel; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
+                Text { text: shellRoot.fsValue; color: shellRoot._fg; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
+            }
         }
     }
 
@@ -1573,54 +1590,62 @@ ShellRoot {
 
     Component {
         id: compSong
-        Row {
-            spacing: 6
+        Item {
+            implicitWidth: visible ? (songRow.implicitWidth + 4) : 0
+            implicitHeight: 30
             height: 30
-            anchors.verticalCenter: parent.verticalCenter
             visible: shellRoot.songValue !== "" || (CentralConfig.editMode || BarModules.editMode)
+            anchors.verticalCenter: parent.verticalCenter
 
-            // Dynamic Equalizer Animated Bars
             Row {
-                visible: CentralConfig.showSongEqualizer
-                spacing: 2
+                id: songRow
+                spacing: 6
+                height: 30
                 anchors.verticalCenter: parent.verticalCenter
-                Repeater {
-                    model: 4
-                    delegate: Rectangle {
-                        width: 3
-                        height: eqTimer.running ? eqTimer.eqHeights[index] : 4
-                        radius: 1.5
-                        color: shellRoot._cyn
-                        anchors.bottom: parent.bottom
-                        Behavior on height { NumberAnimation { duration: 90; easing.type: Easing.OutCubic } }
+
+                // Dynamic Equalizer Animated Bars
+                Row {
+                    visible: CentralConfig.showSongEqualizer
+                    spacing: 2
+                    anchors.verticalCenter: parent.verticalCenter
+                    Repeater {
+                        model: 4
+                        delegate: Rectangle {
+                            width: 3
+                            height: eqTimer.running ? eqTimer.eqHeights[index] : 4
+                            radius: 1.5
+                            color: shellRoot._cyn
+                            anchors.bottom: parent.bottom
+                            Behavior on height { NumberAnimation { duration: 90; easing.type: Easing.OutCubic } }
+                        }
                     }
                 }
-            }
 
-            // Album Cover Art (if available)
-            Image {
-                visible: CentralConfig.showSongCoverArt && shellRoot.artUrl !== ""
-                source: shellRoot.artUrl
-                width: 20; height: 20
-                fillMode: Image.PreserveAspectCrop
-                anchors.verticalCenter: parent.verticalCenter
-            }
-
-            Text {
-                text: {
-                    if (shellRoot.songValue === "") return "[ EDIT: Song Title ]";
-                    if (CentralConfig.showSongArtist && shellRoot.artistValue !== "") {
-                        return shellRoot.songValue + " • " + shellRoot.artistValue;
-                    }
-                    return shellRoot.songValue;
+                // Album Cover Art (if available)
+                Image {
+                    visible: CentralConfig.showSongCoverArt && shellRoot.artUrl !== ""
+                    source: shellRoot.artUrl
+                    width: 20; height: 20
+                    fillMode: Image.PreserveAspectCrop
+                    anchors.verticalCenter: parent.verticalCenter
                 }
-                color: shellRoot.contrastFg(shellRoot._sur, shellRoot._fg)
-                font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize
-                font.bold: true
-                verticalAlignment: Text.AlignVCenter; height: 30
-                elide: Text.ElideRight
-                width: text !== "" ? Math.min(shellRoot.maxDynamicModuleWidth, implicitWidth) : 0
-                clip: true
+
+                Text {
+                    text: {
+                        if (shellRoot.songValue === "") return "[ EDIT: Song Title ]";
+                        if (CentralConfig.showSongArtist && shellRoot.artistValue !== "") {
+                            return shellRoot.songValue + " • " + shellRoot.artistValue;
+                        }
+                        return shellRoot.songValue;
+                    }
+                    color: shellRoot.contrastFg(shellRoot._sur, shellRoot._fg)
+                    font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize
+                    font.bold: true
+                    verticalAlignment: Text.AlignVCenter; height: 30
+                    elide: Text.ElideRight
+                    width: text !== "" ? Math.min(shellRoot.maxDynamicModuleWidth, implicitWidth) : 0
+                    clip: true
+                }
             }
 
             MouseArea {
@@ -1935,10 +1960,7 @@ ShellRoot {
                 implicitWidth: screen.width
                 implicitHeight: ThemeManager.barIsTopFloat ? (barHeight + 10) : barHeight
 
-                WlrLayershell.layer: (CentralConfig.autoHideBar || ThemeManager.autoHideBar) ? WlrLayer.Overlay : WlrLayer.Bottom
-                exclusionMode: (CentralConfig.autoHideBar || ThemeManager.autoHideBar) ? ExclusionMode.Normal : ExclusionMode.Exclusive
-
-                property bool isTopHovered: topHoverArea.containsMouse || topEdgeArea.containsMouse || shellRoot.settingsVisible || shellRoot.riceEditorVisible || shellRoot.volumePanelVisible || shellRoot.networkPanelVisible || shellRoot.powerMenuVisible
+                property bool isTopHovered: topHoverArea.containsMouse || shellRoot.settingsVisible || shellRoot.riceEditorVisible || shellRoot.volumePanelVisible || shellRoot.networkPanelVisible || shellRoot.powerMenuVisible
                 property bool topBarShouldHide: false
 
                 Timer {
@@ -1955,13 +1977,10 @@ ShellRoot {
                         topBarShouldHide = false;
                     } else if (CentralConfig.autoHideBar || ThemeManager.autoHideBar) {
                         topHideTimer.restart();
-                    } else {
-                        topHideTimer.stop();
-                        topBarShouldHide = false;
                     }
                 }
 
-                property real autoHideTopOffset: ((CentralConfig.autoHideBar || ThemeManager.autoHideBar) && topBarShouldHide) ? -(shellRoot.barHeight + 30) : 0
+                property real autoHideTopOffset: ((CentralConfig.autoHideBar || ThemeManager.autoHideBar) && topBarShouldHide) ? -(shellRoot.barHeight - 3) : 0
                 Behavior on autoHideTopOffset { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
 
                 property real animatedMargin: (ThemeManager.barIsTopFloat && ThemeManager.themeName !== "melissa")
@@ -1972,15 +1991,6 @@ ShellRoot {
                 MouseArea {
                     id: topHoverArea
                     anchors.fill: parent
-                    hoverEnabled: true
-                }
-
-                MouseArea {
-                    id: topEdgeArea
-                    anchors.top: parent.top
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    height: 5
                     hoverEnabled: true
                 }
 
@@ -2919,10 +2929,7 @@ ShellRoot {
                 implicitWidth: screen.width
                 implicitHeight: (ThemeManager.themeName === "cristina") ? (shellRoot.barHeight + 16) : shellRoot.barHeight
 
-                WlrLayershell.layer: (CentralConfig.autoHideBar || ThemeManager.autoHideBar) ? WlrLayer.Overlay : WlrLayer.Bottom
-                exclusionMode: (CentralConfig.autoHideBar || ThemeManager.autoHideBar) ? ExclusionMode.Normal : ExclusionMode.Exclusive
-
-                property bool isBottomHovered: bottomHoverArea.containsMouse || bottomEdgeArea.containsMouse || shellRoot.settingsVisible || shellRoot.riceEditorVisible || shellRoot.volumePanelVisible || shellRoot.networkPanelVisible || shellRoot.powerMenuVisible
+                property bool isBottomHovered: bottomHoverArea.containsMouse || shellRoot.settingsVisible || shellRoot.riceEditorVisible || shellRoot.volumePanelVisible || shellRoot.networkPanelVisible || shellRoot.powerMenuVisible
                 property bool bottomBarShouldHide: false
 
                 Timer {
@@ -2939,13 +2946,10 @@ ShellRoot {
                         bottomBarShouldHide = false;
                     } else if (CentralConfig.autoHideBar || ThemeManager.autoHideBar) {
                         bottomHideTimer.restart();
-                    } else {
-                        bottomHideTimer.stop();
-                        bottomBarShouldHide = false;
                     }
                 }
 
-                property real autoHideBottomOffset: ((CentralConfig.autoHideBar || ThemeManager.autoHideBar) && bottomBarShouldHide) ? (shellRoot.barHeight + 30) : 0
+                property real autoHideBottomOffset: ((CentralConfig.autoHideBar || ThemeManager.autoHideBar) && bottomBarShouldHide) ? (shellRoot.barHeight - 3) : 0
                 Behavior on autoHideBottomOffset { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
 
                 property real animatedMargin: (ThemeManager.themeName === "cristina")
@@ -2956,15 +2960,6 @@ ShellRoot {
                 MouseArea {
                     id: bottomHoverArea
                     anchors.fill: parent
-                    hoverEnabled: true
-                }
-
-                MouseArea {
-                    id: bottomEdgeArea
-                    anchors.bottom: parent.bottom
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    height: 5
                     hoverEnabled: true
                 }
 

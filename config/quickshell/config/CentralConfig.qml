@@ -41,12 +41,6 @@ Item {
         property real   brightnessValue: 0.88
         property bool   isMuted: false
 
-        // Hardware Defaults & Lock Settings
-        property bool   lockDefaultVolume: false
-        property int    defaultVolumePct: 50
-        property bool   lockDefaultBrightness: false
-        property int    defaultBrightnessPct: 70
-
         // Per-Module Configuration Settings
         property bool showTitleLogo: true
         property bool showTitleAppName: true
@@ -58,7 +52,7 @@ Item {
         // Bar Layout Mode & Modules
         property string mode: "default" // "default" or "custom"
         property bool   editMode: false
-        property string leftModules: "launcher,cpu,ram,disk,media"
+        property string leftModules: "launcher,cpu,ram,disk"
         property string centerModules: "workspaces"
         property string rightModules: "song,network,volume,updates,clock,tray,power"
     }
@@ -92,10 +86,6 @@ Item {
     property alias volValue:          cfgStore.volValue
     property alias brightnessValue:   cfgStore.brightnessValue
     property alias isMuted:           cfgStore.isMuted
-    property alias lockDefaultVolume:    cfgStore.lockDefaultVolume
-    property alias defaultVolumePct:     cfgStore.defaultVolumePct
-    property alias lockDefaultBrightness: cfgStore.lockDefaultBrightness
-    property alias defaultBrightnessPct: cfgStore.defaultBrightnessPct
 
     property alias mode:              cfgStore.mode
     property alias editMode:          cfgStore.editMode
@@ -103,14 +93,16 @@ Item {
     property alias centerModules:     cfgStore.centerModules
     property alias rightModules:      cfgStore.rightModules
 
-    function setZone(moduleKey, zone) {
+    function setZone(moduleKey, zone, allowDuplicate) {
         var lefts = (leftModules || "").split(",");
         var centers = (centerModules || "").split(",");
         var rights = (rightModules || "").split(",");
 
-        lefts = lefts.filter(function(m) { return m !== moduleKey && m !== ""; });
-        centers = centers.filter(function(m) { return m !== moduleKey && m !== ""; });
-        rights = rights.filter(function(m) { return m !== moduleKey && m !== ""; });
+        if (!allowDuplicate) {
+            lefts = lefts.filter(function(m) { return m !== moduleKey && m !== ""; });
+            centers = centers.filter(function(m) { return m !== moduleKey && m !== ""; });
+            rights = rights.filter(function(m) { return m !== moduleKey && m !== ""; });
+        }
 
         if (zone === "left") lefts.push(moduleKey);
         else if (zone === "center") centers.push(moduleKey);
