@@ -116,19 +116,38 @@ ShellRoot {
         }
     }
 
-    // Sync isLightMode state from cache file on startup (especially for Auto mode)
+    // Write-back isLightMode state to cache & trigger full external theme sync (GTK, QT, Wallust, Terminals)
     Process {
-        id: syncLightModeProc
-        command: ["bash", "-c", "cat ~/.cache/quickshell/is_light_mode 2>/dev/null || echo false"]
-        stdout: SplitParser {
-            onRead: function(data) {
-                var str = data.trim();
-                if (str === "true" || str === "false") {
-                    ThemeManager.isLightMode = (str === "true");
-                }
+        id: saveLightModeCacheProc
+        command: ["bash", "-c", "mkdir -p ~/.cache/quickshell && echo " + (CentralConfig.isLightMode ? "true" : "false") + " > ~/.cache/quickshell/is_light_mode"]
+    }
+
+    Connections {
+        target: CentralConfig
+        function onIsLightModeChanged() {
+            saveLightModeCacheProc.running = false;
+            saveLightModeCacheProc.running = true;
+            themeSyncProc.running = false;
+            themeSyncProc.running = true;
+        }
+    }
+
+    // Periodic Auto Mode Evaluator (re-evaluates solar schedule / time of day every 60s)
+    Timer {
+        id: autoModeTimer
+        interval: 60000
+        repeat: true
+        running: CentralConfig.modeChoice === "auto"
+        onTriggered: {
+            var h = (new Date()).getHours();
+            var targetLight = (h >= 6 && h < 18);
+            if (CentralConfig.isLightMode !== targetLight) {
+                saveLightModeCacheProc.running = false;
+                saveLightModeCacheProc.running = true;
+                themeSyncProc.running = false;
+                themeSyncProc.running = true;
             }
         }
-        Component.onCompleted: running = true
     }
 
     // Universal colors loader
