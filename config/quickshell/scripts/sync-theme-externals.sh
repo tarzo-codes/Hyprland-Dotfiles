@@ -456,6 +456,9 @@ Name=FluxDots
 accentColor=$ACC_RGB
 LastUsedCustomAccentColor=$ACC_RGB
 
+[Icons]
+Theme=$ICON_THEME
+
 [UiSettings]
 ColorScheme=FluxDots
 
