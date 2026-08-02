@@ -438,10 +438,12 @@ with open('$NVIM_TMP', 'w') as f:
 "
 
 mv -f "$NVIM_TMP" "$NVIM_THEME_DIR/theme.lua"
+mkdir -p "$HOME/.config/nvim/lua/generated"
+cp -f "$NVIM_THEME_DIR/theme.lua" "$HOME/.config/nvim/lua/generated/theme.lua"
 
-for socket in /tmp/nvim*/* /run/user/1000/nvim*/*; do
+for socket in /tmp/nvim*/* /run/user/1000/nvim*/* /run/user/1000/nvim.*; do
     if [ -S "$socket" ]; then
-        nvim --server "$socket" --remote-send "<Cmd>lua require('theme').reload()<CR>" 2>/dev/null &
+        nvim --server "$socket" --remote-send "<Cmd>lua if pcall(require, 'neopywal') then require('neopywal').setup(); vim.cmd('colorscheme neopywal') end<CR>" 2>/dev/null &
     fi
 done
 
