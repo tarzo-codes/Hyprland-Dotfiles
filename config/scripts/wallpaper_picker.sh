@@ -201,11 +201,23 @@ if wp_path and os.path.isfile(wp_path):
             for count, (r, g, b) in colors:
                 h, s, v = colorsys.rgb_to_hsv(r/255.0, g/255.0, b/255.0)
                 luma = 0.299*(r/255.0) + 0.587*(g/255.0) + 0.114*(b/255.0)
-                if s >= 0.10 and 0.06 <= luma <= 0.94:
-                    deg = h * 360.0
-                    weight = count * (s ** 2.2) # Saturated focal features boost!
+                deg = h * 360.0
 
-                    if deg >= 345 or deg < 12:
+                if s >= 0.06 and 0.05 <= luma <= 0.95:
+                    weight = count * (s ** 1.8)
+
+                    # Foliage & Nature Green Detector (Trees, leaves, forest paths with green channel dominance)
+                    if g > r + 8 and g >= b - 15:
+                        if 65 <= deg < 155:
+                            hue_scores['Tela-green'] += weight * 4.5
+                            hue_scores['Tela-manjaro'] += weight * 3.0
+                        elif 155 <= deg < 195:
+                            hue_scores['Tela-manjaro'] += weight * 4.0
+                            hue_scores['Tela-green'] += weight * 2.5
+                            hue_scores['Tela-nord'] += weight * 0.5
+                        else:
+                            hue_scores['Tela-green'] += weight * 3.0
+                    elif deg >= 345 or deg < 12:
                         if s > 0.35 and luma < 0.60: hue_scores['Tela-red'] += weight * 1.5
                         else: hue_scores['Tela-pink'] += weight * 1.5
                     elif 12 <= deg < 28:
@@ -216,19 +228,13 @@ if wp_path and os.path.isfile(wp_path):
                         hue_scores['Tela-ubuntu'] += weight * 0.8
                     elif 48 <= deg < 70: hue_scores['Tela-yellow'] += weight * 1.5
                     elif 70 <= deg < 140: hue_scores['Tela-green'] += weight * 1.5
-                    elif 140 <= deg < 175:
-                        hue_scores['Tela-manjaro'] += weight * 1.6
-                        hue_scores['Tela-green'] += weight * 0.8
+                    elif 140 <= deg < 175: hue_scores['Tela-manjaro'] += weight * 1.5
                     elif 175 <= deg < 205:
-                        hue_scores['Tela-nord'] += weight * 1.6
+                        hue_scores['Tela-nord'] += weight * 1.2
                         hue_scores['Tela-blue'] += weight * 0.8
-                    elif 205 <= deg < 255: hue_scores['Tela-blue'] += weight * 1.4
-                    elif 255 <= deg < 285:
-                        hue_scores['Tela-dracula'] += weight * 1.6
-                        hue_scores['Tela-purple'] += weight * 0.8
-                    elif 285 <= deg < 345:
-                        hue_scores['Tela-purple'] += weight * 1.5
-                        hue_scores['Tela-pink'] += weight * 0.8
+                    elif 205 <= deg < 255: hue_scores['Tela-blue'] += weight * 1.2
+                    elif 255 <= deg < 285: hue_scores['Tela-dracula'] += weight * 1.5
+                    elif 285 <= deg < 345: hue_scores['Tela-purple'] += weight * 1.5
 
         colorful_scores = {k: v for k, v in hue_scores.items() if k not in ['Tela-grey', 'Tela-black', 'Tela-brown']}
         top_color = max(colorful_scores.items(), key=lambda x: x[1])
