@@ -29,10 +29,9 @@ QtObject {
     readonly property string color15: "{{color15}}"
 
     // Convenience aliases so ThemeManager/shell.qml don't need to know
-    // which raw color# maps to which semantic role. This is the seam
-    // a future "per-theme accent picker" would hook into.
+    // which raw color# maps to which semantic role.
     readonly property string accent: color4
-    readonly property color surface: Qt.lighter(background, 1.12)
+    readonly property string surface: color0 !== background ? color0 : (color8 !== background ? color8 : "#1e1e2e")
     readonly property string textMuted: color7
 
     // Bright colors for icons

@@ -9,30 +9,29 @@ pragma Singleton
 import QtQuick
 
 QtObject {
-    readonly property string background: "#322E37"
-    readonly property string foreground: "#DBF0FC"
-    readonly property string color0: "#56525C"
-    readonly property string color1: "#362756"
-    readonly property string color2: "#B43C5D"
-    readonly property string color3: "#2174BD"
-    readonly property string color4: "#FF7D5C"
-    readonly property string color5: "#F8C063"
-    readonly property string color6: "#97D3F6"
-    readonly property string color7: "#C2E1F2"
-    readonly property string color8: "#889DA9"
-    readonly property string color9: "#362756"
-    readonly property string color10: "#B43C5D"
-    readonly property string color11: "#2174BD"
-    readonly property string color12: "#FF7D5C"
-    readonly property string color13: "#F8C063"
-    readonly property string color14: "#97D3F6"
-    readonly property string color15: "#C2E1F2"
+    readonly property string background: "#070000"
+    readonly property string foreground: "#F9F5EF"
+    readonly property string color0: "#0E0504"
+    readonly property string color1: "#AB6341"
+    readonly property string color2: "#AB7987"
+    readonly property string color3: "#BF9F8C"
+    readonly property string color4: "#9DABA7"
+    readonly property string color5: "#D2DFF6"
+    readonly property string color6: "#EEE3D1"
+    readonly property string color7: "#EEE9E0"
+    readonly property string color8: "#A7A39C"
+    readonly property string color9: "#AB6341"
+    readonly property string color10: "#AB7987"
+    readonly property string color11: "#BF9F8C"
+    readonly property string color12: "#9DABA7"
+    readonly property string color13: "#D2DFF6"
+    readonly property string color14: "#EEE3D1"
+    readonly property string color15: "#EEE9E0"
 
     // Convenience aliases so ThemeManager/shell.qml don't need to know
-    // which raw color# maps to which semantic role. This is the seam
-    // a future "per-theme accent picker" would hook into.
+    // which raw color# maps to which semantic role.
     readonly property string accent: color4
-    readonly property color surface: Qt.lighter(background, 1.12)
+    readonly property string surface: color0 !== background ? color0 : (color8 !== background ? color8 : "#1e1e2e")
     readonly property string textMuted: color7
 
     // Bright colors for icons
