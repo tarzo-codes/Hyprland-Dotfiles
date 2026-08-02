@@ -157,6 +157,20 @@ ShellRoot {
         }
     }
 
+    // Restore RiceEditorWindow open state on quickshell reload / theme refresh
+    Process {
+        id: syncRiceOpenProc
+        command: ["bash", "-c", "cat ~/.cache/quickshell/rice_editor_open 2>/dev/null || echo false"]
+        stdout: SplitParser {
+            onRead: function(data) {
+                if (data.trim() === "true") {
+                    shellRoot.riceEditorVisible = true;
+                }
+            }
+        }
+        Component.onCompleted: running = true
+    }
+
     // Universal colors loader
     property var colors: themeColorsLoader ? themeColorsLoader.item : null
     Loader {

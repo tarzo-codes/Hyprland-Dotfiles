@@ -25,9 +25,20 @@ PanelWindow {
     property var colors: null
     property var rootBar: null
     signal closeRequested()
+    Process {
+        id: saveRiceOpenCacheProc
+        command: ["bash", "-c", "mkdir -p ~/.cache/quickshell && echo " + (riceWindow.visible ? "true" : "false") + " > ~/.cache/quickshell/rice_editor_open"]
+    }
+
+    Process {
+        id: reapplyWallpaperProc
+        command: ["bash", "-c", "$HOME/.config/scripts/wallpaper_picker.sh --reapply"]
+    }
+
     onVisibleChanged: {
+        saveRiceOpenCacheProc.running = false;
+        saveRiceOpenCacheProc.running = true;
         if (!visible) {
-            CentralConfig.editMode = false;
             CentralConfig.editMode = false;
         }
     }
@@ -152,8 +163,12 @@ PanelWindow {
             rootBar.barWidthPercent = pendingWidthPct;
         }
 
+        // Re-run full wallpaper & system theme engine for Wallust, GTK, QT, Terminals & Hyprland
+        reapplyWallpaperProc.running = false;
+        reapplyWallpaperProc.running = true;
+
         hasUnappliedChanges = false;
-        showStatus("✓ All changes successfully applied!");
+        showStatus("✓ All changes applied & full theme refreshed!");
     }
 
     function ensureEditMode() {
