@@ -41,6 +41,12 @@ Item {
         property real   brightnessValue: 0.88
         property bool   isMuted: false
 
+        // Hardware Defaults & Lock Settings
+        property bool   lockDefaultVolume: false
+        property int    defaultVolumePct: 50
+        property bool   lockDefaultBrightness: false
+        property int    defaultBrightnessPct: 70
+
         // Per-Module Configuration Settings
         property bool showTitleLogo: true
         property bool showTitleAppName: true
@@ -86,6 +92,10 @@ Item {
     property alias volValue:          cfgStore.volValue
     property alias brightnessValue:   cfgStore.brightnessValue
     property alias isMuted:           cfgStore.isMuted
+    property alias lockDefaultVolume:    cfgStore.lockDefaultVolume
+    property alias defaultVolumePct:     cfgStore.defaultVolumePct
+    property alias lockDefaultBrightness: cfgStore.lockDefaultBrightness
+    property alias defaultBrightnessPct: cfgStore.defaultBrightnessPct
 
     property alias mode:              cfgStore.mode
     property alias editMode:          cfgStore.editMode

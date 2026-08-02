@@ -76,6 +76,18 @@ PanelWindow {
         command: ["python3", os.path.expanduser("~/.config/quickshell/scripts/wallpaper_cache_builder.py"), "clear"]
     }
 
+    Process {
+        id: applyDefaultVolProc
+        property int volPct: 50
+        command: ["bash", "-c", "wpctl set-volume @DEFAULT_AUDIO_SINK@ " + (volPct / 100.0)]
+    }
+
+    Process {
+        id: applyDefaultBrightProc
+        property int brightPct: 70
+        command: ["bash", "-c", "brightnessctl set " + brightPct + "%"]
+    }
+
     // Confirmation Modal Properties
     property bool confirmModalOpen: false
     property string pendingPresetId: ""
@@ -181,8 +193,8 @@ PanelWindow {
     Rectangle {
         id: mainCard
         anchors.centerIn: parent
-        width: 980
-        height: 700
+        width: Math.min(1080, Math.round(Screen.width * 0.92))
+        height: Math.min(720, Math.round(Screen.height * 0.90))
         color: rootBar ? rootBar._bg : "#161622"
         border.color: hasUnappliedChanges ? (rootBar ? rootBar._yel : "#f1ca93") : (rootBar ? rootBar._acc : "#31748f")
         border.width: hasUnappliedChanges ? 2.5 : 1.5
@@ -743,21 +755,125 @@ PanelWindow {
 
                                 Row {
                                     width: parent.width
-                                    Text { text: "Saved Master Volume (" + Math.round(CentralConfig.volValue * 100) + "%)"; color: "#e0def4"; font.pixelSize: 11; anchors.verticalCenter: parent.verticalCenter }
+                                    Text { text: "Saved Master Volume (" + Math.round(CentralConfig.volValue * 100) + "%)"; color: rootBar ? rootBar._fg : "#e0def4"; font.pixelSize: 11; anchors.verticalCenter: parent.verticalCenter }
                                     Item { width: parent.width - 240 }
                                     Rectangle {
-                                        width: 70; height: 26; radius: 4; color: "#2a283e"; border.color: rootBar ? rootBar._cyn : "#9bced7"; border.width: 1
+                                        width: 70; height: 26; radius: 4; color: rootBar ? rootBar._sur : "#2a283e"; border.color: rootBar ? rootBar._cyn : "#9bced7"; border.width: 1
                                         Text { anchors.centerIn: parent; text: Math.round(CentralConfig.volValue * 100) + "%"; color: rootBar ? rootBar._cyn : "#9bced7"; font.pixelSize: 11; font.bold: true }
                                     }
                                 }
 
                                 Row {
                                     width: parent.width
-                                    Text { text: "Saved Screen Brightness (" + Math.round(CentralConfig.brightnessValue * 100) + "%)"; color: "#e0def4"; font.pixelSize: 11; anchors.verticalCenter: parent.verticalCenter }
+                                    Text { text: "Saved Screen Brightness (" + Math.round(CentralConfig.brightnessValue * 100) + "%)"; color: rootBar ? rootBar._fg : "#e0def4"; font.pixelSize: 11; anchors.verticalCenter: parent.verticalCenter }
                                     Item { width: parent.width - 240 }
                                     Rectangle {
-                                        width: 70; height: 26; radius: 4; color: "#2a283e"; border.color: rootBar ? rootBar._cyn : "#9bced7"; border.width: 1
+                                        width: 70; height: 26; radius: 4; color: rootBar ? rootBar._sur : "#2a283e"; border.color: rootBar ? rootBar._cyn : "#9bced7"; border.width: 1
                                         Text { anchors.centerIn: parent; text: Math.round(CentralConfig.brightnessValue * 100) + "%"; color: rootBar ? rootBar._cyn : "#9bced7"; font.pixelSize: 11; font.bold: true }
+                                    }
+                                }
+
+                                Rectangle { width: parent.width; height: 1; color: rootBar ? rootBar.alphaColor(rootBar._fg, 0.2) : "#2a283e" }
+
+                                Text { text: "🔊  Default Startup Volume & Lock"; color: rootBar ? rootBar._yel : "#f1ca93"; font.pixelSize: 11; font.bold: true }
+
+                                Row {
+                                    width: parent.width
+                                    Text { text: "🔒 Lock Default Startup Volume"; color: rootBar ? rootBar._fg : "#e0def4"; font.pixelSize: 11; anchors.verticalCenter: parent.verticalCenter }
+                                    Item { width: parent.width - 290 }
+                                    Rectangle {
+                                        width: 80; height: 26; radius: 4
+                                        color: CentralConfig.lockDefaultVolume ? (rootBar ? rootBar._cyn : "#9bced7") : (rootBar ? rootBar._sur : "#2a283e")
+                                        border.color: CentralConfig.lockDefaultVolume ? "#ffffff" : (rootBar ? rootBar.alphaColor(rootBar._fg, 0.2) : "#2a283e")
+                                        border.width: 1
+
+                                        Text {
+                                            anchors.centerIn: parent
+                                            text: CentralConfig.lockDefaultVolume ? "LOCKED" : "OFF"
+                                            color: CentralConfig.lockDefaultVolume ? "#181628" : (rootBar ? rootBar._fg : "#e0def4")
+                                            font.pixelSize: 10; font.bold: true
+                                        }
+
+                                        MouseArea {
+                                            anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                            onClicked: {
+                                                CentralConfig.lockDefaultVolume = !CentralConfig.lockDefaultVolume;
+                                                riceWindow.markChanged();
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Column {
+                                    width: parent.width; spacing: 4
+                                    Row {
+                                        width: parent.width
+                                        Text { text: "Default Volume Level:"; color: rootBar ? rootBar._fg : "#e0def4"; font.pixelSize: 10; font.bold: true }
+                                        Item { width: 10 }
+                                        Text { text: CentralConfig.defaultVolumePct + " %"; color: rootBar ? rootBar._cyn : "#9bced7"; font.pixelSize: 10; font.bold: true }
+                                    }
+                                    Slider {
+                                        width: parent.width; from: 0; to: 100; stepSize: 1
+                                        value: CentralConfig.defaultVolumePct
+                                        onMoved: {
+                                            CentralConfig.defaultVolumePct = Math.round(value);
+                                            applyDefaultVolProc.volPct = CentralConfig.defaultVolumePct;
+                                            applyDefaultVolProc.running = false;
+                                            applyDefaultVolProc.running = true;
+                                            riceWindow.markChanged();
+                                        }
+                                    }
+                                }
+
+                                Rectangle { width: parent.width; height: 1; color: rootBar ? rootBar.alphaColor(rootBar._fg, 0.2) : "#2a283e" }
+
+                                Text { text: "☀️  Default Screen Brightness & Lock"; color: rootBar ? rootBar._yel : "#f1ca93"; font.pixelSize: 11; font.bold: true }
+
+                                Row {
+                                    width: parent.width
+                                    Text { text: "🔒 Lock Default Startup Brightness"; color: rootBar ? rootBar._fg : "#e0def4"; font.pixelSize: 11; anchors.verticalCenter: parent.verticalCenter }
+                                    Item { width: parent.width - 290 }
+                                    Rectangle {
+                                        width: 80; height: 26; radius: 4
+                                        color: CentralConfig.lockDefaultBrightness ? (rootBar ? rootBar._cyn : "#9bced7") : (rootBar ? rootBar._sur : "#2a283e")
+                                        border.color: CentralConfig.lockDefaultBrightness ? "#ffffff" : (rootBar ? rootBar.alphaColor(rootBar._fg, 0.2) : "#2a283e")
+                                        border.width: 1
+
+                                        Text {
+                                            anchors.centerIn: parent
+                                            text: CentralConfig.lockDefaultBrightness ? "LOCKED" : "OFF"
+                                            color: CentralConfig.lockDefaultBrightness ? "#181628" : (rootBar ? rootBar._fg : "#e0def4")
+                                            font.pixelSize: 10; font.bold: true
+                                        }
+
+                                        MouseArea {
+                                            anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                            onClicked: {
+                                                CentralConfig.lockDefaultBrightness = !CentralConfig.lockDefaultBrightness;
+                                                riceWindow.markChanged();
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Column {
+                                    width: parent.width; spacing: 4
+                                    Row {
+                                        width: parent.width
+                                        Text { text: "Default Brightness Level:"; color: rootBar ? rootBar._fg : "#e0def4"; font.pixelSize: 10; font.bold: true }
+                                        Item { width: 10 }
+                                        Text { text: CentralConfig.defaultBrightnessPct + " %"; color: rootBar ? rootBar._cyn : "#9bced7"; font.pixelSize: 10; font.bold: true }
+                                    }
+                                    Slider {
+                                        width: parent.width; from: 5; to: 100; stepSize: 1
+                                        value: CentralConfig.defaultBrightnessPct
+                                        onMoved: {
+                                            CentralConfig.defaultBrightnessPct = Math.round(value);
+                                            applyDefaultBrightProc.brightPct = CentralConfig.defaultBrightnessPct;
+                                            applyDefaultBrightProc.running = false;
+                                            applyDefaultBrightProc.running = true;
+                                            riceWindow.markChanged();
+                                        }
                                     }
                                 }
 
