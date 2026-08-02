@@ -7,18 +7,18 @@
     "padding": {
       "top": 2,
       "left": 2,
-      "right": 2,
-    },
+      "right": 2
+    }
   },
   "display": {
-    "separator": " ",
+    "separator": " "
   },
   "modules": [
     "break",
     {
       "type": "custom",
       "key": "||  ||",
-      "keyColor": "red",
+      "keyColor": "red"
     },
     "break",
     {
@@ -30,42 +30,36 @@
     {
       "type": "kernel",
       "key": " ",
-      "keyColor": "dim_",
+      "keyColor": "dim_"
     },
     {
       "type": "cpu",
       "key": " ",
       "keyColor": "yellow",
-      "format": "{}",
+      "format": "{name}"
     },
     {
       "type": "memory",
       "key": " ",
       "keyColor": "green",
-      "format": "{used} of 8 GiB [{percentage}]",
+      "format": "{used} / {total} ({percentage})"
     },
     {
       "type": "packages",
-      "format": "{} (pacman)",
+      "format": "{}",
       "key": " ",
-      "keyColor": "magenta",
+      "keyColor": "magenta"
     },
     {
       "type": "uptime",
       "key": " ",
-      "keyColor": "red",
+      "keyColor": "red"
     },
     "break",
-
-    {
-      "type": "command",
-      "key": " ",
-      "text": "cat /home/ritabrata/.weather_cache",
-    },
     {
       "type": "colors",
-      "symbol": "circle",
+      "symbol": "circle"
     },
-    "break",
-  ],
+    "break"
+  ]
 }

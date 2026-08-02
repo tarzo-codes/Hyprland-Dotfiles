@@ -3488,7 +3488,7 @@ ShellRoot {
                                         id: cristinaBadgeItem
                                         height: parent.height - 4
                                         anchors.verticalCenter: parent.verticalCenter
-                                        width: cristinaBadgeContentRow.implicitWidth + 20
+                                        width: (cristinaWidgetLoader.item ? (cristinaWidgetLoader.item.implicitWidth > 0 ? cristinaWidgetLoader.item.implicitWidth : cristinaWidgetLoader.item.width) : 40) + 32
                                         visible: {
                                             var m = modelData;
                                             if (m === "song" || m === "media" || m === "mplayer" || m === "compact_player") {
