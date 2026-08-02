@@ -592,6 +592,52 @@ EOF
 
 mv -f "$KV_TMP" "$KVANTUM_DIR/FluxDots.kvconfig"
 
+# ──────────────────────────────────────────────────────────────────────────
+# 6. Update GTK 3/4 & System-wide XDG Desktop Portal Color Scheme (Zen Browser, Firefox, Dolphin, Electron)
+# ──────────────────────────────────────────────────────────────────────────
+if command -v gsettings &>/dev/null; then
+    gsettings set org.gnome.desktop.interface color-scheme "$GSETTINGS_SCHEME" 2>/dev/null || true
+    gsettings set org.gnome.desktop.interface gtk-theme "$GTK_THEME" 2>/dev/null || true
+    gsettings set org.gnome.desktop.interface icon-theme "$ICON_THEME" 2>/dev/null || true
+fi
+
+# Update GTK 3.0 settings.ini
+mkdir -p "$HOME/.config/gtk-3.0"
+cat <<EOF > "$HOME/.config/gtk-3.0/settings.ini"
+[Settings]
+gtk-theme-name=$GTK_THEME
+gtk-icon-theme-name=$ICON_THEME
+gtk-font-name=Sans 10
+gtk-cursor-theme-name=Breeze_Snow
+gtk-cursor-theme-size=24
+gtk-toolbar-style=GTK_TOOLBAR_ICONS
+gtk-toolbar-icon-size=GTK_ICON_SIZE_LARGE_TOOLBAR
+gtk-button-images=0
+gtk-menu-images=1
+gtk-enable-event-sounds=1
+gtk-enable-input-feedback-sounds=1
+gtk-xft-antialias=1
+gtk-xft-hinting=1
+gtk-xft-hintstyle=hintslight
+gtk-xft-rgba=rgb
+gtk-application-prefer-dark-theme=$PREFER_DARK
+EOF
+
+# Update GTK 4.0 settings.ini
+mkdir -p "$HOME/.config/gtk-4.0"
+cat <<EOF > "$HOME/.config/gtk-4.0/settings.ini"
+[Settings]
+gtk-theme-name=$GTK_THEME
+gtk-icon-theme-name=$ICON_THEME
+gtk-font-name=Sans 10
+gtk-cursor-theme-name=Breeze_Snow
+gtk-cursor-theme-size=24
+gtk-application-prefer-dark-theme=$PREFER_DARK
+EOF
+
+# Broadcast XDG Desktop Portal settings update over DBus to Zen Browser, Firefox & Electron apps
+busctl --user call org.freedesktop.portal.Desktop /org/freedesktop/portal/desktop org.freedesktop.portal.Settings ReadOne ss "org.freedesktop.appearance" "color-scheme" 2>/dev/null || true
+
 if command -v hyprctl &>/dev/null && [ -n "${ACC:-}" ]; then
   ACC_STRIPPED="${ACC#\#}"
   SUR_STRIPPED="${SUR#\#}"
