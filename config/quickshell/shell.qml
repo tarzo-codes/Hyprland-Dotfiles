@@ -1935,7 +1935,10 @@ ShellRoot {
                 implicitWidth: screen.width
                 implicitHeight: ThemeManager.barIsTopFloat ? (barHeight + 10) : barHeight
 
-                property bool isTopHovered: topHoverArea.containsMouse || shellRoot.settingsVisible || shellRoot.riceEditorVisible || shellRoot.volumePanelVisible || shellRoot.networkPanelVisible || shellRoot.powerMenuVisible
+                WlrLayershell.layer: (CentralConfig.autoHideBar || ThemeManager.autoHideBar) ? WlrLayer.Overlay : WlrLayer.Top
+                exclusionMode: (CentralConfig.autoHideBar || ThemeManager.autoHideBar) ? ExclusionMode.Normal : ExclusionMode.Exclusive
+
+                property bool isTopHovered: topHoverArea.containsMouse || topEdgeArea.containsMouse || shellRoot.settingsVisible || shellRoot.riceEditorVisible || shellRoot.volumePanelVisible || shellRoot.networkPanelVisible || shellRoot.powerMenuVisible
                 property bool topBarShouldHide: false
 
                 Timer {
@@ -1955,7 +1958,7 @@ ShellRoot {
                     }
                 }
 
-                property real autoHideTopOffset: ((CentralConfig.autoHideBar || ThemeManager.autoHideBar) && topBarShouldHide) ? -(shellRoot.barHeight - 3) : 0
+                property real autoHideTopOffset: ((CentralConfig.autoHideBar || ThemeManager.autoHideBar) && topBarShouldHide) ? -(shellRoot.barHeight + 30) : 0
                 Behavior on autoHideTopOffset { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
 
                 property real animatedMargin: (ThemeManager.barIsTopFloat && ThemeManager.themeName !== "melissa")
@@ -1966,6 +1969,15 @@ ShellRoot {
                 MouseArea {
                     id: topHoverArea
                     anchors.fill: parent
+                    hoverEnabled: true
+                }
+
+                MouseArea {
+                    id: topEdgeArea
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    height: 5
                     hoverEnabled: true
                 }
 
@@ -2904,7 +2916,10 @@ ShellRoot {
                 implicitWidth: screen.width
                 implicitHeight: (ThemeManager.themeName === "cristina") ? (shellRoot.barHeight + 16) : shellRoot.barHeight
 
-                property bool isBottomHovered: bottomHoverArea.containsMouse || shellRoot.settingsVisible || shellRoot.riceEditorVisible || shellRoot.volumePanelVisible || shellRoot.networkPanelVisible || shellRoot.powerMenuVisible
+                WlrLayershell.layer: (CentralConfig.autoHideBar || ThemeManager.autoHideBar) ? WlrLayer.Overlay : WlrLayer.Top
+                exclusionMode: (CentralConfig.autoHideBar || ThemeManager.autoHideBar) ? ExclusionMode.Normal : ExclusionMode.Exclusive
+
+                property bool isBottomHovered: bottomHoverArea.containsMouse || bottomEdgeArea.containsMouse || shellRoot.settingsVisible || shellRoot.riceEditorVisible || shellRoot.volumePanelVisible || shellRoot.networkPanelVisible || shellRoot.powerMenuVisible
                 property bool bottomBarShouldHide: false
 
                 Timer {
@@ -2924,7 +2939,7 @@ ShellRoot {
                     }
                 }
 
-                property real autoHideBottomOffset: ((CentralConfig.autoHideBar || ThemeManager.autoHideBar) && bottomBarShouldHide) ? (shellRoot.barHeight - 3) : 0
+                property real autoHideBottomOffset: ((CentralConfig.autoHideBar || ThemeManager.autoHideBar) && bottomBarShouldHide) ? (shellRoot.barHeight + 30) : 0
                 Behavior on autoHideBottomOffset { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
 
                 property real animatedMargin: (ThemeManager.themeName === "cristina")
@@ -2935,6 +2950,15 @@ ShellRoot {
                 MouseArea {
                     id: bottomHoverArea
                     anchors.fill: parent
+                    hoverEnabled: true
+                }
+
+                MouseArea {
+                    id: bottomEdgeArea
+                    anchors.bottom: parent.bottom
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    height: 5
                     hoverEnabled: true
                 }
 

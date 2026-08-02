@@ -948,177 +948,174 @@ PanelWindow {
                                         ]
                                         delegate: Rectangle {
                                             width: parent.width
-                                            height: hasSubOpts ? 62 : 34
+                                            implicitHeight: modCol.implicitHeight + 12
                                             radius: 6
                                             color: "#1e1e2e"
-                                            clip: true
 
                                             property bool isHidden: zoneRow.currentZone === "hidden"
                                             property bool hasSubOpts: !isHidden && (modelData.key === "title" || modelData.key === "song" || modelData.key === "media")
 
-                                            Column {
-                                                anchors.fill: parent
-                                                spacing: 4
+                                            ColumnLayout {
+                                                id: modCol
+                                                anchors.left: parent.left
+                                                anchors.right: parent.right
+                                                anchors.top: parent.top
+                                                anchors.margins: 6
+                                                spacing: 6
 
-                                                Item {
-                                                    width: parent.width; height: 34
+                                                // Main Module Controls Row
+                                                RowLayout {
+                                                    Layout.fillWidth: true
+                                                    spacing: 8
+
+                                                    Text { text: modelData.icon; color: rootBar ? rootBar._cyn : "#9bced7"; font.pixelSize: 12 }
+                                                    Text { text: modelData.name; color: "#e0def4"; font.pixelSize: 10; font.bold: true }
+
+                                                    // Index Position Badge
+                                                    Rectangle {
+                                                        property int modIdx: CentralConfig.getModuleIndex(modelData.key)
+                                                        visible: modIdx !== -1
+                                                        width: 24; height: 18; radius: 4; color: "#2a283e"
+                                                        Text { anchors.centerIn: parent; text: "#" + (parent.modIdx + 1); color: "#f1ca93"; font.pixelSize: 9; font.bold: true }
+                                                    }
+
+                                                    Item { Layout.fillWidth: true }
 
                                                     Row {
-                                                        anchors.fill: parent; anchors.leftMargin: 10; anchors.rightMargin: 10
-                                                        spacing: 8
+                                                        id: zoneRow
+                                                        spacing: 4
+                                                        property string currentZone: CentralConfig.getZone(modelData.key)
 
-                                                        Text { text: modelData.icon; color: rootBar ? rootBar._cyn : "#9bced7"; font.pixelSize: 12; anchors.verticalCenter: parent.verticalCenter }
-                                                        Text { text: modelData.name; color: "#e0def4"; font.pixelSize: 10; font.bold: true; anchors.verticalCenter: parent.verticalCenter }
-
-                                                        // Index Position Badge
+                                                        // Re-order Left Button (◄)
                                                         Rectangle {
-                                                            property int modIdx: CentralConfig.getModuleIndex(modelData.key)
-                                                            visible: modIdx !== -1
-                                                            width: 24; height: 18; radius: 4; color: "#2a283e"
-                                                            anchors.verticalCenter: parent.verticalCenter
-                                                            Text { anchors.centerIn: parent; text: "#" + (parent.modIdx + 1); color: "#f1ca93"; font.pixelSize: 9; font.bold: true }
+                                                            width: 22; height: 22; radius: 4
+                                                            color: parent.currentZone !== "hidden" ? "#2a283e" : "#141320"
+                                                            visible: parent.currentZone !== "hidden"
+                                                            Text { anchors.centerIn: parent; text: "◄"; color: "#9bced7"; font.pixelSize: 10 }
+                                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { ensureEditMode(); CentralConfig.moveModule(modelData.key, "left"); riceWindow.showStatus("Moved " + modelData.key + " ◄ Left"); } }
                                                         }
 
-                                                        Item { width: parent.width - 240 - zoneRow.implicitWidth }
+                                                        // Re-order Right Button (►)
+                                                        Rectangle {
+                                                            width: 22; height: 22; radius: 4
+                                                            color: parent.currentZone !== "hidden" ? "#2a283e" : "#141320"
+                                                            visible: parent.currentZone !== "hidden"
+                                                            Text { anchors.centerIn: parent; text: "►"; color: "#9bced7"; font.pixelSize: 10 }
+                                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { ensureEditMode(); CentralConfig.moveModule(modelData.key, "right"); riceWindow.showStatus("Moved " + modelData.key + " ► Right"); } }
+                                                        }
+
+                                                        Item { width: 4 }
+
+                                                        // Left Zone Button
+                                                        Rectangle {
+                                                            width: 44; height: 22; radius: 4
+                                                            color: parent.currentZone === "left" ? "#9bced7" : "#2a283e"
+                                                            Text { anchors.centerIn: parent; text: "Left"; color: parent.parent.currentZone === "left" ? "#181628" : "#6e6a86"; font.pixelSize: 9; font.bold: true }
+                                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { ensureEditMode(); CentralConfig.setZone(modelData.key, "left"); riceWindow.showStatus("Set " + modelData.key + " -> LEFT"); } }
+                                                        }
+
+                                                        // Center Zone Button
+                                                        Rectangle {
+                                                            width: 50; height: 22; radius: 4
+                                                            color: parent.currentZone === "center" ? "#f1ca93" : "#2a283e"
+                                                            Text { anchors.centerIn: parent; text: "Center"; color: parent.parent.currentZone === "center" ? "#181628" : "#6e6a86"; font.pixelSize: 9; font.bold: true }
+                                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { ensureEditMode(); CentralConfig.setZone(modelData.key, "center"); riceWindow.showStatus("Set " + modelData.key + " -> CENTER"); } }
+                                                        }
+
+                                                        // Right Zone Button
+                                                        Rectangle {
+                                                            width: 44; height: 22; radius: 4
+                                                            color: parent.currentZone === "right" ? "#c3a5e6" : "#2a283e"
+                                                            Text { anchors.centerIn: parent; text: "Right"; color: parent.parent.currentZone === "right" ? "#181628" : "#6e6a86"; font.pixelSize: 9; font.bold: true }
+                                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { ensureEditMode(); CentralConfig.setZone(modelData.key, "right"); riceWindow.showStatus("Set " + modelData.key + " -> RIGHT"); } }
+                                                        }
+
+                                                        // Hidden Button
+                                                        Rectangle {
+                                                            width: 48; height: 22; radius: 4
+                                                            color: parent.currentZone === "hidden" ? "#ea6f91" : "#2a283e"
+                                                            Text { anchors.centerIn: parent; text: "Hidden"; color: parent.parent.currentZone === "hidden" ? "#ffffff" : "#6e6a86"; font.pixelSize: 9; font.bold: true }
+                                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { ensureEditMode(); CentralConfig.setZone(modelData.key, "hidden"); riceWindow.showStatus("Set " + modelData.key + " -> HIDDEN"); } }
+                                                        }
+                                                    }
+                                                }
+
+                                                // Inline Sub-Component Options Row (Stacked below on its own clean row!)
+                                                RowLayout {
+                                                    visible: parent.parent.hasSubOpts
+                                                    Layout.fillWidth: true
+                                                    Layout.leftMargin: 20
+                                                    spacing: 16
+
+                                                    // Title Sub-Options
+                                                    Row {
+                                                        visible: modelData.key === "title"
+                                                        spacing: 12
 
                                                         Row {
-                                                            id: zoneRow
                                                             spacing: 4
-                                                            anchors.verticalCenter: parent.verticalCenter
-
-                                                            property string currentZone: CentralConfig.getZone(modelData.key)
-
-                                                            // Re-order Left Button (◄)
                                                             Rectangle {
-                                                                width: 22; height: 22; radius: 4
-                                                                color: parent.currentZone !== "hidden" ? "#2a283e" : "#141320"
-                                                                visible: parent.currentZone !== "hidden"
-                                                                Text { anchors.centerIn: parent; text: "◄"; color: "#9bced7"; font.pixelSize: 10 }
-                                                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { ensureEditMode(); CentralConfig.moveModule(modelData.key, "left"); riceWindow.showStatus("Moved " + modelData.key + " ◄ Left"); } }
+                                                                width: 14; height: 14; radius: 3; color: CentralConfig.showTitleLogo ? "#9bced7" : "#2a283e"; border.color: "#9bced7"; border.width: 1
+                                                                Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showTitleLogo; color: "#181628"; font.pixelSize: 9; font.bold: true }
+                                                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showTitleLogo = !CentralConfig.showTitleLogo }
                                                             }
+                                                            Text { text: "App Icon"; color: "#e0def4"; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
+                                                        }
 
-                                                            // Re-order Right Button (►)
+                                                        Row {
+                                                            spacing: 4
                                                             Rectangle {
-                                                                width: 22; height: 22; radius: 4
-                                                                color: parent.currentZone !== "hidden" ? "#2a283e" : "#141320"
-                                                                visible: parent.currentZone !== "hidden"
-                                                                Text { anchors.centerIn: parent; text: "►"; color: "#9bced7"; font.pixelSize: 10 }
-                                                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { ensureEditMode(); CentralConfig.moveModule(modelData.key, "right"); riceWindow.showStatus("Moved " + modelData.key + " ► Right"); } }
+                                                                width: 14; height: 14; radius: 3; color: CentralConfig.showTitleAppName ? "#9bced7" : "#2a283e"; border.color: "#9bced7"; border.width: 1
+                                                                Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showTitleAppName; color: "#181628"; font.pixelSize: 9; font.bold: true }
+                                                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showTitleAppName = !CentralConfig.showTitleAppName }
                                                             }
+                                                            Text { text: "App Name (Class)"; color: "#e0def4"; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
+                                                        }
 
-                                                            Item { width: 4 }
-
-                                                            // Left Zone Button
+                                                        Row {
+                                                            spacing: 4
                                                             Rectangle {
-                                                                width: 44; height: 22; radius: 4
-                                                                color: parent.currentZone === "left" ? "#9bced7" : "#2a283e"
-                                                                Text { anchors.centerIn: parent; text: "Left"; color: parent.parent.currentZone === "left" ? "#181628" : "#6e6a86"; font.pixelSize: 9; font.bold: true }
-                                                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { ensureEditMode(); CentralConfig.setZone(modelData.key, "left"); riceWindow.showStatus("Set " + modelData.key + " -> LEFT"); } }
+                                                                width: 14; height: 14; radius: 3; color: CentralConfig.showTitleWindowName ? "#9bced7" : "#2a283e"; border.color: "#9bced7"; border.width: 1
+                                                                Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showTitleWindowName; color: "#181628"; font.pixelSize: 9; font.bold: true }
+                                                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showTitleWindowName = !CentralConfig.showTitleWindowName }
                                                             }
-
-                                                            // Center Zone Button
-                                                            Rectangle {
-                                                                width: 50; height: 22; radius: 4
-                                                                color: parent.currentZone === "center" ? "#f1ca93" : "#2a283e"
-                                                                Text { anchors.centerIn: parent; text: "Center"; color: parent.parent.currentZone === "center" ? "#181628" : "#6e6a86"; font.pixelSize: 9; font.bold: true }
-                                                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { ensureEditMode(); CentralConfig.setZone(modelData.key, "center"); riceWindow.showStatus("Set " + modelData.key + " -> CENTER"); } }
-                                                            }
-
-                                                            // Right Zone Button
-                                                            Rectangle {
-                                                                width: 44; height: 22; radius: 4
-                                                                color: parent.currentZone === "right" ? "#c3a5e6" : "#2a283e"
-                                                                Text { anchors.centerIn: parent; text: "Right"; color: parent.parent.currentZone === "right" ? "#181628" : "#6e6a86"; font.pixelSize: 9; font.bold: true }
-                                                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { ensureEditMode(); CentralConfig.setZone(modelData.key, "right"); riceWindow.showStatus("Set " + modelData.key + " -> RIGHT"); } }
-                                                            }
-
-                                                            // Hidden Button
-                                                            Rectangle {
-                                                                width: 48; height: 22; radius: 4
-                                                                color: parent.currentZone === "hidden" ? "#ea6f91" : "#2a283e"
-                                                                Text { anchors.centerIn: parent; text: "Hidden"; color: parent.parent.currentZone === "hidden" ? "#ffffff" : "#6e6a86"; font.pixelSize: 9; font.bold: true }
-                                                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { ensureEditMode(); CentralConfig.setZone(modelData.key, "hidden"); riceWindow.showStatus("Set " + modelData.key + " -> HIDDEN"); } }
-                                                            }
+                                                            Text { text: "Window Title"; color: "#e0def4"; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
                                                         }
                                                     }
 
-                                                    // Inline Sub-Component Options Row (ONLY SHOWN WHEN NOT HIDDEN!)
+                                                    // Song / Media Sub-Options
                                                     Row {
-                                                        visible: parent.parent.hasSubOpts
-                                                        height: 22
-                                                        anchors.left: parent.left; anchors.leftMargin: 28
-                                                        spacing: 16
+                                                        visible: modelData.key === "song" || modelData.key === "media"
+                                                        spacing: 12
 
-                                                        // Title Sub-Options
                                                         Row {
-                                                            visible: modelData.key === "title"
-                                                            spacing: 12
-
-                                                            Row {
-                                                                spacing: 4
-                                                                Rectangle {
-                                                                    width: 14; height: 14; radius: 3; color: CentralConfig.showTitleLogo ? "#9bced7" : "#2a283e"; border.color: "#9bced7"; border.width: 1
-                                                                    Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showTitleLogo; color: "#181628"; font.pixelSize: 9; font.bold: true }
-                                                                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showTitleLogo = !CentralConfig.showTitleLogo }
-                                                                }
-                                                                Text { text: "App Icon"; color: "#e0def4"; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
+                                                            spacing: 4
+                                                            Rectangle {
+                                                                width: 14; height: 14; radius: 3; color: CentralConfig.showSongEqualizer ? "#f1ca93" : "#2a283e"; border.color: "#f1ca93"; border.width: 1
+                                                                Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showSongEqualizer; color: "#181628"; font.pixelSize: 9; font.bold: true }
+                                                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showSongEqualizer = !CentralConfig.showSongEqualizer }
                                                             }
-
-                                                            Row {
-                                                                spacing: 4
-                                                                Rectangle {
-                                                                    width: 14; height: 14; radius: 3; color: CentralConfig.showTitleAppName ? "#9bced7" : "#2a283e"; border.color: "#9bced7"; border.width: 1
-                                                                    Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showTitleAppName; color: "#181628"; font.pixelSize: 9; font.bold: true }
-                                                                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showTitleAppName = !CentralConfig.showTitleAppName }
-                                                                }
-                                                                Text { text: "App Name (Class)"; color: "#e0def4"; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
-                                                            }
-
-                                                            Row {
-                                                                spacing: 4
-                                                                Rectangle {
-                                                                    width: 14; height: 14; radius: 3; color: CentralConfig.showTitleWindowName ? "#9bced7" : "#2a283e"; border.color: "#9bced7"; border.width: 1
-                                                                    Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showTitleWindowName; color: "#181628"; font.pixelSize: 9; font.bold: true }
-                                                                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showTitleWindowName = !CentralConfig.showTitleWindowName }
-                                                                }
-                                                                Text { text: "Window Title"; color: "#e0def4"; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
-                                                            }
+                                                            Text { text: "Equalizer Bars"; color: "#e0def4"; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
                                                         }
 
-                                                        // Song / Media Sub-Options
                                                         Row {
-                                                            visible: modelData.key === "song" || modelData.key === "media"
-                                                            spacing: 12
-
-                                                            Row {
-                                                                spacing: 4
-                                                                Rectangle {
-                                                                    width: 14; height: 14; radius: 3; color: CentralConfig.showSongEqualizer ? "#f1ca93" : "#2a283e"; border.color: "#f1ca93"; border.width: 1
-                                                                    Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showSongEqualizer; color: "#181628"; font.pixelSize: 9; font.bold: true }
-                                                                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showSongEqualizer = !CentralConfig.showSongEqualizer }
-                                                                }
-                                                                Text { text: "Equalizer Bars"; color: "#e0def4"; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
+                                                            spacing: 4
+                                                            Rectangle {
+                                                                width: 14; height: 14; radius: 3; color: CentralConfig.showSongCoverArt ? "#f1ca93" : "#2a283e"; border.color: "#f1ca93"; border.width: 1
+                                                                Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showSongCoverArt; color: "#181628"; font.pixelSize: 9; font.bold: true }
+                                                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showSongCoverArt = !CentralConfig.showSongCoverArt }
                                                             }
+                                                            Text { text: "Album Cover Art"; color: "#e0def4"; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
+                                                        }
 
-                                                            Row {
-                                                                spacing: 4
-                                                                Rectangle {
-                                                                    width: 14; height: 14; radius: 3; color: CentralConfig.showSongCoverArt ? "#f1ca93" : "#2a283e"; border.color: "#f1ca93"; border.width: 1
-                                                                    Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showSongCoverArt; color: "#181628"; font.pixelSize: 9; font.bold: true }
-                                                                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showSongCoverArt = !CentralConfig.showSongCoverArt }
-                                                                }
-                                                                Text { text: "Album Cover Art"; color: "#e0def4"; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
+                                                        Row {
+                                                            spacing: 4
+                                                            Rectangle {
+                                                                width: 14; height: 14; radius: 3; color: CentralConfig.showSongArtist ? "#f1ca93" : "#2a283e"; border.color: "#f1ca93"; border.width: 1
+                                                                Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showSongArtist; color: "#181628"; font.pixelSize: 9; font.bold: true }
+                                                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showSongArtist = !CentralConfig.showSongArtist }
                                                             }
-
-                                                            Row {
-                                                                spacing: 4
-                                                                Rectangle {
-                                                                    width: 14; height: 14; radius: 3; color: CentralConfig.showSongArtist ? "#f1ca93" : "#2a283e"; border.color: "#f1ca93"; border.width: 1
-                                                                    Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showSongArtist; color: "#181628"; font.pixelSize: 9; font.bold: true }
-                                                                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showSongArtist = !CentralConfig.showSongArtist }
-                                                                }
-                                                                Text { text: "Artist Name"; color: "#e0def4"; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
-                                                            }
+                                                            Text { text: "Artist Name"; color: "#e0def4"; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
                                                         }
                                                     }
                                                 }
