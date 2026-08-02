@@ -2119,9 +2119,13 @@ ShellRoot {
                     }
                 }
 
+                // Proximity Distance Buffer Area (Bar stays open until mouse is 85px away from bar)
                 MouseArea {
                     id: topHoverArea
-                    anchors.fill: parent
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    height: topBar.implicitHeight + (CentralConfig.autoHideBar ? 85 : 0)
                     hoverEnabled: true
                 }
 
@@ -3137,9 +3141,13 @@ ShellRoot {
                     }
                 }
 
+                // Proximity Distance Buffer Area (Bar stays open until mouse is 85px away from bar)
                 MouseArea {
                     id: bottomHoverArea
-                    anchors.fill: parent
+                    anchors.bottom: parent.bottom
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    height: bottomBar.implicitHeight + (CentralConfig.autoHideBar ? 85 : 0)
                     hoverEnabled: true
                 }
 
