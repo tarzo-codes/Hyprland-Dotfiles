@@ -62,6 +62,7 @@ PanelWindow {
             fetchWpMemoryProc.running = false;
             fetchWpMemoryProc.running = true;
 
+            fetchSwatchesProc.command = ["python3", os.path.expanduser("~/.config/quickshell/scripts/wallpaper_cache_builder.py"), "get_swatches", selectedWallpaperPath];
             fetchSwatchesProc.running = false;
             fetchSwatchesProc.running = true;
         }

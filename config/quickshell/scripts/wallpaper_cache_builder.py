@@ -172,9 +172,9 @@ def main():
         if not os.path.isfile(wp_path):
             print("[]")
             return
+        colors = []
         try:
-            subprocess.run(["wallust", "run", "-T", "-s", wp_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            colors = []
+            subprocess.run(["wallust", "run", "-T", "-s", wp_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=2)
             qml_file = os.path.expanduser("~/.config/quickshell/wallust-colors.qml")
             if os.path.isfile(qml_file):
                 with open(qml_file) as f:
@@ -185,17 +185,30 @@ def main():
                             if len(parts) >= 2:
                                 col = parts[1].replace('"', '').replace(';', '').strip()
                                 colors.append(col)
-            result = []
-            for i, c in enumerate(colors):
-                result.append({
-                    "index": i,
-                    "hex": c,
-                    "isDefaultAccent": (i == 4),
-                    "telaTheme": hex_to_tela(c)
-                })
-            print(json.dumps(result))
         except Exception:
-            print("[]")
+            pass
+
+        if len(colors) < 16:
+            try:
+                im = Image.open(wp_path).convert('RGB')
+                im_quant = im.quantize(colors=16)
+                palette = im_quant.getpalette()
+                colors = []
+                for i in range(16):
+                    r, g, b = palette[i*3], palette[i*3+1], palette[i*3+2]
+                    colors.append(f"#{r:02x}{g:02x}{b:02x}")
+            except Exception:
+                pass
+
+        result = []
+        for i, c in enumerate(colors[:16]):
+            result.append({
+                "index": i,
+                "hex": c,
+                "isDefaultAccent": (i == 4),
+                "telaTheme": hex_to_tela(c)
+            })
+        print(json.dumps(result))
 
     elif cmd == "get" and len(sys.argv) >= 3:
         wp_path = sys.argv[2]
