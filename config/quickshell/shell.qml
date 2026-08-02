@@ -2275,7 +2275,7 @@ ShellRoot {
                             spacing: 6
                             height: parent.height
                             z: 10
-                            visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "marisol"
+                            visible: CentralConfig.mode === "custom" || (ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "marisol")
 
                             Repeater {
                                 model: (CentralConfig.mode === "custom") ? shellRoot.getModuleArray(CentralConfig.centerModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].top ? themeLayouts[ThemeManager.themeName].top.center : [])
@@ -2294,7 +2294,7 @@ ShellRoot {
                             spacing: 6
                             height: parent.height
                             clip: true
-                            visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "marisol"
+                            visible: CentralConfig.mode === "custom" || (ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "marisol")
                             
                             Repeater {
                                 model: (CentralConfig.mode === "custom") ? shellRoot.getModuleArray(CentralConfig.leftModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].top ? themeLayouts[ThemeManager.themeName].top.left : [])
@@ -2310,7 +2310,7 @@ ShellRoot {
                             anchors.leftMargin: 12
                             height: parent.height
                             clip: true
-                            visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "marisol"
+                            visible: CentralConfig.mode === "custom" || (ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "marisol")
 
                             Row {
                                 id: topRightZoneRow
@@ -2333,7 +2333,7 @@ ShellRoot {
                         // ═════════════════════════════════════════════════════════════════════
                         Item {
                             anchors.fill: parent
-                            visible: ThemeManager.themeName === "marisol"
+                            visible: CentralConfig.mode !== "custom" && ThemeManager.themeName === "marisol"
 
                             // ── GRADIENT SHADOW IN THE GAP (DYNAMIC WALLUST OR STATIC BLUE) ──
                             Rectangle {
@@ -3296,10 +3296,10 @@ ShellRoot {
                             spacing: 6
                             height: parent.height
                             z: 10
-                            visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "cristina"
+                            visible: CentralConfig.mode === "custom" || (ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "cristina")
 
                             Repeater {
-                                model: themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].bottom ? themeLayouts[ThemeManager.themeName].bottom.center : []
+                                model: (CentralConfig.mode === "custom") ? shellRoot.getModuleArray(CentralConfig.centerModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].bottom ? themeLayouts[ThemeManager.themeName].bottom.center : [])
                                 delegate: capsuleDelegate
                             }
                         }
@@ -3315,10 +3315,10 @@ ShellRoot {
                             spacing: 6
                             height: parent.height
                             clip: true
-                            visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "cristina"
+                            visible: CentralConfig.mode === "custom" || (ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "cristina")
 
                             Repeater {
-                                model: themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].bottom ? themeLayouts[ThemeManager.themeName].bottom.left : []
+                                model: (CentralConfig.mode === "custom") ? shellRoot.getModuleArray(CentralConfig.leftModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].bottom ? themeLayouts[ThemeManager.themeName].bottom.left : [])
                                 delegate: capsuleDelegate
                             }
                         }
@@ -3331,7 +3331,7 @@ ShellRoot {
                             anchors.leftMargin: 12
                             height: parent.height
                             clip: true
-                            visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "cristina"
+                            visible: CentralConfig.mode === "custom" || (ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "cristina")
 
                             Row {
                                 id: bottomRightZoneRow
@@ -3343,7 +3343,7 @@ ShellRoot {
                                 height: parent.height
 
                                 Repeater {
-                                    model: themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].bottom ? themeLayouts[ThemeManager.themeName].bottom.right : []
+                                    model: (CentralConfig.mode === "custom") ? shellRoot.getModuleArray(CentralConfig.rightModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].bottom ? themeLayouts[ThemeManager.themeName].bottom.right : [])
                                     delegate: capsuleDelegate
                                 }
                             }
@@ -3357,7 +3357,7 @@ ShellRoot {
                             anchors.verticalCenter: parent.verticalCenter
                             height: parent.height
                             spacing: 8
-                            visible: ThemeManager.themeName === "cristina"
+                            visible: CentralConfig.mode !== "custom" && ThemeManager.themeName === "cristina"
 
                             // Arch / Distro Logo
                             Text {
@@ -3418,7 +3418,7 @@ ShellRoot {
                             anchors.verticalCenter: parent.verticalCenter
                             height: parent.height
                             spacing: 8
-                            visible: ThemeManager.themeName === "cristina"
+                            visible: CentralConfig.mode !== "custom" && ThemeManager.themeName === "cristina"
 
                             // Weather
                             Row {
