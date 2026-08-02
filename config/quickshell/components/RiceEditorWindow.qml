@@ -246,7 +246,7 @@ PanelWindow {
 
                             Text {
                                 anchors.centerIn: parent
-                                text: "💀"
+                                text: "!"
                                 font.pixelSize: 32
                             }
                         }
@@ -541,7 +541,7 @@ PanelWindow {
                             Column {
                                 width: parent.width; spacing: 14; visible: activeTab === 0
 
-                                Text { text: "💻  Active Bar / Theme Selection (18 Bars)"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true }
+                                Text { text: "Active Bar / Theme Selection (18 Bars)"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true }
 
                                 // FIXED 18-BAR GRID LAYOUT (Explicit widths prevent text overlapping)
                                 Grid {
@@ -585,7 +585,7 @@ PanelWindow {
 
                                 Rectangle { width: parent.width; height: 1; color: "#2a283e" }
 
-                                Text { text: "📐  Bar Dimensions & Shape (Sliders)"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true }
+                                Text { text: "Bar Dimensions & Shape (Sliders)"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true }
 
                                 // Corner Radius Slider
                                 Column {
@@ -775,7 +775,7 @@ PanelWindow {
 
                                 Rectangle { width: parent.width; height: 1; color: "#2a283e" }
 
-                                Text { text: "🔤  Global Fonts"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true }
+                                Text { text: "Global Fonts"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true }
 
                                 // Font Family Selection
                                 Column {
@@ -832,7 +832,7 @@ PanelWindow {
 
                                 Rectangle { width: parent.width; height: 1; color: "#2a283e" }
 
-                                Text { text: "🔒  Hardware Defaults Reboot Lock"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true }
+                                Text { text: "Hardware Defaults Reboot Lock"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true }
 
                                 Row {
                                     width: parent.width
@@ -853,7 +853,7 @@ PanelWindow {
                                     width: parent.width; spacing: 10
                                     Rectangle {
                                         width: 250; height: 28; radius: 6; color: "#312a4a"; border.color: "#f1ca93"; border.width: 1
-                                        Text { anchors.centerIn: parent; text: "💾 Lock Current Vol/Brightness as Boot Default"; color: "#f1ca93"; font.pixelSize: 9; font.bold: true }
+                                        Text { anchors.centerIn: parent; text: "Lock Current Vol/Brightness as Boot Default"; color: "#f1ca93"; font.pixelSize: 9; font.bold: true }
                                         MouseArea {
                                             anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                                             onClicked: {
@@ -953,7 +953,7 @@ PanelWindow {
                                         Item { Layout.fillWidth: true }
                                         Rectangle {
                                             width: 120; height: 22; radius: 4; color: "#ea6f91"
-                                            Text { anchors.centerIn: parent; text: "🧹 Clean Duplicates"; color: "#ffffff"; font.pixelSize: 9; font.bold: true }
+                                            Text { anchors.centerIn: parent; text: "Clean Duplicates"; color: "#ffffff"; font.pixelSize: 9; font.bold: true }
                                             MouseArea {
                                                 anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                                                 onClicked: {
@@ -975,33 +975,33 @@ PanelWindow {
                                         width: parent.width
                                         spacing: 8
 
-                                        Text { text: "📐 Bar Position:"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true; anchors.verticalCenter: parent.verticalCenter }
+                                        Text { text: "Bar Position:"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true; anchors.verticalCenter: parent.verticalCenter }
 
                                         Rectangle {
                                             width: 80; height: 26; radius: 6
                                             color: (CentralConfig.activeBarTarget === "top" && CentralConfig.barPosition === "top") ? "#9bced7" : "#2a283e"
-                                            Text { anchors.centerIn: parent; text: "🔝 Top"; color: (CentralConfig.activeBarTarget === "top" && CentralConfig.barPosition === "top") ? "#181628" : "#e0def4"; font.pixelSize: 9; font.bold: true }
+                                            Text { anchors.centerIn: parent; text: "Top"; color: (CentralConfig.activeBarTarget === "top" && CentralConfig.barPosition === "top") ? "#181628" : "#e0def4"; font.pixelSize: 9; font.bold: true }
                                             MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { CentralConfig.activeBarTarget = "top"; CentralConfig.barPosition = "top"; } }
                                         }
 
                                         Rectangle {
                                             width: 90; height: 26; radius: 6
                                             color: (CentralConfig.activeBarTarget === "bottom" && CentralConfig.barPosition === "bottom") ? "#c3a5e6" : "#2a283e"
-                                            Text { anchors.centerIn: parent; text: "⬇️ Bottom"; color: (CentralConfig.activeBarTarget === "bottom" && CentralConfig.barPosition === "bottom") ? "#181628" : "#e0def4"; font.pixelSize: 9; font.bold: true }
+                                            Text { anchors.centerIn: parent; text: "Bottom"; color: (CentralConfig.activeBarTarget === "bottom" && CentralConfig.barPosition === "bottom") ? "#181628" : "#e0def4"; font.pixelSize: 9; font.bold: true }
                                             MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { CentralConfig.activeBarTarget = "bottom"; CentralConfig.barPosition = "bottom"; } }
                                         }
 
                                         Rectangle {
                                             width: 105; height: 26; radius: 6
                                             color: CentralConfig.barPosition === "left" ? "#a6e3a1" : "#2a283e"
-                                            Text { anchors.centerIn: parent; text: "⬅️ Left Vertical"; color: CentralConfig.barPosition === "left" ? "#181628" : "#e0def4"; font.pixelSize: 9; font.bold: true }
+                                            Text { anchors.centerIn: parent; text: "Left Vertical"; color: CentralConfig.barPosition === "left" ? "#181628" : "#e0def4"; font.pixelSize: 9; font.bold: true }
                                             MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.barPosition = "left" }
                                         }
 
                                         Rectangle {
                                             width: 110; height: 26; radius: 6
                                             color: CentralConfig.barPosition === "right" ? "#f9e2af" : "#2a283e"
-                                            Text { anchors.centerIn: parent; text: "➡️ Right Vertical"; color: CentralConfig.barPosition === "right" ? "#181628" : "#e0def4"; font.pixelSize: 9; font.bold: true }
+                                            Text { anchors.centerIn: parent; text: "Right Vertical"; color: CentralConfig.barPosition === "right" ? "#181628" : "#e0def4"; font.pixelSize: 9; font.bold: true }
                                             MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.barPosition = "right" }
                                         }
                                     }
@@ -1039,7 +1039,7 @@ PanelWindow {
                                         // Save Custom Preset Button
                                         Rectangle {
                                             width: 120; height: 26; radius: 6; color: "#312a4a"; border.color: "#b4befe"; border.width: 1
-                                            Text { anchors.centerIn: parent; text: "💾 Save Custom Preset"; color: "#b4befe"; font.pixelSize: 9; font.bold: true }
+                                            Text { anchors.centerIn: parent; text: "Save Custom Preset"; color: "#b4befe"; font.pixelSize: 9; font.bold: true }
                                             MouseArea {
                                                 anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                                                 onClicked: {

@@ -1806,7 +1806,7 @@ ShellRoot {
         Row {
             spacing: 12
             height: 30
-            Text { text: "💀"; color: shellRoot._acc; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
+            Text { text: "!"; color: shellRoot._acc; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
             Text { text: ""; color: shellRoot._fg; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
             Text { text: ""; color: shellRoot._yel; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
             Text { text: ""; color: shellRoot._blu; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
