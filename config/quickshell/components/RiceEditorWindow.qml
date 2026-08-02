@@ -31,6 +31,11 @@ PanelWindow {
     }
 
     Process {
+        id: saveModeChoiceProc
+        command: ["bash", "-c", "mkdir -p ~/.cache/quickshell && echo " + pendingModeChoice + " > ~/.cache/quickshell/mode_choice"]
+    }
+
+    Process {
         id: reapplyWallpaperProc
         command: ["bash", "-c", "$HOME/.config/scripts/wallpaper_picker.sh --reapply"]
     }
@@ -153,6 +158,8 @@ PanelWindow {
         ThemeManager.themeName = pendingThemeName;
         CentralConfig.modeChoice = pendingModeChoice;
         ThemeManager.modeChoice = pendingModeChoice;
+        CentralConfig.colorMode = (pendingThemeName === "wallust" ? "wallust" : "static");
+        ThemeManager.colorMode = (pendingThemeName === "wallust" ? "wallust" : "static");
         CentralConfig.customAccentColor = pendingAccentHex;
         CentralConfig.gradientAnimated = pendingGradientAnimated;
         CentralConfig.autoHideBar = pendingAutoHide;
@@ -162,6 +169,10 @@ PanelWindow {
             rootBar.barHeight = pendingHeight;
             rootBar.barWidthPercent = pendingWidthPct;
         }
+
+        // Write modeChoice to cache file for background scripts
+        saveModeChoiceProc.running = false;
+        saveModeChoiceProc.running = true;
 
         // Re-run full wallpaper & system theme engine for Wallust, GTK, QT, Terminals & Hyprland
         reapplyWallpaperProc.running = false;

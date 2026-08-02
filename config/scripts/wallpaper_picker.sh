@@ -347,23 +347,11 @@ print(f'{brightest} #ffffff #0f172a')
     fi
   fi
 
-  # ── Kitty & Fish color reload ─────────────────────────────────────────────
+  # ── Kitty & Terminal color reload ─────────────────────────────────────────────
   if command -v kitty &>/dev/null; then
     IS_LIGHT_KITTY=$(cat "$HOME/.cache/quickshell/is_light_mode" 2>/dev/null || echo "false")
     if [ "$IS_LIGHT_KITTY" = "true" ]; then
-      # Compute brightest bg from current palette
-      KITTY_BG=$(python3 -c "
-import subprocess, re
-colors_str = '''${COLOR0:-#f4f6f8} ${COLOR1:-#f4f6f8} ${COLOR2:-#f4f6f8} ${COLOR3:-#f4f6f8} ${COLOR4:-#f4f6f8} ${COLOR5:-#f4f6f8} ${COLOR6:-#f4f6f8} ${COLOR7:-#f4f6f8} ${COLOR8:-#f4f6f8} ${COLOR9:-#f4f6f8} ${COLOR10:-#f4f6f8} ${COLOR11:-#f4f6f8} ${COLOR12:-#f4f6f8} ${COLOR13:-#f4f6f8} ${COLOR14:-#f4f6f8} ${COLOR15:-#f4f6f8} ${BACKGROUND:-#f4f6f8}'''
-colors = [c for c in colors_str.split() if c.startswith('#') and len(c)==7]
-def luma(h):
-    s=h[1:]; r,g,b=int(s[0:2],16)/255,int(s[2:4],16)/255,int(s[4:6],16)/255
-    return 0.2126*r+0.7152*g+0.0722*b
-valid_sorted = sorted(colors, key=luma, reverse=True)
-best = valid_sorted[0] if valid_sorted else '#f4f6f8'
-print(best if luma(best)>=0.85 else '#f4f6f8')
-" 2>/dev/null || echo "#f4f6f8")
-      # Patch kitty.conf: override background, foreground, cursor, selection
+      KITTY_BG="${BACKGROUND:-#f4f6f8}"
       cp "$HOME/.config/kitty/wallust.conf" "$HOME/.config/kitty/wallust.conf.bak" 2>/dev/null || true
       sed -i \
         -e "s/^background .*/background   $KITTY_BG/" \
