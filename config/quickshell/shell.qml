@@ -202,6 +202,22 @@ ShellRoot {
 
     property bool isAdjustingBrightness: false
     property bool isAdjustingVolume:     false
+    property bool volOsdVisible:         false
+    property bool brightOsdVisible:      false
+
+    Timer {
+        id: volOsdTimer
+        interval: 1500
+        repeat: false
+        onTriggered: shellRoot.volOsdVisible = false
+    }
+
+    Timer {
+        id: brightOsdTimer
+        interval: 1500
+        repeat: false
+        onTriggered: shellRoot.brightOsdVisible = false
+    }
 
     Timer {
         id: brightCooldownTimer
@@ -1216,19 +1232,21 @@ ShellRoot {
     Component {
         id: compVolume
         Item {
+            property bool isCrowded: ((CentralConfig.leftModules ? CentralConfig.leftModules.length : 0) + (CentralConfig.rightModules ? CentralConfig.rightModules.length : 0) + (CentralConfig.centerModules ? CentralConfig.centerModules.length : 0)) > 6
             width: volumeLayout.implicitWidth
             height: 30
             Row {
                 id: volumeLayout
-                spacing: 6
+                spacing: 4
                 anchors.centerIn: parent
                 Text {
-                    text: shellRoot.volMuted ? "\uf026" : "\uf028"
+                    text: shellRoot.volMuted ? "󰖁" : "󰕾"
                     color: volMouse.containsMouse ? Qt.darker(shellRoot._brightBlu, 1.25) : shellRoot._brightBlu
                     Behavior on color { ColorAnimation { duration: 120 } }
                     font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize; verticalAlignment: Text.AlignVCenter; height: 30
                 }
                 Text {
+                    visible: !parent.parent.isCrowded
                     text: Math.round(shellRoot.volValue*100) + "%"
                     color: volMouse.containsMouse ? Qt.darker(shellRoot._fg, 1.25) : shellRoot._fg
                     Behavior on color { ColorAnimation { duration: 120 } }
@@ -1246,9 +1264,8 @@ ShellRoot {
                     if (mouse.button === Qt.RightButton) {
                         volumeMuteProc.running = true;
                     } else if (mouse.button === Qt.MiddleButton) {
-                        plasmapaProc.running = true; // Opens plasma-pa!
+                        plasmapaProc.running = true;
                     } else {
-                        // Left click toggles Quickshell's custom volume panel
                         shellRoot.volumePanelVisible = !shellRoot.volumePanelVisible;
                     }
                 }
@@ -1258,6 +1275,8 @@ ShellRoot {
                     shellRoot.volValue = Math.max(0.0, Math.min(1.0, shellRoot.volValue + delta));
                     volCooldownTimer.restart();
                     volCommitTimer.restart();
+                    shellRoot.volOsdVisible = true;
+                    volOsdTimer.restart();
                 }
             }
         }
@@ -1266,19 +1285,21 @@ ShellRoot {
     Component {
         id: compBrightness
         Item {
+            property bool isCrowded: ((CentralConfig.leftModules ? CentralConfig.leftModules.length : 0) + (CentralConfig.rightModules ? CentralConfig.rightModules.length : 0) + (CentralConfig.centerModules ? CentralConfig.centerModules.length : 0)) > 6
             width: brightnessLayout.implicitWidth
             height: 30
             Row {
                 id: brightnessLayout
-                spacing: 6
+                spacing: 4
                 anchors.centerIn: parent
                 Text {
-                    text: "\uf185"
+                    text: "󰃠"
                     color: brightMouse.containsMouse ? Qt.darker(shellRoot._brightYel, 1.25) : shellRoot._brightYel
                     Behavior on color { ColorAnimation { duration: 120 } }
                     font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize; verticalAlignment: Text.AlignVCenter; height: 30
                 }
                 Text {
+                    visible: !parent.parent.isCrowded
                     text: Math.round(shellRoot.brightnessValue*100) + "%"
                     color: brightMouse.containsMouse ? Qt.darker(shellRoot._fg, 1.25) : shellRoot._fg
                     Behavior on color { ColorAnimation { duration: 120 } }
@@ -1299,6 +1320,8 @@ ShellRoot {
                     shellRoot.brightnessValue = Math.max(0.05, Math.min(1.0, shellRoot.brightnessValue + delta));
                     brightCooldownTimer.restart();
                     brightCommitTimer.restart();
+                    shellRoot.brightOsdVisible = true;
+                    brightOsdTimer.restart();
                 }
             }
         }
@@ -3070,6 +3093,77 @@ ShellRoot {
                     rootBar: shellRoot
                     isVisible: shellRoot.themeSelectorVisible
                     onIsVisibleChanged: shellRoot.themeSelectorVisible = isVisible
+                }
+
+                // Floating Scroll OSD Bar (Volume & Brightness Popup)
+                PanelWindow {
+                    id: scrollOsdTop
+                    screen: topBar.screen
+                    color: "transparent"
+                    anchors { top: true; bottom: true; left: true; right: true }
+                    implicitWidth: screen ? screen.width : 1920
+                    implicitHeight: screen ? screen.height : 1080
+                    WlrLayershell.layer: WlrLayer.Overlay
+                    WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+                    WlrLayershell.namespace: "quickshell-scroll-osd-top"
+                    mask: Region {}
+
+                    visible: shellRoot.volOsdVisible || shellRoot.brightOsdVisible
+
+                    Rectangle {
+                        id: scrollOsdCardTop
+                        anchors.top: parent.top
+                        anchors.topMargin: shellRoot.barHeight + 14
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        width: 210
+                        height: 36
+                        radius: 18
+                        color: shellRoot.alphaColor(shellRoot._sur, 0.94)
+                        border.color: shellRoot.alphaColor(shellRoot.volOsdVisible ? shellRoot._brightBlu : shellRoot._brightYel, 0.75)
+                        border.width: 1.5
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: 14
+                            anchors.rightMargin: 14
+                            spacing: 8
+
+                            Text {
+                                text: shellRoot.volOsdVisible ? (shellRoot.volMuted ? "󰖁" : "󰕾") : "󰃠"
+                                color: shellRoot.volOsdVisible ? shellRoot._brightBlu : shellRoot._brightYel
+                                font.family: shellRoot.globalFontFamily
+                                font.pixelSize: 15
+                                Layout.alignment: Qt.AlignVCenter
+                            }
+
+                            Rectangle {
+                                Layout.fillWidth: true
+                                height: 5
+                                radius: 2.5
+                                color: shellRoot.alphaColor(shellRoot._muted, 0.4)
+
+                                Rectangle {
+                                    height: parent.height
+                                    width: parent.width * (shellRoot.volOsdVisible ? Math.min(1.0, shellRoot.volValue) : Math.min(1.0, shellRoot.brightnessValue))
+                                    radius: 2.5
+                                    color: shellRoot.volOsdVisible ? shellRoot._brightBlu : shellRoot._brightYel
+
+                                    Behavior on width { NumberAnimation { duration: 90; easing.type: Easing.OutCubic } }
+                                }
+                            }
+
+                            Text {
+                                text: (shellRoot.volOsdVisible ? Math.round(shellRoot.volValue * 100) : Math.round(shellRoot.brightnessValue * 100)) + "%"
+                                color: shellRoot._fg
+                                font.family: shellRoot.globalFontFamily
+                                font.pixelSize: 11
+                                font.bold: true
+                                Layout.alignment: Qt.AlignVCenter
+                                Layout.preferredWidth: 32
+                                horizontalAlignment: Text.AlignRight
+                            }
+                        }
+                    }
                 }
                 VolumePanel {
                     id: volPanel
