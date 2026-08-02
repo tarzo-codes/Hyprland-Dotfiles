@@ -13,7 +13,7 @@ PanelWindow {
     implicitHeight: screen.height
     
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
     
     color: "#b00d0f18"
     
@@ -78,9 +78,9 @@ PanelWindow {
                 
                 Repeater {
                     model: [
-                        { name: "Lock", icon: "󰌾", cmd: "hyprlock" },
+                        { name: "Lock", icon: "󰌾", cmd: "hyprlock || loginctl lock-session" },
                         { name: "Suspend", icon: "󰤄", cmd: "systemctl suspend" },
-                        { name: "Logout", icon: "󰍃", cmd: "command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exec_cmd(\"hyprctl dispatch exit\")'" },
+                        { name: "Logout", icon: "󰍃", cmd: "hyprctl dispatch exit || loginctl terminate-user $USER" },
                         { name: "Reboot", icon: "󰜉", cmd: "systemctl reboot" },
                         { name: "Shutdown", icon: "󰐥", cmd: "systemctl poweroff" }
                     ]

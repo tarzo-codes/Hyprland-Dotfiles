@@ -44,7 +44,10 @@ Modules automatically collapse to 0px when idle and pop up when active:
 - Enforces strict **WCAG AA ($\ge 4.5:1$) contrast ratios** against terminal backgrounds for Fish shell syntax highlighting, Fastfetch CachyOS truecolor logos, btop themes, Neovim syntax, and Starship prompts.
 
 ---
+### TODOS
 
+- 1. Fix nvim to be dynamic and work with light mode
+- 2. add all the Bar themes to the Rice Editor 
 ## ⌨️ Keybindings Cheat Sheet
 
 | Keybinding | Action |
