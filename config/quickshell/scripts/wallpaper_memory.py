@@ -22,52 +22,15 @@ def auto_recommend(wp_path):
     if not wp_path or not os.path.isfile(wp_path):
         return 'Tela-blue'
     try:
-        im = Image.open(wp_path).convert('RGB')
-        im_small = im.resize((150, 150))
-        colors = im_small.getcolors(30000)
-        if not colors:
-            return 'Tela-blue'
-
-        hue_scores = {
-            'Tela-red': 0.0, 'Tela-pink': 0.0, 'Tela-ubuntu': 0.0,
-            'Tela-orange': 0.0, 'Tela-yellow': 0.0, 'Tela-green': 0.0,
-            'Tela-manjaro': 0.0, 'Tela-nord': 0.0, 'Tela-blue': 0.0,
-            'Tela-dracula': 0.0, 'Tela-purple': 0.0, 'Tela-brown': 0.0,
-            'Tela-grey': 0.0, 'Tela-black': 0.0
-        }
-        for count, (r, g, b) in colors:
-            h, s, v = colorsys.rgb_to_hsv(r/255.0, g/255.0, b/255.0)
-            luma = 0.299*(r/255.0) + 0.587*(g/255.0) + 0.114*(b/255.0)
-            deg = h * 360.0
-
-            if s < 0.22:
-                weight = count * (1.0 - s) * 2.0
-                if luma < 0.22:
-                    hue_scores['Tela-black'] += weight
-                else:
-                    hue_scores['Tela-grey'] += weight
-            elif s >= 0.22 and 0.06 <= luma <= 0.94:
-                weight = count * (s ** 2.2)
-                if deg >= 345 or deg < 12:
-                    if s > 0.35 and luma < 0.60: hue_scores['Tela-red'] += weight * 1.5
-                    else: hue_scores['Tela-pink'] += weight * 1.5
-                elif 12 <= deg < 28:
-                    hue_scores['Tela-ubuntu'] += weight * 1.5
-                    hue_scores['Tela-orange'] += weight
-                elif 28 <= deg < 48:
-                    hue_scores['Tela-orange'] += weight * 1.5
-                    hue_scores['Tela-ubuntu'] += weight * 0.8
-                elif 48 <= deg < 70: hue_scores['Tela-yellow'] += weight * 1.5
-                elif 70 <= deg < 140: hue_scores['Tela-green'] += weight * 1.5
-                elif 140 <= deg < 175: hue_scores['Tela-manjaro'] += weight * 1.5
-                elif 175 <= deg < 205:
-                    hue_scores['Tela-nord'] += weight * 1.4
-                    hue_scores['Tela-blue'] += weight * 0.8
-                elif 205 <= deg < 255: hue_scores['Tela-blue'] += weight * 1.4
-                elif 255 <= deg < 285: hue_scores['Tela-dracula'] += weight * 1.5
-                elif 285 <= deg < 345: hue_scores['Tela-purple'] += weight * 1.5
-
-        return max(hue_scores.items(), key=lambda x: x[1])[0]
+        from wallpaper_cache_builder import load_cache, analyze_image
+        fn = os.path.basename(wp_path)
+        cache = load_cache()
+        if fn in cache:
+            return cache[fn].get('recommendedIcon', 'Tela-blue')
+        res = analyze_image(wp_path)
+        if res:
+            return res.get('recommendedIcon', 'Tela-blue')
+        return 'Tela-blue'
     except Exception:
         return 'Tela-blue'
 

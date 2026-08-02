@@ -220,6 +220,31 @@ PanelWindow {
         }
     }
 
+    Process {
+        id: browseFolderProc
+        command: ["bash", "-c", "zenity --file-selection --directory --title='Select Wallpaper Folder' 2>/dev/null || kdialog --getexistingdirectory 2>/dev/null"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var folder = this.text.trim();
+                if (folder !== "") {
+                    folderInput.text = folder;
+                    addFolderProc.folderToAdd = folder;
+                    addFolderProc.running = false;
+                    addFolderProc.running = true;
+                    scanCacheProc.folderToScan = folder;
+                    scanCacheProc.running = false;
+                    scanCacheProc.running = true;
+                }
+            }
+        }
+    }
+
+    Process {
+        id: scanCacheProc
+        property string folderToScan: ""
+        command: ["python3", os.path.expanduser("~/.config/quickshell/scripts/wallpaper_cache_builder.py"), "scan", folderToScan]
+    }
+
     // Unified Process to apply selected wallpaper
     Process {
         id: applyWpProc
@@ -732,6 +757,27 @@ PanelWindow {
                                 addFolderProc.folderToAdd = text.trim();
                                 addFolderProc.running = false;
                                 addFolderProc.running = true;
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        width: 75; height: 26; radius: 4
+                        color: browseBtnMouse.containsMouse ? (rootBar ? rootBar._sur : "#313244") : "#252836"
+                        border.color: rootBar ? rootBar._acc : "#7aa2f7"
+                        border.width: 1
+
+                        Row {
+                            anchors.centerIn: parent; spacing: 4
+                            Text { text: "📁"; font.pixelSize: 10 }
+                            Text { text: "Browse"; color: "#ffffff"; font.family: "JetBrainsMono Nerd Font"; font.pixelSize: 9; font.bold: true }
+                        }
+
+                        MouseArea {
+                            id: browseBtnMouse; anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                browseFolderProc.running = false;
+                                browseFolderProc.running = true;
                             }
                         }
                     }

@@ -29,6 +29,8 @@ PanelWindow {
         if (!visible) {
             CentralConfig.editMode = false;
             BarModules.editMode = false;
+        } else {
+            checkCacheSettingProc.running = true;
         }
     }
 
@@ -51,6 +53,28 @@ PanelWindow {
     property bool pendingAutoHide: CentralConfig.autoHideBar
     property bool pendingCustomAppletSize: CentralConfig.useCustomAppletSize
     property string statusMsg: ""
+    property bool cachingEnabled: true
+
+    Process {
+        id: checkCacheSettingProc
+        command: ["bash", "-c", "cat ~/.cache/quickshell/wallpaper_caching_enabled 2>/dev/null || echo true"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                riceWindow.cachingEnabled = (this.text.trim() !== "false");
+            }
+        }
+    }
+
+    Process {
+        id: toggleCacheSettingProc
+        property string flagVal: "true"
+        command: ["bash", "-c", "echo '" + flagVal + "' > ~/.cache/quickshell/wallpaper_caching_enabled"]
+    }
+
+    Process {
+        id: clearCacheProc
+        command: ["python3", os.path.expanduser("~/.config/quickshell/scripts/wallpaper_cache_builder.py"), "clear"]
+    }
 
     // Confirmation Modal Properties
     property bool confirmModalOpen: false
@@ -753,6 +777,75 @@ PanelWindow {
                                             color: rootBar ? rootBar._cyn : "#9bced7"
                                             font.pixelSize: 10; font.bold: true
                                             onTextChanged: { pendingAccentHex = text; riceWindow.markChanged(); }
+                                        }
+                                    }
+                                }
+
+                                Rectangle { width: parent.width; height: 1; color: "#2a283e" }
+
+                                Text { text: "⚡  Wallpaper Spectrum Pre-Caching & Performance"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true }
+
+                                Row {
+                                    width: parent.width
+                                    Text { text: "Enable Wallpaper Spectrum Caching"; color: "#e0def4"; font.pixelSize: 11; anchors.verticalCenter: parent.verticalCenter }
+                                    Item { width: parent.width - 290 }
+                                    Rectangle {
+                                        width: 80; height: 26; radius: 4
+                                        color: riceWindow.cachingEnabled ? "#8ec07c" : "#2a283e"
+                                        Text {
+                                            anchors.centerIn: parent
+                                            text: riceWindow.cachingEnabled ? "ON" : "OFF"
+                                            color: riceWindow.cachingEnabled ? "#181628" : "#e0def4"
+                                            font.pixelSize: 10; font.bold: true
+                                        }
+                                        MouseArea {
+                                            anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                            onClicked: {
+                                                riceWindow.cachingEnabled = !riceWindow.cachingEnabled;
+                                                toggleCacheSettingProc.flagVal = riceWindow.cachingEnabled ? "true" : "false";
+                                                toggleCacheSettingProc.running = false;
+                                                toggleCacheSettingProc.running = true;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // Warning Banner when Cache is OFF
+                                Rectangle {
+                                    visible: !riceWindow.cachingEnabled
+                                    width: parent.width; height: 36; radius: 6
+                                    color: "#382e1e"
+                                    border.color: "#f1ca93"; border.width: 1
+
+                                    Row {
+                                        anchors.centerIn: parent; spacing: 6
+                                        Text { text: "⚠️"; font.pixelSize: 11 }
+                                        Text {
+                                            text: "Disabling cache is NOT recommended! Wallpaper color spectrum detection will be slower."
+                                            color: "#f1ca93"
+                                            font.pixelSize: 9; font.bold: true
+                                        }
+                                    }
+                                }
+
+                                // Clear Cache Button
+                                Row {
+                                    width: parent.width; spacing: 8
+                                    Rectangle {
+                                        width: 220; height: 30; radius: 6
+                                        color: "#2a283e"; border.color: "#fb4934"; border.width: 1
+                                        Row {
+                                            anchors.centerIn: parent; spacing: 5
+                                            Text { text: "🗑️"; font.pixelSize: 10 }
+                                            Text { text: "Clear Wallpaper Spectrum Cache"; color: "#fb4934"; font.pixelSize: 9; font.bold: true }
+                                        }
+                                        MouseArea {
+                                            anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                            onClicked: {
+                                                clearCacheProc.running = false;
+                                                clearCacheProc.running = true;
+                                                riceWindow.statusMsg = "Wallpaper spectrum cache cleared!";
+                                            }
                                         }
                                     }
                                 }
