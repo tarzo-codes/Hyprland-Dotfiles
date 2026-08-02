@@ -1779,26 +1779,62 @@ ShellRoot {
                     }
                 }
 
-                // 3. Dynamic Responsive Song Title & Artist Text
-                Text {
-                    id: songText
-                    visible: songItem.zoneSpace >= 140
-                    text: {
-                        if (!songItem.hasActiveSong) return "[ Media Player ]";
-                        if (songItem.zoneSpace >= 300 && CentralConfig.showSongArtist && shellRoot.artistValue !== "") {
-                            return shellRoot.songValue + " • " + shellRoot.artistValue;
-                        }
-                        return shellRoot.songValue;
-                    }
-                    color: shellRoot.contrastFg(shellRoot._sur, shellRoot._fg)
-                    font.family: shellRoot.globalFontFamily
-                    font.pixelSize: shellRoot.globalFontSize
-                    font.bold: true
-                    verticalAlignment: Text.AlignVCenter
+                // 3. Dynamic Responsive Song Title & Artist Text with Sliding Marquee Animation
+                Item {
+                    id: songTextContainer
+                    visible: songItem.zoneSpace >= 120
                     height: 30
-                    elide: Text.ElideRight
-                    width: text !== "" ? Math.min(240, implicitWidth) : 0
+                    width: songText.text !== "" ? Math.min(220, songText.implicitWidth) : 0
                     clip: true
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    property bool isOverflowing: songText.implicitWidth > songTextContainer.width
+
+                    Text {
+                        id: songText
+                        x: marqueeAnim.running ? marqueeX : 0
+                        property real maxScrollX: songTextContainer.isOverflowing ? -(implicitWidth - songTextContainer.width + 8) : 0
+                        property real marqueeX: 0
+
+                        text: {
+                            if (!songItem.hasActiveSong) return "[ Media Player ]";
+                            if (songItem.zoneSpace >= 300 && CentralConfig.showSongArtist && shellRoot.artistValue !== "") {
+                                return shellRoot.songValue + " • " + shellRoot.artistValue;
+                            }
+                            return shellRoot.songValue;
+                        }
+                        color: shellRoot.contrastFg(shellRoot._sur, shellRoot._fg)
+                        font.family: shellRoot.globalFontFamily
+                        font.pixelSize: shellRoot.globalFontSize
+                        font.bold: true
+                        verticalAlignment: Text.AlignVCenter
+                        height: 30
+
+                        SequentialAnimation {
+                            id: marqueeAnim
+                            running: songTextContainer.isOverflowing && !CentralConfig.editMode
+                            loops: Animation.Infinite
+
+                            PauseAnimation { duration: 1800 }
+                            NumberAnimation {
+                                target: songText
+                                property: "marqueeX"
+                                from: 0
+                                to: songText.maxScrollX
+                                duration: Math.max(3000, Math.abs(songText.maxScrollX) * 40)
+                                easing.type: Easing.InOutQuad
+                            }
+                            PauseAnimation { duration: 1800 }
+                            NumberAnimation {
+                                target: songText
+                                property: "marqueeX"
+                                from: songText.maxScrollX
+                                to: 0
+                                duration: Math.max(3000, Math.abs(songText.maxScrollX) * 40)
+                                easing.type: Easing.InOutQuad
+                            }
+                        }
+                    }
 
                     MouseArea {
                         anchors.fill: parent
