@@ -713,7 +713,7 @@ ShellRoot {
         if (!m) return "";
         if (typeof m === "string") return m;
         if (typeof m === "object") {
-            if (m.modules && Array.isArray(m.modules) && m.modules.length > 0) return m.modules[0];
+            if (m.modules && m.modules.length > 0) return m.modules[0];
             if (m.type && m.type !== "capsule") return m.type;
         }
         return "";
