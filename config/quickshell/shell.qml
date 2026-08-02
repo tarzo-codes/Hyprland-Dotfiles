@@ -1927,9 +1927,11 @@ ShellRoot {
                 screen: modelData
                 visible: ThemeManager.barIsTop || (ThemeManager.barIsDouble && ThemeManager.topBarEnabled)
                 color: "transparent"
+                WlrLayershell.namespace: "quickshell-bar"
+                WlrLayershell.layer: WlrLayer.Top
                 anchors { top: true; left: true; right: true }
                 implicitWidth: screen.width
-                implicitHeight: ThemeManager.barIsTopFloat ? (barHeight + 10) : barHeight
+                implicitHeight: shellRoot.barHeight
 
                 property bool isTopHovered: topHoverArea.containsMouse || shellRoot.settingsVisible || shellRoot.riceEditorVisible || shellRoot.volumePanelVisible || shellRoot.networkPanelVisible || shellRoot.powerMenuVisible
                 property bool topBarShouldHide: false
@@ -1971,15 +1973,15 @@ ShellRoot {
                     visible: true
                     anchors {
                         top: parent.top
-                        topMargin: (ThemeManager.barIsTopFloat ? 8 : 0) + topBar.autoHideTopOffset
+                        topMargin: topBar.autoHideTopOffset
                         left: parent.left; right: parent.right
                         leftMargin:  topBar.animatedMargin
                         rightMargin: topBar.animatedMargin
                     }
                     height: shellRoot.barHeight
                     color: {
-                        if (ThemeManager.themeName === "emilia") return shellRoot._bg;
-                        return (ThemeManager.barIsTopFloat || ThemeManager.barIsAndrea || ThemeManager.themeName === "melissa" || ThemeManager.themeName === "marisol") ? "transparent" : shellRoot._bg;
+                        if (ThemeManager.barIsTopFloat || ThemeManager.barIsAndrea || ThemeManager.themeName === "melissa" || ThemeManager.themeName === "marisol") return "transparent";
+                        return Qt.rgba(shellRoot._bg.r, shellRoot._bg.g, shellRoot._bg.b, 0.68);
                     }
                     radius: ThemeManager.barRadius
                     border.color: BarModules.editMode ? "#8ec07c" : (ThemeManager.themeName === "emilia" ? shellRoot._sur : "transparent")
