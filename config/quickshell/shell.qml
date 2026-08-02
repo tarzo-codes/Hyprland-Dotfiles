@@ -709,7 +709,18 @@ ShellRoot {
         return result;
     }
 
-    function getCristinaBadgeData(m) {
+    function extractModuleKey(m) {
+        if (!m) return "";
+        if (typeof m === "string") return m;
+        if (typeof m === "object") {
+            if (m.modules && Array.isArray(m.modules) && m.modules.length > 0) return m.modules[0];
+            if (m.type && m.type !== "capsule") return m.type;
+        }
+        return "";
+    }
+
+    function getCristinaBadgeData(raw) {
+        var m = extractModuleKey(raw);
         if (m === "updates")    return { icon: "󰚰", text: shellRoot.updatesValue, color: shellRoot._cyn, action: function() { checkUpdatesProc.running = true; } };
         if (m === "filesystem" || m === "disk") return { icon: "󰋊", text: shellRoot.fsValue, color: shellRoot._mag, action: null };
         if (m === "cpu")        return { icon: "󰍛", text: shellRoot.cpuValue, color: shellRoot._blu, action: null };
@@ -722,6 +733,9 @@ ShellRoot {
         if (m === "weather")    return { icon: "󰖐", text: shellRoot.weatherTemp !== "" ? shellRoot.weatherTemp : "22°", color: shellRoot._yel, action: null };
         if (m === "power")      return { icon: "󰐥", text: "", color: shellRoot._red, action: function() { shellRoot.powerMenuVisible = !shellRoot.powerMenuVisible; } };
         if (m === "settings")   return { icon: "󰒓", text: "", color: shellRoot._cyn, action: function() { shellRoot.riceEditorVisible = !shellRoot.riceEditorVisible; } };
+        if (m === "song" || m === "mplayer" || m === "media" || m === "compact_player") return { icon: "󰎈", text: shellRoot.songValue !== "" ? shellRoot.songValue : "Media", color: shellRoot._sur, action: null };
+        if (m === "launcher")   return { icon: "󰣇", text: "", color: shellRoot._cyn, action: null };
+        if (m === "title")      return { icon: "󰖯", text: shellRoot.activeWinTitle, color: shellRoot._sur, action: null };
         return { icon: "󰄬", text: m, color: shellRoot._sur, action: null };
     }
 
@@ -3506,7 +3520,7 @@ ShellRoot {
                                         anchors.verticalCenter: parent.verticalCenter
                                         width: cristinaContentRow.implicitWidth + 24
                                         visible: {
-                                            var m = (typeof modelData === "object") ? modelData.type : modelData;
+                                            var m = shellRoot.extractModuleKey(modelData);
                                             if (m === "song" || m === "media" || m === "mplayer" || m === "compact_player") {
                                                 return CentralConfig.editMode || (shellRoot.songValue !== "" && shellRoot.songValue !== "No media playing" && shellRoot.songValue !== "No player found");
                                             }
@@ -3519,7 +3533,7 @@ ShellRoot {
                                             return true;
                                         }
 
-                                        property var moduleInfo: shellRoot.getCristinaBadgeData((typeof modelData === "object") ? modelData.type : modelData)
+                                        property var moduleInfo: shellRoot.getCristinaBadgeData(modelData)
 
                                         Row {
                                             anchors.fill: parent
