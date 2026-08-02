@@ -347,11 +347,23 @@ print(f'{brightest} #ffffff #0f172a')
     fi
   fi
 
-  # ── Kitty & Terminal color reload ─────────────────────────────────────────────
+  # ── Kitty & Fish color reload ─────────────────────────────────────────────
   if command -v kitty &>/dev/null; then
     IS_LIGHT_KITTY=$(cat "$HOME/.cache/quickshell/is_light_mode" 2>/dev/null || echo "false")
     if [ "$IS_LIGHT_KITTY" = "true" ]; then
-      KITTY_BG="${BACKGROUND:-#f4f6f8}"
+      # Compute brightest bg from current palette
+      KITTY_BG=$(python3 -c "
+import subprocess, re
+colors_str = '''${COLOR0:-#f4f6f8} ${COLOR1:-#f4f6f8} ${COLOR2:-#f4f6f8} ${COLOR3:-#f4f6f8} ${COLOR4:-#f4f6f8} ${COLOR5:-#f4f6f8} ${COLOR6:-#f4f6f8} ${COLOR7:-#f4f6f8} ${COLOR8:-#f4f6f8} ${COLOR9:-#f4f6f8} ${COLOR10:-#f4f6f8} ${COLOR11:-#f4f6f8} ${COLOR12:-#f4f6f8} ${COLOR13:-#f4f6f8} ${COLOR14:-#f4f6f8} ${COLOR15:-#f4f6f8} ${BACKGROUND:-#f4f6f8}'''
+colors = [c for c in colors_str.split() if c.startswith('#') and len(c)==7]
+def luma(h):
+    s=h[1:]; r,g,b=int(s[0:2],16)/255,int(s[2:4],16)/255,int(s[4:6],16)/255
+    return 0.2126*r+0.7152*g+0.0722*b
+valid_sorted = sorted(colors, key=luma, reverse=True)
+best = valid_sorted[0] if valid_sorted else '#f4f6f8'
+print(best if luma(best)>=0.85 else '#f4f6f8')
+" 2>/dev/null || echo "#f4f6f8")
+      # Patch kitty.conf: override background, foreground, cursor, selection
       cp "$HOME/.config/kitty/wallust.conf" "$HOME/.config/kitty/wallust.conf.bak" 2>/dev/null || true
       sed -i \
         -e "s/^background .*/background   $KITTY_BG/" \
@@ -467,14 +479,25 @@ set_wallpaper() {
 reapply_colors() {
   local image
   image=$(cat "$HOME/.cache/quickshell/current_wallpaper" 2>/dev/null || echo "")
-  if [ -f "$image" ] && [ -f "$(cat "$image" 2>/dev/null || echo "")" ]; then
-    image=$(cat "$image" 2>/dev/null || echo "")
+  if [ -f "$image" ] && file -b --mime-type "$image" 2>/dev/null | grep -q "^text/"; then
+    local target
+    target=$(cat "$image" 2>/dev/null || echo "")
+    if [ -f "$target" ]; then
+      image="$target"
+    fi
   fi
+
   if [ -z "$image" ] || [ ! -f "$image" ]; then
     image=$(cat "$HOME/.cache/wallust/current_wallpaper" 2>/dev/null || echo "")
   fi
+
   if [ -z "$image" ] || [ ! -f "$image" ]; then
     image=$(find "$HOME/Pictures/Wallpapers" "$HOME/wallpaper" "$HOME/anime_wallapaper" -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.jpeg" -o -iname "*.webp" \) 2>/dev/null | head -n 1)
+  fi
+
+  if [ -z "$image" ] || [ ! -f "$image" ]; then
+    notify-send -u critical "Theme" "No valid wallpaper found to reapply."
+    exit 1
   fi
 
   debug "Reapplying colors from: $image"
