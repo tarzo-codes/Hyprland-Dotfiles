@@ -1935,7 +1935,7 @@ ShellRoot {
                 implicitWidth: screen.width
                 implicitHeight: ThemeManager.barIsTopFloat ? (barHeight + 10) : barHeight
 
-                WlrLayershell.layer: (CentralConfig.autoHideBar || ThemeManager.autoHideBar) ? WlrLayer.Overlay : WlrLayer.Top
+                WlrLayershell.layer: (CentralConfig.autoHideBar || ThemeManager.autoHideBar) ? WlrLayer.Overlay : WlrLayer.Bottom
                 exclusionMode: (CentralConfig.autoHideBar || ThemeManager.autoHideBar) ? ExclusionMode.Normal : ExclusionMode.Exclusive
 
                 property bool isTopHovered: topHoverArea.containsMouse || topEdgeArea.containsMouse || shellRoot.settingsVisible || shellRoot.riceEditorVisible || shellRoot.volumePanelVisible || shellRoot.networkPanelVisible || shellRoot.powerMenuVisible
@@ -2919,7 +2919,7 @@ ShellRoot {
                 implicitWidth: screen.width
                 implicitHeight: (ThemeManager.themeName === "cristina") ? (shellRoot.barHeight + 16) : shellRoot.barHeight
 
-                WlrLayershell.layer: (CentralConfig.autoHideBar || ThemeManager.autoHideBar) ? WlrLayer.Overlay : WlrLayer.Top
+                WlrLayershell.layer: (CentralConfig.autoHideBar || ThemeManager.autoHideBar) ? WlrLayer.Overlay : WlrLayer.Bottom
                 exclusionMode: (CentralConfig.autoHideBar || ThemeManager.autoHideBar) ? ExclusionMode.Normal : ExclusionMode.Exclusive
 
                 property bool isBottomHovered: bottomHoverArea.containsMouse || bottomEdgeArea.containsMouse || shellRoot.settingsVisible || shellRoot.riceEditorVisible || shellRoot.volumePanelVisible || shellRoot.networkPanelVisible || shellRoot.powerMenuVisible
