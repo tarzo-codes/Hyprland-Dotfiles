@@ -132,21 +132,28 @@ ShellRoot {
         }
     }
 
-    // Periodic Auto Mode Evaluator (re-evaluates solar schedule / time of day every 60s)
+    // Wallpaper Image Luminescence Analyzer for Auto Mode (Detects bright vs dark wallpaper image)
+    Process {
+        id: checkWpLumaProc
+        command: ["python3", "-c", "import os\nfrom PIL import Image\nwp_path = os.path.expanduser('~/.cache/wallust/current_wallpaper')\nif not os.path.isfile(wp_path):\n    wp_path = os.path.expanduser('~/.cache/quickshell/current_wallpaper')\nif os.path.isfile(wp_path):\n    try:\n        with open(wp_path) as f:\n            p = f.read().strip()\n            if os.path.isfile(p): wp_path = p\n        im = Image.open(wp_path).convert('RGB')\n        colors = im.resize((100, 100)).getcolors(10000)\n        tot = sum(c for c, _ in colors) if colors else 1\n        luma = sum(c * (0.299*r + 0.587*g + 0.114*b) for c, (r, g, b) in colors) / (tot * 255.0) if colors else 0.5\n        print('true' if luma > 0.50 else 'false')\n    except Exception:\n        print('false')\nelse:\n    print('false')"]
+        running: false
+        stdout: SplitParser {
+            onRead: function(data) {
+                var isLight = (data.trim() === "true");
+                CentralConfig.wpIsLight = isLight;
+            }
+        }
+        Component.onCompleted: running = true
+    }
+
     Timer {
-        id: autoModeTimer
-        interval: 60000
+        id: autoWpLumaTimer
+        interval: 3000
         repeat: true
         running: CentralConfig.modeChoice === "auto"
         onTriggered: {
-            var h = (new Date()).getHours();
-            var targetLight = (h >= 6 && h < 18);
-            if (CentralConfig.isLightMode !== targetLight) {
-                saveLightModeCacheProc.running = false;
-                saveLightModeCacheProc.running = true;
-                themeSyncProc.running = false;
-                themeSyncProc.running = true;
-            }
+            checkWpLumaProc.running = false;
+            checkWpLumaProc.running = true;
         }
     }
 

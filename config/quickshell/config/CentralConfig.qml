@@ -98,11 +98,13 @@ Item {
     property alias customAccentColor: cfgStore.customAccentColor
     property alias gradientAnimated:  cfgStore.gradientAnimated
 
+    property bool wpIsLight: false
+
     readonly property bool isLightMode: {
         if (modeChoice === "light") return true;
         if (modeChoice === "dark") return false;
-        var h = (new Date()).getHours();
-        return h >= 6 && h < 18;
+        // Auto mode: Automatically adapts based on wallpaper image luminescence!
+        return wpIsLight;
     }
 
     property alias appletLocation:    cfgStore.appletLocation
