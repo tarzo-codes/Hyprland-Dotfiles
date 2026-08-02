@@ -1,6 +1,6 @@
 #!/bin/bash
-# Sync quickshell colors to Mako and Vicinae
-# Called automatically by shell.qml whenever theme/colors change.
+# Sync quickshell colors to Mako, Vicinae, KDE, GTK, Kvantum & Neovim
+# Called automatically by shell.qml / wallpaper_picker.sh whenever theme/colors change.
 # Uses a lockfile + atomic writes to prevent corruption on rapid calls.
 
 # Arguments:
@@ -11,13 +11,13 @@
 # $5 = red hex            $11 = textMuted hex
 # $6 = green hex          $12 = themeName
 
-BG="$1";   SUR="$2";  FG="$3";   ACC="$4"
+BG="$1";   SUR="$2";  FG="$3";   ACC_RAW="$4"
 RED="$5";  GRN="$6";  YEL="$7";  BLU="$8"
 CYN="$9";  MAG="${10}"; MUT="${11}"; THEME="${12}"
 
 # Fallback defaults if args are missing
 [ -z "$BG"  ] && BG="#0d0f18";    [ -z "$SUR" ] && SUR="#1e1e2e"
-[ -z "$FG"  ] && FG="#c0caf5";    [ -z "$ACC" ] && ACC="#7aa2f7"
+[ -z "$FG"  ] && FG="#c0caf5";    [ -z "$ACC_RAW" ] && ACC_RAW="#7aa2f7"
 [ -z "$RED" ] && RED="#f7768e";   [ -z "$GRN" ] && GRN="#9ece6a"
 [ -z "$YEL" ] && YEL="#e0af68";   [ -z "$BLU" ] && BLU="#7aa2f7"
 [ -z "$CYN" ] && CYN="#7dcfff";   [ -z "$MAG" ] && MAG="#bb9af7"
@@ -28,11 +28,173 @@ LOCK="/tmp/qs-theme-sync.lock"
 exec 9>"$LOCK"
 flock -x 9
 
-# Strip '#' for mako background-color opacity suffix
-BG_HEX="${BG#\#}"
+hex_to_rgb() {
+    local hex="${1#\#}"
+    local r=$((16#${hex:0:2}))
+    local g=$((16#${hex:2:2}))
+    local b=$((16#${hex:4:2}))
+    echo "$r,$g,$b"
+}
 
 # ──────────────────────────────────────────────────────────────────────────
-# 1. Update Mako Configuration (atomic write via temp file)
+# 0. RESOLVE TELA ICON THEME & MATCHING ACCENT COLOR FIRST
+# ──────────────────────────────────────────────────────────────────────────
+ICON_THEME=$(python3 -c "
+import os, colorsys
+from PIL import Image
+
+wp_path = os.path.expanduser('~/.cache/wallust/current_wallpaper')
+if wp_path and os.path.isfile(wp_path):
+    try:
+        with open(wp_path) as f:
+            line = f.read().strip()
+            if line and os.path.isfile(line): wp_path = line
+    except Exception: pass
+
+if not os.path.isfile(wp_path):
+    wp_path = os.path.expanduser('~/.cache/quickshell/current_wallpaper')
+    if wp_path and os.path.isfile(wp_path):
+        try:
+            with open(wp_path) as f:
+                line = f.read().strip()
+                if line and os.path.isfile(line): wp_path = line
+        except Exception: pass
+
+is_light_cache = os.path.expanduser('~/.cache/quickshell/is_light_mode')
+if os.path.isfile(is_light_cache):
+    with open(is_light_cache) as f:
+        is_light_wp = f.read().strip() == 'true'
+else:
+    is_light_wp = False
+
+best_base = 'Tela-blue'
+
+if wp_path and os.path.isfile(wp_path):
+    try:
+        im = Image.open(wp_path).convert('RGB')
+        im_small = im.resize((150, 150))
+        colors = im_small.getcolors(30000)
+        
+        total_px = sum(count for count, _ in colors) if colors else 1
+        avg_luma = sum(count * (0.299*r + 0.587*g + 0.114*b) for count, (r, g, b) in colors) / (total_px * 255.0) if colors else 0.5
+        avg_sat = sum(count * ((max(r,g,b) - min(r,g,b)) / (max(r,g,b) if max(r,g,b)>0 else 1)) for count, (r, g, b) in colors) / total_px if colors else 0.0
+
+        if avg_luma > 0.50:
+            is_light_wp = True
+            with open(os.path.expanduser('~/.cache/quickshell/is_light_mode'), 'w') as f:
+                f.write('true')
+        else:
+            with open(os.path.expanduser('~/.cache/quickshell/is_light_mode'), 'w') as f:
+                f.write('false')
+
+        # 1. Grayscale / Monochromatic / Gray Wallpapers (S < 0.12)
+        if avg_sat < 0.12:
+            if avg_luma > 0.65:
+                best_base = 'Tela-black'
+            elif avg_luma > 0.35:
+                best_base = 'Tela-grey'
+            else:
+                best_base = 'Tela-grey'
+        elif colors:
+            # 2. Complete 14-Theme Spectrum Resolver
+            hue_scores = {
+                'Tela-red': 0.0, 'Tela-pink': 0.0, 'Tela-ubuntu': 0.0,
+                'Tela-orange': 0.0, 'Tela-yellow': 0.0, 'Tela-green': 0.0,
+                'Tela-manjaro': 0.0, 'Tela-nord': 0.0, 'Tela-blue': 0.0,
+                'Tela-dracula': 0.0, 'Tela-purple': 0.0, 'Tela-brown': 0.0,
+                'Tela-grey': 0.0, 'Tela-black': 0.0
+            }
+            
+            for count, (r, g, b) in colors:
+                h, s, v = colorsys.rgb_to_hsv(r/255.0, g/255.0, b/255.0)
+                luma = 0.299*(r/255.0) + 0.587*(g/255.0) + 0.114*(b/255.0)
+                if s >= 0.12 and 0.08 <= luma <= 0.92:
+                    deg = h * 360.0
+                    weight = count * (s ** 2)
+
+                    if deg >= 345 or deg < 12:
+                        if s > 0.40 and luma < 0.55: hue_scores['Tela-red'] += weight * 1.4
+                        else: hue_scores['Tela-pink'] += weight * 1.4
+                    elif 12 <= deg < 28:
+                        hue_scores['Tela-ubuntu'] += weight * 1.5
+                        hue_scores['Tela-orange'] += weight
+                    elif 28 <= deg < 48:
+                        hue_scores['Tela-orange'] += weight * 1.5
+                        hue_scores['Tela-ubuntu'] += weight * 0.8
+                    elif 48 <= deg < 70: hue_scores['Tela-yellow'] += weight * 1.4
+                    elif 70 <= deg < 140: hue_scores['Tela-green'] += weight * 1.4
+                    elif 140 <= deg < 175:
+                        hue_scores['Tela-manjaro'] += weight * 1.5
+                        hue_scores['Tela-green'] += weight * 0.8
+                    elif 175 <= deg < 205:
+                        hue_scores['Tela-nord'] += weight * 1.5
+                        hue_scores['Tela-blue'] += weight * 0.8
+                    elif 205 <= deg < 255: hue_scores['Tela-blue'] += weight * 1.4
+                    elif 255 <= deg < 285:
+                        hue_scores['Tela-dracula'] += weight * 1.5
+                        hue_scores['Tela-purple'] += weight * 0.8
+                    elif 285 <= deg < 345:
+                        hue_scores['Tela-purple'] += weight * 1.4
+                        hue_scores['Tela-pink'] += weight * 0.8
+
+            top_hue = max(hue_scores.items(), key=lambda x: x[1])
+            if top_hue[1] > 1.0:
+                best_base = top_hue[0]
+    except Exception:
+        pass
+
+suffix = '-light' if is_light_wp else '-dark'
+candidate = f'{best_base}{suffix}'
+icon_dirs = [os.path.expanduser(f'~/.local/share/icons/{candidate}'), f'/usr/share/icons/{candidate}']
+if any(os.path.isdir(d) for d in icon_dirs):
+    print(candidate)
+else:
+    print(best_base)
+")
+
+# Resolve Icon Accent Color matching Tela Icon Theme
+ICON_ACCENT=$(python3 -c "
+icon_theme = '$ICON_THEME'
+base = icon_theme.replace('-light','').replace('-dark','')
+accents = {
+    'Tela-blue': '#3584e4',
+    'Tela-nord': '#5e81ac',
+    'Tela-manjaro': '#16a085',
+    'Tela-green': '#2ecc71',
+    'Tela-yellow': '#f39c12',
+    'Tela-orange': '#e67e22',
+    'Tela-ubuntu': '#e95420',
+    'Tela-red': '#e74c3c',
+    'Tela-pink': '#ec407a',
+    'Tela-purple': '#9b59b6',
+    'Tela-dracula': '#bd93f9',
+    'Tela-brown': '#8d6e63',
+    'Tela-grey': '#787c99',
+    'Tela-black': '#555b6e'
+}
+print(accents.get(base, '#3584e4'))
+")
+
+# Set primary accent to ICON_ACCENT so Mako, Dolphin, Vicinae & Kvantum match icon theme!
+ACC="$ICON_ACCENT"
+ACC_RGB=$(hex_to_rgb "$ACC")
+BG_HEX="${BG#\#}"
+
+# Apply GTK & KDE Icon Theme
+[ -f "$HOME/.config/gtk-3.0/settings.ini" ] && sed -i "s/gtk-icon-theme-name=.*/gtk-icon-theme-name=$ICON_THEME/" "$HOME/.config/gtk-3.0/settings.ini" 2>/dev/null || true
+[ -f "$HOME/.config/gtk-4.0/settings.ini" ] && sed -i "s/gtk-icon-theme-name=.*/gtk-icon-theme-name=$ICON_THEME/" "$HOME/.config/gtk-4.0/settings.ini" 2>/dev/null || true
+gsettings set org.gnome.desktop.interface icon-theme "" 2>/dev/null || true
+gsettings set org.gnome.desktop.interface icon-theme "$ICON_THEME" 2>/dev/null || true
+kwriteconfig6 --file kdeglobals --group Icons --key Theme "$ICON_THEME" 2>/dev/null
+
+# Update xsettingsd if running
+if [ -f "$HOME/.config/xsettingsd/xsettingsd.conf" ]; then
+    sed -i "s#^Net/IconThemeName.*#Net/IconThemeName \"$ICON_THEME\"#g" "$HOME/.config/xsettingsd/xsettingsd.conf"
+    pkill -HUP xsettingsd 2>/dev/null || true
+fi
+
+# ──────────────────────────────────────────────────────────────────────────
+# 1. Update Mako Configuration with Matching Icon Accent Border
 # ──────────────────────────────────────────────────────────────────────────
 MAKO_CONF="$HOME/.config/mako/config"
 MAKO_TMP="$(mktemp)"
@@ -40,7 +202,6 @@ MAKO_TMP="$(mktemp)"
 cat <<EOF > "$MAKO_TMP"
 # Take a look at the mako manpage with the command:
 #   man 5 mako
-# To view all configuration options.
 # Automatically generated by quickshell theme sync — do not hand-edit.
 
 font=JetBrains Mono Nerd Font 11
@@ -58,7 +219,7 @@ max-icon-size=20
 default-timeout=5000
 ignore-timeout=1
 
-# System Colors (synced from theme: $THEME)
+# System Colors (synced from icon accent: $ACC)
 background-color=#${BG_HEX}dd
 text-color=$FG
 border-color=$ACC
@@ -135,7 +296,6 @@ NVIM_THEME_DIR="$HOME/dotfiles/config/nvim/lua/generated"
 mkdir -p "$NVIM_THEME_DIR"
 NVIM_TMP="$(mktemp)"
 
-# Detect light/dark mode from cache flag
 IS_LIGHT=false
 if [ -f "$HOME/.cache/quickshell/is_light_mode" ] && [ "$(cat "$HOME/.cache/quickshell/is_light_mode" 2>/dev/null)" = "true" ]; then
     IS_LIGHT=true
@@ -254,7 +414,6 @@ with open('$NVIM_TMP', 'w') as f:
 
 mv -f "$NVIM_TMP" "$NVIM_THEME_DIR/theme.lua"
 
-# Live-reload all running Neovim instances over RPC sockets
 for socket in /tmp/nvim*/* /run/user/1000/nvim*/*; do
     if [ -S "$socket" ]; then
         nvim --server "$socket" --remote-send "<Cmd>lua require('theme').reload()<CR>" 2>/dev/null &
@@ -262,72 +421,29 @@ for socket in /tmp/nvim*/* /run/user/1000/nvim*/*; do
 done
 
 # ──────────────────────────────────────────────────────────────────────────
-# 4. Update KDE Color Scheme & Apply to Plasma / Qt / KDE Apps
+# 4. Update KDE & Dolphin Accent Scheme
 # ──────────────────────────────────────────────────────────────────────────
 KDE_SCHEME_DIR="$HOME/.local/share/color-schemes"
 mkdir -p "$KDE_SCHEME_DIR"
 
-hex_to_rgb() {
-    local hex="${1#\#}"
-    local r=$((16#${hex:0:2}))
-    local g=$((16#${hex:2:2}))
-    local b=$((16#${hex:4:2}))
-    echo "$r,$g,$b"
-}
-
 BG_RGB=$(hex_to_rgb "$BG")
 SUR_RGB=$(hex_to_rgb "$SUR")
 FG_RGB=$(hex_to_rgb "$FG")
-ACC_RGB=$(hex_to_rgb "$ACC")
 
-# Detect light/dark mode from cache flag
-IS_LIGHT=false
-if [ -f "$HOME/.cache/quickshell/is_light_mode" ] && [ "$(cat "$HOME/.cache/quickshell/is_light_mode")" = "true" ]; then
-    IS_LIGHT=true
-fi
-
-# ──────────────────────────────────────────────────────────────────────────
-# 4. GTK & Qt/KDE Themes (FIRST)
-# ──────────────────────────────────────────────────────────────────────────
 if [ "$IS_LIGHT" = "true" ]; then
     GTK_THEME="Breeze"
     PREFER_DARK="false"
     GSETTINGS_SCHEME="prefer-light"
     KDE_LOOKANDFEEL="org.kde.breeze.desktop"
-    ICON_SUFFIX="-light"
     INACT_RGB=$(hex_to_rgb "#475569")
 else
     GTK_THEME="Breeze-Dark"
     PREFER_DARK="true"
     GSETTINGS_SCHEME="prefer-dark"
     KDE_LOOKANDFEEL="org.kde.breezedark.desktop"
-    ICON_SUFFIX="-dark"
     INACT_RGB="220,225,245"
 fi
 
-# GTK 3 & 4 Theme (first)
-if [ -f "$HOME/.config/gtk-3.0/settings.ini" ]; then
-    sed -i \
-        -e "s/gtk-application-prefer-dark-theme=.*/gtk-application-prefer-dark-theme=$PREFER_DARK/" \
-        -e "s/gtk-theme-name=.*/gtk-theme-name=$GTK_THEME/" \
-        "$HOME/.config/gtk-3.0/settings.ini" 2>/dev/null || true
-fi
-
-if [ -f "$HOME/.config/gtk-4.0/settings.ini" ]; then
-    sed -i \
-        -e "s/gtk-application-prefer-dark-theme=.*/gtk-application-prefer-dark-theme=$PREFER_DARK/" \
-        -e "s/gtk-theme-name=.*/gtk-theme-name=$GTK_THEME/" \
-        "$HOME/.config/gtk-4.0/settings.ini" 2>/dev/null || true
-fi
-
-# XDG / gsettings color-scheme & gtk-theme (first)
-gsettings set org.gnome.desktop.interface color-scheme "$GSETTINGS_SCHEME" 2>/dev/null || true
-gsettings set org.gnome.desktop.interface gtk-theme "$GTK_THEME"           2>/dev/null || true
-
-# KDE full look-and-feel (first)
-plasma-apply-lookandfeel --apply "$KDE_LOOKANDFEEL" 2>/dev/null || true
-
-# KDE Color Scheme (FluxDots)
 KDE_TMP="$(mktemp)"
 cat <<EOF > "$KDE_TMP"
 [General]
@@ -395,251 +511,9 @@ EOF
 
 mv -f "$KDE_TMP" "$KDE_SCHEME_DIR/FluxDots.colors"
 cp -f "$KDE_SCHEME_DIR/FluxDots.colors" "$HOME/.config/kdeglobals"
-kwriteconfig6 --file kdeglobals --group General --key ColorScheme "Dummy" 2>/dev/null
-plasma-apply-colorscheme FluxDots 2>/dev/null || true
-kwriteconfig6 --file dolphinrc --group UiSettings --key ColorScheme "FluxDots" 2>/dev/null
-
-if [ "$IS_LIGHT" = "true" ]; then
-    kwriteconfig6 --file plasmarc --group Theme --key name breeze 2>/dev/null
-else
-    kwriteconfig6 --file plasmarc --group Theme --key name breeze-dark 2>/dev/null
-fi
-
-# ──────────────────────────────────────────────────────────────────────────
-# 4. Icon Theme Switcher — Dynamic Tela Icons & Matching Dolphin Accent
-# ──────────────────────────────────────────────────────────────────────────
-ICON_THEME=$(python3 -c "
-import os, colorsys
-from PIL import Image
-
-wp_path = os.path.expanduser('~/.cache/wallust/current_wallpaper')
-if wp_path and os.path.isfile(wp_path):
-    try:
-        with open(wp_path) as f:
-            line = f.read().strip()
-            if line and os.path.isfile(line): wp_path = line
-    except Exception: pass
-
-if not os.path.isfile(wp_path):
-    wp_path = os.path.expanduser('~/.cache/quickshell/current_wallpaper')
-    if wp_path and os.path.isfile(wp_path):
-        try:
-            with open(wp_path) as f:
-                line = f.read().strip()
-                if line and os.path.isfile(line): wp_path = line
-        except Exception: pass
-
-is_light_cache = os.path.expanduser('~/.cache/quickshell/is_light_mode')
-if os.path.isfile(is_light_cache):
-    with open(is_light_cache) as f:
-        is_light_wp = f.read().strip() == 'true'
-else:
-    is_light_wp = False
-
-best_base = 'Tela-blue'
-
-if wp_path and os.path.isfile(wp_path):
-    try:
-        im = Image.open(wp_path).convert('RGB')
-        im_small = im.resize((150, 150))
-        colors = im_small.getcolors(30000)
-        
-        total_px = sum(count for count, _ in colors) if colors else 1
-        avg_luma = sum(count * (0.299*r + 0.587*g + 0.114*b) for count, (r, g, b) in colors) / (total_px * 255.0) if colors else 0.5
-        avg_sat = sum(count * ((max(r,g,b) - min(r,g,b)) / (max(r,g,b) if max(r,g,b)>0 else 1)) for count, (r, g, b) in colors) / total_px if colors else 0.0
-
-        if avg_luma > 0.50:
-            is_light_wp = True
-            with open(os.path.expanduser('~/.cache/quickshell/is_light_mode'), 'w') as f:
-                f.write('true')
-        else:
-            with open(os.path.expanduser('~/.cache/quickshell/is_light_mode'), 'w') as f:
-                f.write('false')
-
-        # 1. Grayscale / Monochromatic / Gray Wallpapers (S < 0.12)
-        if avg_sat < 0.12:
-            if avg_luma > 0.65:
-                best_base = 'Tela-black'
-            elif avg_luma > 0.35:
-                best_base = 'Tela-grey'
-            else:
-                best_base = 'Tela-grey'
-        elif colors:
-            # 2. Complete 14-Theme Spectrum Resolver
-            hue_scores = {
-                'Tela-red': 0.0,
-                'Tela-pink': 0.0,
-                'Tela-ubuntu': 0.0,
-                'Tela-orange': 0.0,
-                'Tela-yellow': 0.0,
-                'Tela-green': 0.0,
-                'Tela-manjaro': 0.0,
-                'Tela-nord': 0.0,
-                'Tela-blue': 0.0,
-                'Tela-dracula': 0.0,
-                'Tela-purple': 0.0,
-                'Tela-brown': 0.0,
-                'Tela-grey': 0.0,
-                'Tela-black': 0.0
-            }
-            
-            for count, (r, g, b) in colors:
-                h, s, v = colorsys.rgb_to_hsv(r/255.0, g/255.0, b/255.0)
-                luma = 0.299*(r/255.0) + 0.587*(g/255.0) + 0.114*(b/255.0)
-                if s >= 0.12 and 0.08 <= luma <= 0.92:
-                    deg = h * 360.0
-                    weight = count * (s ** 2)
-
-                    if deg >= 345 or deg < 12:
-                        if s > 0.40 and luma < 0.55:
-                            hue_scores['Tela-red'] += weight * 1.4
-                        else:
-                            hue_scores['Tela-pink'] += weight * 1.4
-                    elif 12 <= deg < 28:
-                        hue_scores['Tela-ubuntu'] += weight * 1.5
-                        hue_scores['Tela-orange'] += weight
-                    elif 28 <= deg < 48:
-                        hue_scores['Tela-orange'] += weight * 1.5
-                        hue_scores['Tela-ubuntu'] += weight * 0.8
-                    elif 48 <= deg < 70:
-                        hue_scores['Tela-yellow'] += weight * 1.4
-                    elif 70 <= deg < 140:
-                        hue_scores['Tela-green'] += weight * 1.4
-                    elif 140 <= deg < 175:
-                        hue_scores['Tela-manjaro'] += weight * 1.5
-                        hue_scores['Tela-green'] += weight * 0.8
-                    elif 175 <= deg < 205:
-                        hue_scores['Tela-nord'] += weight * 1.5
-                        hue_scores['Tela-blue'] += weight * 0.8
-                    elif 205 <= deg < 255:
-                        hue_scores['Tela-blue'] += weight * 1.4
-                    elif 255 <= deg < 285:
-                        hue_scores['Tela-dracula'] += weight * 1.5
-                        hue_scores['Tela-purple'] += weight * 0.8
-                    elif 285 <= deg < 345:
-                        hue_scores['Tela-purple'] += weight * 1.4
-                        hue_scores['Tela-pink'] += weight * 0.8
-
-            top_hue = max(hue_scores.items(), key=lambda x: x[1])
-            if top_hue[1] > 1.0:
-                best_base = top_hue[0]
-    except Exception:
-        pass
-
-suffix = '-light' if is_light_wp else '-dark'
-candidate = f'{best_base}{suffix}'
-icon_dirs = [os.path.expanduser(f'~/.local/share/icons/{candidate}'), f'/usr/share/icons/{candidate}']
-if any(os.path.isdir(d) for d in icon_dirs):
-    print(candidate)
-else:
-    print(best_base)
-")
-
-# Apply Icon Theme
-[ -f "$HOME/.config/gtk-3.0/settings.ini" ] && sed -i "s/gtk-icon-theme-name=.*/gtk-icon-theme-name=$ICON_THEME/" "$HOME/.config/gtk-3.0/settings.ini" 2>/dev/null || true
-[ -f "$HOME/.config/gtk-4.0/settings.ini" ] && sed -i "s/gtk-icon-theme-name=.*/gtk-icon-theme-name=$ICON_THEME/" "$HOME/.config/gtk-4.0/settings.ini" 2>/dev/null || true
-gsettings set org.gnome.desktop.interface icon-theme "$ICON_THEME" 2>/dev/null || true
-kwriteconfig6 --file kdeglobals --group Icons --key Theme "$ICON_THEME" 2>/dev/null
-
-# ── 4b. Resolve Dolphin Accent Color matching Tela Icon Theme ─────────────
-ICON_ACCENT=$(python3 -c "
-icon_theme = '$ICON_THEME'
-base = icon_theme.replace('-light','').replace('-dark','')
-accents = {
-    'Tela-blue': '#3584e4',
-    'Tela-nord': '#5e81ac',
-    'Tela-manjaro': '#16a085',
-    'Tela-green': '#2ecc71',
-    'Tela-yellow': '#f39c12',
-    'Tela-orange': '#e67e22',
-    'Tela-ubuntu': '#e95420',
-    'Tela-red': '#e74c3c',
-    'Tela-pink': '#ec407a',
-    'Tela-purple': '#9b59b6',
-    'Tela-dracula': '#bd93f9',
-    'Tela-brown': '#8d6e63',
-    'Tela-grey': '#787c99',
-    'Tela-black': '#555b6e'
-}
-print(accents.get(base, '#3584e4'))
-")
-
-ICON_ACC_RGB=$(hex_to_rgb "$ICON_ACCENT")
-
-# Use Icon Accent for KDE/Dolphin highlight if available
-DOLPHIN_ACC_RGB="$ICON_ACC_RGB"
-
-# KDE Color Scheme (FluxDots)
-KDE_TMP="$(mktemp)"
-cat <<EOF > "$KDE_TMP"
-[General]
-ColorScheme=FluxDots
-Name=FluxDots
-accentColor=$DOLPHIN_ACC_RGB
-LastUsedCustomAccentColor=$DOLPHIN_ACC_RGB
-
-[UiSettings]
-ColorScheme=FluxDots
-
-[KDE]
-LookAndFeelPackage=$KDE_LOOKANDFEEL
-contrast=7
-
-[Colors:Window]
-BackgroundNormal=$BG_RGB
-ForegroundNormal=$FG_RGB
-BackgroundAlternate=$SUR_RGB
-ForegroundInactive=$INACT_RGB
-ForegroundActive=$DOLPHIN_ACC_RGB
-
-[Colors:View]
-BackgroundNormal=$BG_RGB
-ForegroundNormal=$FG_RGB
-BackgroundAlternate=$SUR_RGB
-ForegroundInactive=$INACT_RGB
-ForegroundActive=$DOLPHIN_ACC_RGB
-
-[Colors:Button]
-BackgroundNormal=$SUR_RGB
-ForegroundNormal=$FG_RGB
-BackgroundAlternate=$BG_RGB
-ForegroundInactive=$INACT_RGB
-
-[Colors:Selection]
-BackgroundNormal=$DOLPHIN_ACC_RGB
-ForegroundNormal=255,255,255
-BackgroundAlternate=$DOLPHIN_ACC_RGB
-ForegroundInactive=255,255,255
-
-[Colors:Header]
-BackgroundNormal=$BG_RGB
-ForegroundNormal=$FG_RGB
-
-[Colors:Tooltip]
-BackgroundNormal=$SUR_RGB
-ForegroundNormal=$FG_RGB
-
-[Colors:Complementary]
-BackgroundNormal=$BG_RGB
-ForegroundNormal=$FG_RGB
-BackgroundAlternate=$SUR_RGB
-ForegroundInactive=$INACT_RGB
-ForegroundActive=$DOLPHIN_ACC_RGB
-
-[WM]
-activeBackground=$BG_RGB
-activeBlend=$BG_RGB
-activeForeground=$FG_RGB
-inactiveBackground=$BG_RGB
-inactiveBlend=$BG_RGB
-inactiveForeground=$INACT_RGB
-EOF
-
-mv -f "$KDE_TMP" "$KDE_SCHEME_DIR/FluxDots.colors"
-cp -f "$KDE_SCHEME_DIR/FluxDots.colors" "$HOME/.config/kdeglobals"
 kwriteconfig6 --file kdeglobals --group General --key ColorScheme "FluxDots" 2>/dev/null
-kwriteconfig6 --file kdeglobals --group General --key accentColor "$DOLPHIN_ACC_RGB" 2>/dev/null
-kwriteconfig6 --file kdeglobals --group General --key LastUsedCustomAccentColor "$DOLPHIN_ACC_RGB" 2>/dev/null
+kwriteconfig6 --file kdeglobals --group General --key accentColor "$ACC_RGB" 2>/dev/null
+kwriteconfig6 --file kdeglobals --group General --key LastUsedCustomAccentColor "$ACC_RGB" 2>/dev/null
 plasma-apply-colorscheme FluxDots 2>/dev/null || true
 kwriteconfig6 --file dolphinrc --group UiSettings --key ColorScheme "FluxDots" 2>/dev/null
 
@@ -651,9 +525,6 @@ fi
 
 # Notify KDE & Dolphin of accent change
 dbus-send --session --type=signal /KGlobalSettings org.kde.KGlobalSettings.notifyChange int32:0 int32:0 2>/dev/null || true
-
-notify-send -a "Quickshell" -i "preferences-desktop-icons" "Icon Theme & Dolphin Accent" "Icon set to $ICON_THEME | Dolphin Accent $ICON_ACCENT" 2>/dev/null || true
-echo "[Quickshell] Icon theme updated to: $ICON_THEME (Dolphin Accent: $ICON_ACCENT)"
 
 # ──────────────────────────────────────────────────────────────────────────
 # 5. Update Kvantum Theme (FluxDots) with Matching Icon Accent
@@ -681,7 +552,7 @@ window.text.color=$FG
 base.color=$SUR
 alt.base.color=$SUR
 text.color=$FG
-highlight.color=$ICON_ACCENT
+highlight.color=$ACC
 highlight.text.color=#FFFFFF
 button.color=$SUR
 button.text.color=$FG
@@ -693,5 +564,5 @@ EOF
 
 mv -f "$KV_TMP" "$KVANTUM_DIR/FluxDots.kvconfig"
 
-
-
+notify-send -a "Quickshell" -i "preferences-desktop-icons" "Icon & Theme Accent Synced" "Icon: $ICON_THEME | Accent: $ACC" 2>/dev/null || true
+echo "[Quickshell] Icon theme updated to: $ICON_THEME (Accent: $ACC)"
