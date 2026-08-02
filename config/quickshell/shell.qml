@@ -1044,6 +1044,30 @@ ShellRoot {
         return "file:///home/tarzo/.local/share/icons/" + theme + "/scalable/apps/" + iconName + ".svg";
     }
 
+    function formatAppName(appClass) {
+        if (!appClass || appClass === "") return "Desktop";
+        var c = appClass.toLowerCase();
+
+        if (c.indexOf("dolphin") !== -1) return "Dolphin";
+        if (c.indexOf("firefox") !== -1 || c.indexOf("zen") !== -1) return "Firefox";
+        if (c.indexOf("kitty") !== -1) return "Kitty";
+        if (c.indexOf("spotify") !== -1) return "Spotify";
+        if (c.indexOf("code") !== -1 || c.indexOf("vscium") !== -1) return "VS Code";
+        if (c.indexOf("discord") !== -1) return "Discord";
+        if (c.indexOf("vesktop") !== -1) return "Vesktop";
+        if (c.indexOf("obs") !== -1) return "OBS Studio";
+        if (c.indexOf("steam") !== -1) return "Steam";
+        if (c.indexOf("thunar") !== -1) return "Thunar";
+        if (c.indexOf("nautilus") !== -1) return "Files";
+
+        var parts = appClass.split(".");
+        var name = parts[parts.length - 1];
+        if ((!name || name === "") && parts.length > 1) name = parts[parts.length - 2];
+        if (!name || name === "") return appClass;
+
+        return name.charAt(0).toUpperCase() + name.slice(1);
+    }
+
     function getAppIcon(appClass) {
         if (!appClass || appClass === "") return "󰈈";
         var c = appClass.toLowerCase();
@@ -1103,7 +1127,7 @@ ShellRoot {
                         var prefix = ThemeManager.themeName === "silvia" ? ":  " : "";
                         var parts = [];
                         if (CentralConfig.showTitleAppName && shellRoot.activeWinClass !== "") {
-                            parts.push(shellRoot.activeWinClass);
+                            parts.push(shellRoot.formatAppName(shellRoot.activeWinClass));
                         }
                         if (CentralConfig.showTitleWindowName && shellRoot.activeWinTitle !== "") {
                             parts.push(shellRoot.activeWinTitle);
