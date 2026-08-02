@@ -37,7 +37,7 @@ hex_to_rgb() {
 }
 
 # ──────────────────────────────────────────────────────────────────────────
-# 0. RESOLVE TELA ICON THEME & MATCHING ACCENT COLOR FIRST
+# 0. RESOLVE TELA ICON THEME & MATCHING ACCENT COLOR (with Experimental Tint Auto-Ignore Mode)
 # ──────────────────────────────────────────────────────────────────────────
 ICON_THEME=$(python3 -c "
 import os, colorsys
@@ -67,6 +67,13 @@ if os.path.isfile(is_light_cache):
 else:
     is_light_wp = False
 
+ignore_tint_cache = os.path.expanduser('~/.cache/quickshell/ignore_wallpaper_tints')
+if os.path.isfile(ignore_tint_cache):
+    with open(ignore_tint_cache) as f:
+        ignore_tint = f.read().strip() != 'false'
+else:
+    ignore_tint = True
+
 best_base = 'Tela-blue'
 
 if wp_path and os.path.isfile(wp_path):
@@ -75,9 +82,22 @@ if wp_path and os.path.isfile(wp_path):
         im_small = im.resize((150, 150))
         colors = im_small.getcolors(30000)
         
-        total_px = sum(count for count, _ in colors) if colors else 1
-        avg_luma = sum(count * (0.299*r + 0.587*g + 0.114*b) for count, (r, g, b) in colors) / (total_px * 255.0) if colors else 0.5
-        avg_sat = sum(count * ((max(r,g,b) - min(r,g,b)) / (max(r,g,b) if max(r,g,b)>0 else 1)) for count, (r, g, b) in colors) / total_px if colors else 0.0
+        total_px = sum(c for c, _ in colors) if colors else 1
+        r_mean = sum(c * r for c, (r, g, b) in colors) / total_px if colors else 128
+        g_mean = sum(c * g for c, (r, g, b) in colors) / total_px if colors else 128
+        b_mean = sum(c * b for c, (r, g, b) in colors) / total_px if colors else 128
+        k_mean = (r_mean + g_mean + b_mean) / 3.0
+
+        avg_luma = sum(c * (0.299*r + 0.587*g + 0.114*b) for c, (r, g, b) in colors) / (total_px * 255.0) if colors else 0.5
+        avg_sat = sum(c * ((max(r,g,b) - min(r,g,b)) / (max(r,g,b) if max(r,g,b)>0 else 1)) for c, (r, g, b) in colors) / total_px if colors else 0.0
+
+        # Statistical Color Cast Index (Gray-World Matrix Distance)
+        cast_index = ((r_mean - k_mean)**2 + (g_mean - k_mean)**2 + (b_mean - k_mean)**2)**0.5
+        is_tinted = (cast_index > 10.0) and (avg_sat < 0.48)
+
+        r_factor = (k_mean / r_mean) if (is_tinted and ignore_tint and r_mean > 0) else 1.0
+        g_factor = (k_mean / g_mean) if (is_tinted and ignore_tint and g_mean > 0) else 1.0
+        b_factor = (k_mean / b_mean) if (is_tinted and ignore_tint and b_mean > 0) else 1.0
 
         if avg_luma > 0.50:
             is_light_wp = True
@@ -87,7 +107,6 @@ if wp_path and os.path.isfile(wp_path):
             with open(os.path.expanduser('~/.cache/quickshell/is_light_mode'), 'w') as f:
                 f.write('false')
 
-        # 1. Complete 14-Theme Spectrum Resolver
         hue_scores = {
             'Tela-red': 0.0, 'Tela-pink': 0.0, 'Tela-ubuntu': 0.0,
             'Tela-orange': 0.0, 'Tela-yellow': 0.0, 'Tela-green': 0.0,
@@ -98,40 +117,36 @@ if wp_path and os.path.isfile(wp_path):
         
         if colors:
             for count, (r, g, b) in colors:
-                h, s, v = colorsys.rgb_to_hsv(r/255.0, g/255.0, b/255.0)
-                luma = 0.299*(r/255.0) + 0.587*(g/255.0) + 0.114*(b/255.0)
+                if is_tinted and ignore_tint:
+                    r_norm = min(255, max(0, int(r * r_factor)))
+                    g_norm = min(255, max(0, int(g * g_factor)))
+                    b_norm = min(255, max(0, int(b * b_factor)))
+                else:
+                    r_norm, g_norm, b_norm = r, g, b
+
+                h, s, v = colorsys.rgb_to_hsv(r_norm/255.0, g_norm/255.0, b_norm/255.0)
+                luma = 0.299*(r_norm/255.0) + 0.587*(g_norm/255.0) + 0.114*(b_norm/255.0)
                 deg = h * 360.0
 
                 if s >= 0.06 and 0.05 <= luma <= 0.95:
                     weight = count * (s ** 1.8)
 
-                    # Foliage & Nature Green Detector (Trees, leaves, forest paths with green channel dominance)
-                    if g > r + 8 and g >= b - 15:
-                        if 65 <= deg < 155:
-                            hue_scores['Tela-green'] += weight * 4.5
-                            hue_scores['Tela-manjaro'] += weight * 3.0
-                        elif 155 <= deg < 195:
-                            hue_scores['Tela-manjaro'] += weight * 4.0
-                            hue_scores['Tela-green'] += weight * 2.5
-                            hue_scores['Tela-nord'] += weight * 0.5
-                        else:
-                            hue_scores['Tela-green'] += weight * 3.0
-                    elif deg >= 345 or deg < 12:
+                    if deg >= 345 or deg < 12:
                         if s > 0.35 and luma < 0.60: hue_scores['Tela-red'] += weight * 1.5
                         else: hue_scores['Tela-pink'] += weight * 1.5
                     elif 12 <= deg < 28:
-                        hue_scores['Tela-ubuntu'] += weight * 1.6
+                        hue_scores['Tela-ubuntu'] += weight * 1.5
                         hue_scores['Tela-orange'] += weight
                     elif 28 <= deg < 48:
-                        hue_scores['Tela-orange'] += weight * 1.6
+                        hue_scores['Tela-orange'] += weight * 1.5
                         hue_scores['Tela-ubuntu'] += weight * 0.8
                     elif 48 <= deg < 70: hue_scores['Tela-yellow'] += weight * 1.5
                     elif 70 <= deg < 140: hue_scores['Tela-green'] += weight * 1.5
                     elif 140 <= deg < 175: hue_scores['Tela-manjaro'] += weight * 1.5
                     elif 175 <= deg < 205:
-                        hue_scores['Tela-nord'] += weight * 1.2
+                        hue_scores['Tela-nord'] += weight * 1.4
                         hue_scores['Tela-blue'] += weight * 0.8
-                    elif 205 <= deg < 255: hue_scores['Tela-blue'] += weight * 1.2
+                    elif 205 <= deg < 255: hue_scores['Tela-blue'] += weight * 1.4
                     elif 255 <= deg < 285: hue_scores['Tela-dracula'] += weight * 1.5
                     elif 285 <= deg < 345: hue_scores['Tela-purple'] += weight * 1.5
 
@@ -139,13 +154,11 @@ if wp_path and os.path.isfile(wp_path):
         top_color = max(colorful_scores.items(), key=lambda x: x[1])
 
         if is_light_wp:
-            # Light mode: ALWAYS pick a bright colorful icon!
             if top_color[1] > 0.15:
                 best_base = top_color[0]
             else:
                 best_base = 'Tela-nord' if avg_luma > 0.70 else 'Tela-blue'
         else:
-            # Dark mode: pick matching focal color if available; fallback to grey/black only for pure monochrome
             if top_color[1] > 0.15:
                 best_base = top_color[0]
             elif avg_sat < 0.10:

@@ -33,6 +33,7 @@ PanelWindow {
     property string selectedWallpaperPath: ""
     property bool showAddFolderRow: false
     property bool syncThemeColors: true
+    property bool ignoreTints: true
 
     ListModel {
         id: wallpaperModel
@@ -41,8 +42,25 @@ PanelWindow {
     onVisibleChanged: {
         if (visible) {
             readActiveWpProc.running = true;
+            readIgnoreTintsProc.running = true;
             scanWallpapersTimer.restart();
         }
+    }
+
+    Process {
+        id: readIgnoreTintsProc
+        command: ["bash", "-c", "cat ~/.cache/quickshell/ignore_wallpaper_tints 2>/dev/null || echo true"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                wallpaperWindow.ignoreTints = (this.text.trim() !== "false");
+            }
+        }
+    }
+
+    Process {
+        id: toggleIgnoreTintsProc
+        property string cmdStr: "echo true > ~/.cache/quickshell/ignore_wallpaper_tints"
+        command: ["bash", "-c", cmdStr]
     }
 
     Timer {
@@ -169,9 +187,45 @@ PanelWindow {
                     font.pixelSize: Math.round(ThemeManager.globalFontSize * 0.9)
                 }
 
+                // Experimental Tint Auto-Ignore Toggle Button
+                Rectangle {
+                    width: 135; height: 26; radius: 6
+                    color: wallpaperWindow.ignoreTints ? (rootBar ? rootBar._sur : "#252836") : "transparent"
+                    border.color: wallpaperWindow.ignoreTints ? (rootBar ? rootBar._acc : "#7aa2f7") : (rootBar ? rootBar._sur : "#313244")
+                    border.width: 1
+
+                    Row {
+                        anchors.centerIn: parent
+                        spacing: 4
+                        Text {
+                            text: "🧪"
+                            font.pixelSize: 10
+                        }
+                        Text {
+                            text: "Ignore Tints: " + (wallpaperWindow.ignoreTints ? "ON" : "OFF")
+                            color: wallpaperWindow.ignoreTints ? (rootBar ? rootBar._acc : "#7aa2f7") : (rootBar ? rootBar._muted : "#6D8895")
+                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 9
+                            font.bold: true
+                        }
+                    }
+
+                    MouseArea {
+                        id: tintIgnoreMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            wallpaperWindow.ignoreTints = !wallpaperWindow.ignoreTints;
+                            toggleIgnoreTintsProc.cmdStr = wallpaperWindow.ignoreTints ? "echo true > ~/.cache/quickshell/ignore_wallpaper_tints" : "echo false > ~/.cache/quickshell/ignore_wallpaper_tints";
+                            toggleIgnoreTintsProc.running = true;
+                        }
+                    }
+                }
+
                 // Add Folder Toggle Button
                 Rectangle {
-                    width: 110; height: 26; radius: 6
+                    width: 100; height: 26; radius: 6
                     color: addFolderMouse.containsMouse ? (rootBar ? rootBar._sur : "#313244") : "transparent"
                     border.color: rootBar ? rootBar._sur : "#313244"
                     border.width: 1
