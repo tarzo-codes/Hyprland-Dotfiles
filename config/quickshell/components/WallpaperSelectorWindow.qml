@@ -61,6 +61,9 @@ PanelWindow {
             fetchWpMemoryProc.command = ["python3", os.path.expanduser("~/.config/quickshell/scripts/wallpaper_memory.py"), "get", selectedWallpaperPath];
             fetchWpMemoryProc.running = false;
             fetchWpMemoryProc.running = true;
+
+            fetchSwatchesProc.running = false;
+            fetchSwatchesProc.running = true;
         }
     }
 
@@ -243,6 +246,24 @@ PanelWindow {
         id: scanCacheProc
         property string folderToScan: ""
         command: ["python3", os.path.expanduser("~/.config/quickshell/scripts/wallpaper_cache_builder.py"), "scan", folderToScan]
+    }
+
+    ListModel { id: wallpaperSwatchesModel }
+
+    Process {
+        id: fetchSwatchesProc
+        command: ["python3", os.path.expanduser("~/.config/quickshell/scripts/wallpaper_cache_builder.py"), "get_swatches", wallpaperWindow.selectedWallpaperPath]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                wallpaperSwatchesModel.clear();
+                try {
+                    var data = JSON.parse(this.text.trim());
+                    for (var i = 0; i < data.length; i++) {
+                        wallpaperSwatchesModel.append(data[i]);
+                    }
+                } catch(e) {}
+            }
+        }
     }
 
     // Unified Process to apply selected wallpaper
@@ -507,10 +528,10 @@ PanelWindow {
                 }
             }
 
-            // Manual Icon Palette Selection Panel (collapsible when manualIconMode is true)
+            // 🎨 EXTRACTED 16 WALLPAPER COLORS PALETTE (Shown when manualIconMode is true)
             Rectangle {
                 Layout.fillWidth: true
-                Layout.preferredHeight: wallpaperWindow.manualIconMode ? 46 : 0
+                Layout.preferredHeight: wallpaperWindow.manualIconMode ? 48 : 0
                 visible: wallpaperWindow.manualIconMode
                 color: rootBar ? rootBar._sur : "#1e1e2e"
                 border.color: rootBar ? rootBar._acc : "#7aa2f7"
@@ -525,7 +546,7 @@ PanelWindow {
                     spacing: 8
 
                     Text {
-                        text: "🎨 Pick Accent Icon:"
+                        text: "🎨 Extracted 16 Colors:"
                         color: rootBar ? rootBar._fg : "#c0caf5"
                         font.family: "JetBrainsMono Nerd Font"
                         font.pixelSize: 10
@@ -535,62 +556,63 @@ PanelWindow {
                     Flickable {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        contentWidth: iconSwatchesRow.width
+                        contentWidth: extractedSwatchesRow.width
                         boundsBehavior: Flickable.StopAtBounds
                         clip: true
 
                         Row {
-                            id: iconSwatchesRow
-                            spacing: 5
+                            id: extractedSwatchesRow
+                            spacing: 6
                             anchors.verticalCenter: parent.verticalCenter
 
-                            property var swatches: [
-                                {"name": "Tela-red", "color": "#e74c3c", "label": "Red"},
-                                {"name": "Tela-pink", "color": "#ec407a", "label": "Pink"},
-                                {"name": "Tela-orange", "color": "#e67e22", "label": "Orange"},
-                                {"name": "Tela-ubuntu", "color": "#e95420", "label": "Ubuntu"},
-                                {"name": "Tela-yellow", "color": "#f39c12", "label": "Yellow"},
-                                {"name": "Tela-green", "color": "#2ecc71", "label": "Green"},
-                                {"name": "Tela-manjaro", "color": "#16a085", "label": "Manjaro"},
-                                {"name": "Tela-nord", "color": "#5e81ac", "label": "Nord"},
-                                {"name": "Tela-blue", "color": "#3584e4", "label": "Blue"},
-                                {"name": "Tela-purple", "color": "#9b59b6", "label": "Purple"},
-                                {"name": "Tela-dracula", "color": "#bd93f9", "label": "Dracula"},
-                                {"name": "Tela-brown", "color": "#8d6e63", "label": "Brown"},
-                                {"name": "Tela-grey", "color": "#787c99", "label": "Grey"},
-                                {"name": "Tela-black", "color": "#555b6e", "label": "Black"}
-                            ]
-
                             Repeater {
-                                model: iconSwatchesRow.swatches
+                                model: wallpaperSwatchesModel
                                 delegate: Rectangle {
-                                    width: 66; height: 26; radius: 5
-                                    color: modelData.color
-                                    border.color: (wallpaperWindow.manualIconTheme === modelData.name) ? "#ffffff" : "transparent"
-                                    border.width: (wallpaperWindow.manualIconTheme === modelData.name) ? 2 : 0
+                                    width: isDefaultAccent ? 86 : 72; height: 28; radius: 5
+                                    color: model.hex
+                                    border.color: (wallpaperWindow.manualIconTheme === model.telaTheme) ? "#ffffff" : "transparent"
+                                    border.width: (wallpaperWindow.manualIconTheme === model.telaTheme) ? 2 : 0
 
-                                    Text {
+                                    Column {
                                         anchors.centerIn: parent
-                                        text: modelData.label
-                                        color: "#ffffff"
-                                        font.family: "JetBrainsMono Nerd Font"
-                                        font.pixelSize: 9
-                                        font.bold: true
+                                        spacing: 1
+
+                                        Text {
+                                            anchors.horizontalCenter: parent.horizontalCenter
+                                            text: model.isDefaultAccent ? "⭐ C" + model.index : "C" + model.index
+                                            color: "#ffffff"
+                                            font.family: "JetBrainsMono Nerd Font"
+                                            font.pixelSize: 8
+                                            font.bold: true
+                                            style: Text.Outline
+                                            styleColor: "#000000"
+                                        }
+
+                                        Text {
+                                            anchors.horizontalCenter: parent.horizontalCenter
+                                            text: model.telaTheme.replace("Tela-", "")
+                                            color: "#ffffff"
+                                            font.family: "JetBrainsMono Nerd Font"
+                                            font.pixelSize: 8
+                                            font.bold: true
+                                            style: Text.Outline
+                                            styleColor: "#000000"
+                                        }
                                     }
 
                                     MouseArea {
                                         anchors.fill: parent
                                         cursorShape: Qt.PointingHandCursor
                                         onClicked: {
-                                            wallpaperWindow.manualIconTheme = modelData.name;
-                                            applyManualIconProc.targetTheme = modelData.name;
+                                            wallpaperWindow.manualIconTheme = model.telaTheme;
+                                            applyManualIconProc.targetTheme = model.telaTheme;
                                             applyManualIconProc.running = true;
                                             if (wallpaperWindow.selectedWallpaperPath !== "") {
-                                                saveWpMemoryProc.iconToSave = modelData.name;
+                                                saveWpMemoryProc.iconToSave = model.telaTheme;
                                                 saveWpMemoryProc.barToSave = ThemeManager.themeName;
                                                 saveWpMemoryProc.running = false;
                                                 saveWpMemoryProc.running = true;
-                                                wallpaperWindow.savedIconTheme = modelData.name;
+                                                wallpaperWindow.savedIconTheme = model.telaTheme;
                                                 wallpaperWindow.hasWallpaperMemory = true;
                                             }
                                         }
@@ -598,9 +620,9 @@ PanelWindow {
                                 }
                             }
 
-                            // 🪄 Auto Recommended Badge
+                            // 🪄 Auto Recommended Swatch
                             Rectangle {
-                                width: 110; height: 26; radius: 5
+                                width: 95; height: 28; radius: 5
                                 color: wallpaperWindow.recommendedIconColor
                                 border.color: "#ffffff"
                                 border.width: 1
@@ -615,6 +637,8 @@ PanelWindow {
                                         font.family: "JetBrainsMono Nerd Font"
                                         font.pixelSize: 8
                                         font.bold: true
+                                        style: Text.Outline
+                                        styleColor: "#000000"
                                     }
                                 }
 

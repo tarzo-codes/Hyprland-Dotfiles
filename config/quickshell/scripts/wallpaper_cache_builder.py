@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os, sys, json, colorsys
+import os, sys, json, colorsys, subprocess
 from PIL import Image
 
 CACHE_FILE = os.path.expanduser('~/.cache/quickshell/wallpaper_spectrum_cache.json')
@@ -31,6 +31,44 @@ def save_cache(data):
     os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
     with open(CACHE_FILE, 'w') as f:
         json.dump(data, f, indent=2)
+
+def hex_to_tela(hex_str):
+    hex_str = hex_str.lstrip('#')
+    if len(hex_str) != 6:
+        return 'Tela-blue'
+    try:
+        r = int(hex_str[0:2], 16) / 255.0
+        g = int(hex_str[2:4], 16) / 255.0
+        b = int(hex_str[4:6], 16) / 255.0
+        h, s, v = colorsys.rgb_to_hsv(r, g, b)
+        luma = 0.299 * r + 0.587 * g + 0.114 * b
+        deg = h * 360.0
+
+        if s < 0.22:
+            return 'Tela-black' if luma < 0.22 else 'Tela-grey'
+        if deg >= 345 or deg < 12:
+            return 'Tela-red' if s > 0.35 and luma < 0.60 else 'Tela-pink'
+        elif 12 <= deg < 28:
+            return 'Tela-ubuntu'
+        elif 28 <= deg < 48:
+            return 'Tela-orange'
+        elif 48 <= deg < 70:
+            return 'Tela-yellow'
+        elif 70 <= deg < 140:
+            return 'Tela-green'
+        elif 140 <= deg < 175:
+            return 'Tela-manjaro'
+        elif 175 <= deg < 205:
+            return 'Tela-nord'
+        elif 205 <= deg < 255:
+            return 'Tela-blue'
+        elif 255 <= deg < 285:
+            return 'Tela-dracula'
+        elif 285 <= deg < 345:
+            return 'Tela-purple'
+        return 'Tela-blue'
+    except Exception:
+        return 'Tela-blue'
 
 def analyze_image(wp_path):
     if not wp_path or not os.path.isfile(wp_path):
@@ -128,6 +166,36 @@ def main():
                             scanned_count += 1
         save_cache(cache)
         print(f"Scanned {scanned_count} new wallpapers in {folder}.")
+
+    elif cmd == "get_swatches" and len(sys.argv) >= 3:
+        wp_path = sys.argv[2]
+        if not os.path.isfile(wp_path):
+            print("[]")
+            return
+        try:
+            subprocess.run(["wallust", "run", "-T", "-s", wp_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            colors = []
+            qml_file = os.path.expanduser("~/.config/quickshell/wallust-colors.qml")
+            if os.path.isfile(qml_file):
+                with open(qml_file) as f:
+                    for line in f:
+                        line = line.strip()
+                        if line.startswith("readonly property string color"):
+                            parts = line.split(":")
+                            if len(parts) >= 2:
+                                col = parts[1].replace('"', '').replace(';', '').strip()
+                                colors.append(col)
+            result = []
+            for i, c in enumerate(colors):
+                result.append({
+                    "index": i,
+                    "hex": c,
+                    "isDefaultAccent": (i == 4),
+                    "telaTheme": hex_to_tela(c)
+                })
+            print(json.dumps(result))
+        except Exception:
+            print("[]")
 
     elif cmd == "get" and len(sys.argv) >= 3:
         wp_path = sys.argv[2]
