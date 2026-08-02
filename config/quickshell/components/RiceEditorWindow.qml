@@ -1150,6 +1150,7 @@ PanelWindow {
                                                             anchors.verticalCenter: parent.verticalCenter
 
                                                             property string currentZone: CentralConfig.getZone(modelData.key)
+                                                            property var allowedZones: CentralConfig.getThemeZones(pendingThemeName, CentralConfig.activeBarTarget)
 
                                                             // Re-order Left Button (◄)
                                                             Rectangle {
@@ -1173,33 +1174,36 @@ PanelWindow {
 
                                                             // Left Zone Button
                                                             Rectangle {
-                                                                width: 44; height: 22; radius: 4
-                                                                color: parent.currentZone === "left" ? "#9bced7" : "#2a283e"
-                                                                Text { anchors.centerIn: parent; text: "Left"; color: parent.parent.currentZone === "left" ? "#181628" : "#6e6a86"; font.pixelSize: 9; font.bold: true }
+                                                                visible: zoneRow.allowedZones.indexOf("left") !== -1
+                                                                width: 40; height: 22; radius: 4
+                                                                color: zoneRow.currentZone === "left" ? "#9bced7" : "#2a283e"
+                                                                Text { anchors.centerIn: parent; text: "Left"; color: zoneRow.currentZone === "left" ? "#181628" : "#6e6a86"; font.pixelSize: 9; font.bold: true }
                                                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: riceWindow.requestZoneChange(modelData.key, modelData.name, "left") }
                                                             }
 
                                                             // Center Zone Button
                                                             Rectangle {
+                                                                visible: zoneRow.allowedZones.indexOf("center") !== -1
                                                                 width: 50; height: 22; radius: 4
-                                                                color: parent.currentZone === "center" ? "#f1ca93" : "#2a283e"
-                                                                Text { anchors.centerIn: parent; text: "Center"; color: parent.parent.currentZone === "center" ? "#181628" : "#6e6a86"; font.pixelSize: 9; font.bold: true }
+                                                                color: zoneRow.currentZone === "center" ? "#f1ca93" : "#2a283e"
+                                                                Text { anchors.centerIn: parent; text: "Center"; color: zoneRow.currentZone === "center" ? "#181628" : "#6e6a86"; font.pixelSize: 9; font.bold: true }
                                                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: riceWindow.requestZoneChange(modelData.key, modelData.name, "center") }
                                                             }
 
                                                             // Right Zone Button
                                                             Rectangle {
+                                                                visible: zoneRow.allowedZones.indexOf("right") !== -1
                                                                 width: 44; height: 22; radius: 4
-                                                                color: parent.currentZone === "right" ? "#c3a5e6" : "#2a283e"
-                                                                Text { anchors.centerIn: parent; text: "Right"; color: parent.parent.currentZone === "right" ? "#181628" : "#6e6a86"; font.pixelSize: 9; font.bold: true }
+                                                                color: zoneRow.currentZone === "right" ? "#c3a5e6" : "#2a283e"
+                                                                Text { anchors.centerIn: parent; text: "Right"; color: zoneRow.currentZone === "right" ? "#181628" : "#6e6a86"; font.pixelSize: 9; font.bold: true }
                                                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: riceWindow.requestZoneChange(modelData.key, modelData.name, "right") }
                                                             }
 
                                                             // Hidden Button
                                                             Rectangle {
                                                                 width: 48; height: 22; radius: 4
-                                                                color: parent.currentZone === "hidden" ? "#ea6f91" : "#2a283e"
-                                                                Text { anchors.centerIn: parent; text: "Hidden"; color: parent.parent.currentZone === "hidden" ? "#ffffff" : "#6e6a86"; font.pixelSize: 9; font.bold: true }
+                                                                color: zoneRow.currentZone === "hidden" ? "#ea6f91" : "#2a283e"
+                                                                Text { anchors.centerIn: parent; text: "Hidden"; color: zoneRow.currentZone === "hidden" ? "#ffffff" : "#6e6a86"; font.pixelSize: 9; font.bold: true }
                                                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { ensureEditMode(); CentralConfig.setZone(modelData.key, "hidden"); riceWindow.showStatus("Set " + modelData.key + " -> HIDDEN"); } }
                                                             }
                                                         }

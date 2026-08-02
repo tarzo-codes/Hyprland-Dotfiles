@@ -144,6 +144,17 @@ Item {
         mode = "custom";
     }
 
+    function getThemeZones(theme, target) {
+        if (theme === "cristina") {
+            return ["left", "right"]; // cristina natively has no center zone!
+        }
+        if (theme === "melissa") {
+            if (target === "bottom") return ["left"]; // melissa bottom bar only has left zone!
+            return ["left", "center", "right"];
+        }
+        return ["left", "center", "right"];
+    }
+
     function getZone(moduleKey) {
         var lefts = (leftModules || "").split(",");
         var centers = (centerModules || "").split(",");

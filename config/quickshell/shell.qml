@@ -2040,12 +2040,53 @@ ShellRoot {
             Rectangle {
                 anchors.fill: parent
                 radius: ThemeManager.themeName === "emilia" ? 4 : 15
-                color: capItem.isSelectedInEdit ? shellRoot.alphaColor("#8ec07c", 0.30) : (modelData.type === "capsule" ? shellRoot._sur : "transparent")
+                color: capItem.isSelectedInEdit ? shellRoot.alphaColor("#8ec07c", 0.30) : ((ThemeManager.themeName !== "cristina" && modelData.type === "capsule") ? shellRoot._sur : "transparent")
                 border.color: capItem.isSelectedInEdit ? "#8ec07c" : "transparent"
                 border.width: capItem.isSelectedInEdit ? 2 : 0
 
                 Behavior on color { ColorAnimation { duration: 150 } }
                 Behavior on border.color { ColorAnimation { duration: 150 } }
+            }
+
+            // Cristina Slanted Powerline Parallelogram Background
+            Row {
+                id: cristinaBadgeRow
+                anchors.fill: parent
+                visible: ThemeManager.themeName === "cristina" && !capItem.isSelectedInEdit
+                spacing: 0
+
+                property color badgeColor: {
+                    var t = modelData.type;
+                    if (t === "updates")    return shellRoot._cyn;
+                    if (t === "filesystem") return shellRoot._mag;
+                    if (t === "cpu")        return shellRoot._blu;
+                    if (t === "memory" || t === "ram") return shellRoot._yel;
+                    if (t === "volume")     return shellRoot._red;
+                    if (t === "brightness") return shellRoot._yel;
+                    if (t === "network")    return shellRoot._cyn;
+                    if (t === "date" || t === "clock") return shellRoot._mag;
+                    return shellRoot._sur;
+                }
+
+                SlantSeparator {
+                    colorLeft: "transparent"
+                    colorRight: cristinaBadgeRow.badgeColor
+                    isRightSlant: true
+                    slantWidth: 8
+                    height: parent.height
+                }
+                Rectangle {
+                    color: cristinaBadgeRow.badgeColor
+                    height: parent.height
+                    width: Math.max(0, parent.width - 16)
+                }
+                SlantSeparator {
+                    colorLeft: cristinaBadgeRow.badgeColor
+                    colorRight: "transparent"
+                    isRightSlant: true
+                    slantWidth: 8
+                    height: parent.height
+                }
             }
 
             // Click Handler to select module in Edit Mode
