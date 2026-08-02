@@ -2042,6 +2042,9 @@ ShellRoot {
                 implicitWidth: screen.width
                 implicitHeight: ThemeManager.barIsTopFloat ? (barHeight + 10) : barHeight
 
+                WlrLayershell.layer: (CentralConfig.autoHideBar || ThemeManager.autoHideBar) ? WlrLayer.Overlay : WlrLayer.Bottom
+                exclusiveZone: (CentralConfig.autoHideBar || ThemeManager.autoHideBar) ? 0 : topBar.implicitHeight
+
                 property bool isTopHovered: topHoverArea.containsMouse || shellRoot.settingsVisible || shellRoot.riceEditorVisible || shellRoot.volumePanelVisible || shellRoot.networkPanelVisible || shellRoot.powerMenuVisible
                 property bool topBarShouldHide: false
 
@@ -3010,6 +3013,9 @@ ShellRoot {
                 anchors { bottom: true; left: true; right: true }
                 implicitWidth: screen.width
                 implicitHeight: (ThemeManager.themeName === "cristina") ? (shellRoot.barHeight + 16) : shellRoot.barHeight
+
+                WlrLayershell.layer: (CentralConfig.autoHideBar || ThemeManager.autoHideBar) ? WlrLayer.Overlay : WlrLayer.Bottom
+                exclusiveZone: (CentralConfig.autoHideBar || ThemeManager.autoHideBar) ? 0 : bottomBar.implicitHeight
 
                 property bool isBottomHovered: bottomHoverArea.containsMouse || shellRoot.settingsVisible || shellRoot.riceEditorVisible || shellRoot.volumePanelVisible || shellRoot.networkPanelVisible || shellRoot.powerMenuVisible
                 property bool bottomBarShouldHide: false
