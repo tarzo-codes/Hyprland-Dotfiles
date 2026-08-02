@@ -3337,7 +3337,7 @@ ShellRoot {
                             spacing: 6
                             height: parent.height
                             z: 10
-                            visible: CentralConfig.mode === "custom" || (ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "cristina")
+                            visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "cristina"
 
                             Repeater {
                                 model: (CentralConfig.mode === "custom") ? shellRoot.getModuleArray(CentralConfig.centerModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].bottom ? themeLayouts[ThemeManager.themeName].bottom.center : [])
@@ -3356,7 +3356,7 @@ ShellRoot {
                             spacing: 6
                             height: parent.height
                             clip: true
-                            visible: CentralConfig.mode === "custom" || (ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "cristina")
+                            visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "cristina"
 
                             Repeater {
                                 model: (CentralConfig.mode === "custom") ? shellRoot.getModuleArray(CentralConfig.leftModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].bottom ? themeLayouts[ThemeManager.themeName].bottom.left : [])
@@ -3372,7 +3372,7 @@ ShellRoot {
                             anchors.leftMargin: 12
                             height: parent.height
                             clip: true
-                            visible: CentralConfig.mode === "custom" || (ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "cristina")
+                            visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "cristina"
 
                             Row {
                                 id: bottomRightZoneRow
@@ -3398,7 +3398,7 @@ ShellRoot {
                             anchors.verticalCenter: parent.verticalCenter
                             height: parent.height
                             spacing: 8
-                            visible: CentralConfig.mode !== "custom" && ThemeManager.themeName === "cristina"
+                            visible: ThemeManager.themeName === "cristina"
 
                             // Arch / Distro Logo
                             Text {
@@ -3669,6 +3669,42 @@ ShellRoot {
                                             }
                                         }
                                         SlantSeparator { colorLeft: shellRoot._sur; colorRight: "transparent"; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                    }
+                                }
+
+                                // Badge 8: Brightness Badge (Magenta Slanted Parallelogram)
+                                Item {
+                                    height: parent.height - 4
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: brightBadgeRow.implicitWidth
+                                    Row {
+                                        id: brightBadgeRow
+                                        anchors.fill: parent
+                                        spacing: 0
+                                        SlantSeparator { colorLeft: "transparent"; colorRight: shellRoot._mag; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                        Rectangle {
+                                            color: shellRoot._mag
+                                            height: parent.height
+                                            width: brightBadgeContent.implicitWidth + 8
+                                            Row {
+                                                id: brightBadgeContent
+                                                anchors.centerIn: parent
+                                                spacing: 4
+                                                Text { text: "⚙"; color: shellRoot.contrastFg(shellRoot._mag, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
+                                                Text { text: Math.round(shellRoot.brightnessValue * 100) + "%"; color: shellRoot.contrastFg(shellRoot._mag, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
+                                            }
+                                        }
+                                        SlantSeparator { colorLeft: shellRoot._mag; colorRight: "transparent"; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                    }
+                                    MouseArea {
+                                        anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                        onClicked: shellRoot.brightnessPanelVisible = !shellRoot.brightnessPanelVisible
+                                        onWheel: (wheel) => {
+                                            var delta = wheel.angleDelta.y > 0 ? 0.05 : -0.05;
+                                            shellRoot.isAdjustingBrightness = true;
+                                            shellRoot.brightnessValue = Math.max(0.05, Math.min(1.0, shellRoot.brightnessValue + delta));
+                                            brightCooldownTimer.restart();
+                                        }
                                     }
                                 }
                             }
