@@ -128,8 +128,14 @@ if wp_path and os.path.isfile(wp_path):
                 luma = 0.299*(r_norm/255.0) + 0.587*(g_norm/255.0) + 0.114*(b_norm/255.0)
                 deg = h * 360.0
 
-                if s >= 0.06 and 0.05 <= luma <= 0.95:
-                    weight = count * (s ** 1.8)
+                if s < 0.22:
+                    weight = count * (1.0 - s) * 2.0
+                    if luma < 0.22:
+                        hue_scores['Tela-black'] += weight
+                    else:
+                        hue_scores['Tela-grey'] += weight
+                elif s >= 0.22 and 0.06 <= luma <= 0.94:
+                    weight = count * (s ** 2.2)
 
                     if deg >= 345 or deg < 12:
                         if s > 0.35 and luma < 0.60: hue_scores['Tela-red'] += weight * 1.5
@@ -150,21 +156,15 @@ if wp_path and os.path.isfile(wp_path):
                     elif 255 <= deg < 285: hue_scores['Tela-dracula'] += weight * 1.5
                     elif 285 <= deg < 345: hue_scores['Tela-purple'] += weight * 1.5
 
-        colorful_scores = {k: v for k, v in hue_scores.items() if k not in ['Tela-grey', 'Tela-black', 'Tela-brown']}
-        top_color = max(colorful_scores.items(), key=lambda x: x[1])
+        top_color = max(hue_scores.items(), key=lambda x: x[1])[0]
 
         if is_light_wp:
-            if top_color[1] > 0.15:
-                best_base = top_color[0]
+            if top_color in ['Tela-grey', 'Tela-black']:
+                best_base = 'Tela-grey'
             else:
-                best_base = 'Tela-nord' if avg_luma > 0.70 else 'Tela-blue'
+                best_base = top_color
         else:
-            if top_color[1] > 0.15:
-                best_base = top_color[0]
-            elif avg_sat < 0.10:
-                best_base = 'Tela-black' if avg_luma < 0.30 else 'Tela-grey'
-            else:
-                best_base = max(hue_scores.items(), key=lambda x: x[1])[0]
+            best_base = top_color
     except Exception:
         pass
 
