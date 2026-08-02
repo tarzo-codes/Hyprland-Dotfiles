@@ -3459,7 +3459,7 @@ ShellRoot {
                             anchors.verticalCenter: parent.verticalCenter
                             height: parent.height
                             spacing: 8
-                            visible: CentralConfig.mode !== "custom" && ThemeManager.themeName === "cristina"
+                            visible: ThemeManager.themeName === "cristina"
 
                             // Weather
                             Row {
