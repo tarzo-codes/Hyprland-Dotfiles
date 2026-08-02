@@ -88,6 +88,25 @@ PanelWindow {
         command: ["python3", os.path.expanduser("~/.config/quickshell/scripts/wallpaper_memory.py"), "set", wallpaperWindow.selectedWallpaperPath, iconToSave, barToSave]
     }
 
+    function doApplyWallpaper(mode) {
+        if (selectedWallpaperPath === "") return;
+        if (syncThemeColors) {
+            ThemeManager.colorMode = "wallust";
+            applyWpProc.command = ["bash", "-c",
+                "mkdir -p ~/.cache/quickshell && " +
+                "touch ~/.cache/quickshell/wp_selector_open && " +
+                "echo '" + (manualIconMode ? "true" : "false") + "' > ~/.cache/quickshell/manual_icon_mode && " +
+                "echo '" + manualIconTheme + "' > ~/.cache/quickshell/manual_icon_theme && " +
+                "bash \"$HOME/.config/scripts/wallpaper_picker.sh\" \"" + selectedWallpaperPath + "\""];
+        } else {
+            applyWpProc.command = ["bash", "-c",
+                "bash \"$HOME/.config/scripts/wallpaper_picker.sh\" --wp-only \"" + selectedWallpaperPath + "\""];
+            activeWallpaperPath = selectedWallpaperPath;
+        }
+        applyWpProc.running = false;
+        applyWpProc.running = true;
+    }
+
     ListModel {
         id: wallpaperModel
     }
@@ -777,25 +796,6 @@ PanelWindow {
                         }
                     }
                 }
-
-    function doApplyWallpaper(mode) {
-        if (selectedWallpaperPath === "") return;
-        if (syncThemeColors) {
-            ThemeManager.colorMode = "wallust";
-            applyWpProc.command = ["bash", "-c",
-                "mkdir -p ~/.cache/quickshell && " +
-                "touch ~/.cache/quickshell/wp_selector_open && " +
-                "echo '" + (manualIconMode ? "true" : "false") + "' > ~/.cache/quickshell/manual_icon_mode && " +
-                "echo '" + manualIconTheme + "' > ~/.cache/quickshell/manual_icon_theme && " +
-                "bash \"$HOME/.config/scripts/wallpaper_picker.sh\" \"" + selectedWallpaperPath + "\""];
-        } else {
-            applyWpProc.command = ["bash", "-c",
-                "bash \"$HOME/.config/scripts/wallpaper_picker.sh\" --wp-only \"" + selectedWallpaperPath + "\""];
-            activeWallpaperPath = selectedWallpaperPath;
-        }
-        applyWpProc.running = false;
-        applyWpProc.running = true;
-    }
 
                 // SPLIT APPLY WALLPAPER & CUSTOM MODE DROPDOWN BUTTON
                 Row {
