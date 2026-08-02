@@ -1024,6 +1024,27 @@ ShellRoot {
         }
     }
 
+    function getAppIconPath(appClass) {
+        if (!appClass || appClass === "") return "";
+        var c = appClass.toLowerCase();
+        var iconName = c;
+        if (c.indexOf("kitty") !== -1 || c.indexOf("foot") !== -1 || c.indexOf("alacritty") !== -1 || c.indexOf("terminal") !== -1) iconName = "kitty";
+        else if (c.indexOf("zen") !== -1) iconName = "zen";
+        else if (c.indexOf("firefox") !== -1) iconName = "firefox";
+        else if (c.indexOf("chrome") !== -1) iconName = "google-chrome";
+        else if (c.indexOf("dolphin") !== -1 || c.indexOf("thunar") !== -1 || c.indexOf("nautilus") !== -1 || c.indexOf("files") !== -1) iconName = "system-file-manager";
+        else if (c.indexOf("code") !== -1 || c.indexOf("vscode") !== -1 || c.indexOf("vscodium") !== -1) iconName = "com.visualstudio.code";
+        else if (c.indexOf("discord") !== -1 || c.indexOf("vesktop") !== -1) iconName = "discord";
+        else if (c.indexOf("spotify") !== -1) iconName = "spotify";
+        else if (c.indexOf("vlc") !== -1) iconName = "vlc";
+        else if (c.indexOf("mpv") !== -1) iconName = "mpv";
+        else if (c.indexOf("obs") !== -1) iconName = "com.obsproject.Studio";
+        else if (c.indexOf("steam") !== -1) iconName = "steam";
+
+        var theme = shellRoot.activeIconTheme || "Tela-green-dark";
+        return "file:///home/tarzo/.local/share/icons/" + theme + "/scalable/apps/" + iconName + ".svg";
+    }
+
     function getAppIcon(appClass) {
         if (!appClass || appClass === "") return "󰈈";
         var c = appClass.toLowerCase();
@@ -1040,43 +1061,66 @@ ShellRoot {
 
     Component {
         id: compTitle
-        Row {
-            spacing: 6
+        Item {
+            implicitWidth: visible ? (titleRow.implicitWidth + 4) : 0
+            implicitHeight: 30
             height: 30
             visible: winText.text !== ""
-            Text {
-                text: shellRoot.getAppIcon(shellRoot.activeWinClass)
-                color: shellRoot._mag
-                font.family: shellRoot.globalFontFamily
-                font.pixelSize: shellRoot.iconFontSize
-                verticalAlignment: Text.AlignVCenter
+
+            Row {
+                id: titleRow
+                spacing: 6
                 height: 30
-                visible: CentralConfig.showTitleLogo || ThemeManager.themeName === "marisol"
-            }
-            Text {
-                id: winText
-                text: {
-                    var prefix = ThemeManager.themeName === "silvia" ? ":  " : "";
-                    var parts = [];
-                    if (CentralConfig.showTitleAppName && shellRoot.activeWinClass !== "") {
-                        parts.push(shellRoot.activeWinClass);
+                anchors.verticalCenter: parent.verticalCenter
+
+                // App Logo Image (with Font Icon Fallback)
+                Item {
+                    width: 18; height: 18
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: CentralConfig.showTitleLogo || ThemeManager.themeName === "marisol"
+
+                    Image {
+                        id: titleIconImg
+                        source: shellRoot.getAppIconPath(shellRoot.activeWinClass)
+                        anchors.fill: parent
+                        fillMode: Image.PreserveAspectFit
+                        visible: status === Image.Ready
                     }
-                    if (CentralConfig.showTitleWindowName && shellRoot.activeWinTitle !== "") {
-                        parts.push(shellRoot.activeWinTitle);
+                    Text {
+                        visible: titleIconImg.status !== Image.Ready
+                        text: shellRoot.getAppIcon(shellRoot.activeWinClass)
+                        color: shellRoot._mag
+                        font.family: shellRoot.globalFontFamily
+                        font.pixelSize: shellRoot.iconFontSize
+                        anchors.centerIn: parent
                     }
-                    if (parts.length === 0 && shellRoot.activeWinTitle !== "") {
-                        parts.push(shellRoot.activeWinTitle);
-                    }
-                    var body = parts.join(" — ");
-                    return prefix + body;
                 }
-                color: shellRoot.contrastFg(shellRoot._sur, shellRoot._fg)
-                font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize
-                font.bold: true
-                elide: Text.ElideRight
-                width: text !== "" ? Math.min(shellRoot.maxDynamicModuleWidth, implicitWidth) : 0
-                clip: true
-                verticalAlignment: Text.AlignVCenter; height: 30
+
+                Text {
+                    id: winText
+                    text: {
+                        var prefix = ThemeManager.themeName === "silvia" ? ":  " : "";
+                        var parts = [];
+                        if (CentralConfig.showTitleAppName && shellRoot.activeWinClass !== "") {
+                            parts.push(shellRoot.activeWinClass);
+                        }
+                        if (CentralConfig.showTitleWindowName && shellRoot.activeWinTitle !== "") {
+                            parts.push(shellRoot.activeWinTitle);
+                        }
+                        if (parts.length === 0 && shellRoot.activeWinTitle !== "") {
+                            parts.push(shellRoot.activeWinTitle);
+                        }
+                        var body = parts.join(" — ");
+                        return prefix + body;
+                    }
+                    color: shellRoot.contrastFg(shellRoot._sur, shellRoot._fg)
+                    font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize
+                    font.bold: true
+                    elide: Text.ElideRight
+                    width: text !== "" ? Math.min(shellRoot.maxDynamicModuleWidth, implicitWidth) : 0
+                    clip: true
+                    verticalAlignment: Text.AlignVCenter; height: 30
+                }
             }
         }
     }
@@ -1572,26 +1616,10 @@ ShellRoot {
         }
     }
 
-    Timer {
-        id: eqTimer
-        interval: 100
-        running: shellRoot.songValue !== "" && shellRoot.songValue !== "No media playing" && shellRoot.songValue !== "No player found"
-        repeat: true
-        property var eqHeights: [10, 16, 8, 18]
-        onTriggered: {
-            eqHeights = [
-                Math.floor(Math.random() * 14) + 4,
-                Math.floor(Math.random() * 18) + 4,
-                Math.floor(Math.random() * 12) + 4,
-                Math.floor(Math.random() * 20) + 4
-            ];
-        }
-    }
-
     Component {
         id: compSong
         Item {
-            implicitWidth: visible ? (songRow.implicitWidth + 4) : 0
+            implicitWidth: visible ? (songRow.implicitWidth + 8) : 0
             implicitHeight: 30
             height: 30
             visible: shellRoot.songValue !== "" || (CentralConfig.editMode || BarModules.editMode)
@@ -1599,37 +1627,99 @@ ShellRoot {
 
             Row {
                 id: songRow
-                spacing: 6
+                spacing: 8
                 height: 30
                 anchors.verticalCenter: parent.verticalCenter
 
-                // Dynamic Equalizer Animated Bars
-                Row {
-                    visible: CentralConfig.showSongEqualizer
-                    spacing: 2
+                // 1. Player App Logo / Album Cover Art
+                Item {
+                    width: 20; height: 20
                     anchors.verticalCenter: parent.verticalCenter
-                    Repeater {
-                        model: 4
-                        delegate: Rectangle {
-                            width: 3
-                            height: eqTimer.running ? eqTimer.eqHeights[index] : 4
-                            radius: 1.5
-                            color: shellRoot._cyn
-                            anchors.bottom: parent.bottom
-                            Behavior on height { NumberAnimation { duration: 90; easing.type: Easing.OutCubic } }
+                    visible: CentralConfig.showSongCoverArt
+
+                    Image {
+                        id: coverArtImg
+                        visible: shellRoot.artUrl !== ""
+                        source: shellRoot.artUrl
+                        anchors.fill: parent
+                        fillMode: Image.PreserveAspectCrop
+                    }
+                    Image {
+                        id: playerIconImg
+                        visible: !coverArtImg.visible && status === Image.Ready
+                        source: shellRoot.getAppIconPath(shellRoot.selectedPlayer !== "" ? shellRoot.selectedPlayer : "spotify")
+                        anchors.fill: parent
+                        fillMode: Image.PreserveAspectFit
+                    }
+                    Text {
+                        visible: !coverArtImg.visible && playerIconImg.status !== Image.Ready
+                        text: "󰎈"
+                        color: shellRoot._cyn
+                        font.family: shellRoot.globalFontFamily
+                        font.pixelSize: shellRoot.iconFontSize
+                        anchors.centerIn: parent
+                    }
+                }
+
+                // 2. Interactive Playback Controls (Prev, Play/Pause, Next)
+                Row {
+                    spacing: 6
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    Text {
+                        text: "󰒮" // Prev
+                        color: prevMouse.containsMouse ? Qt.darker(shellRoot._cyn, 1.25) : shellRoot._cyn
+                        font.family: shellRoot.globalFontFamily
+                        font.pixelSize: shellRoot.globalFontSize + 1
+                        verticalAlignment: Text.AlignVCenter
+                        height: 30
+                        MouseArea {
+                            id: prevMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: prevProc.running = true
+                        }
+                    }
+
+                    Text {
+                        text: shellRoot.isPlaying ? "󰏤" : "󰐊" // Play/Pause
+                        color: playMouse.containsMouse ? Qt.darker(shellRoot._brightGrn, 1.25) : shellRoot._brightGrn
+                        font.family: shellRoot.globalFontFamily
+                        font.pixelSize: shellRoot.globalFontSize + 2
+                        font.bold: true
+                        verticalAlignment: Text.AlignVCenter
+                        height: 30
+                        MouseArea {
+                            id: playMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                shellRoot.isPlaying = !shellRoot.isPlaying;
+                                playProc.running = true;
+                            }
+                        }
+                    }
+
+                    Text {
+                        text: "󰒭" // Next
+                        color: nextMouse.containsMouse ? Qt.darker(shellRoot._cyn, 1.25) : shellRoot._cyn
+                        font.family: shellRoot.globalFontFamily
+                        font.pixelSize: shellRoot.globalFontSize + 1
+                        verticalAlignment: Text.AlignVCenter
+                        height: 30
+                        MouseArea {
+                            id: nextMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: nextProc.running = true
                         }
                     }
                 }
 
-                // Album Cover Art (if available)
-                Image {
-                    visible: CentralConfig.showSongCoverArt && shellRoot.artUrl !== ""
-                    source: shellRoot.artUrl
-                    width: 20; height: 20
-                    fillMode: Image.PreserveAspectCrop
-                    anchors.verticalCenter: parent.verticalCenter
-                }
-
+                // 3. Dynamic Responsive Song Title & Artist Text
                 Text {
                     text: {
                         if (shellRoot.songValue === "") return "[ EDIT: Song Title ]";
@@ -1639,33 +1729,30 @@ ShellRoot {
                         return shellRoot.songValue;
                     }
                     color: shellRoot.contrastFg(shellRoot._sur, shellRoot._fg)
-                    font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize
+                    font.family: shellRoot.globalFontFamily
+                    font.pixelSize: shellRoot.globalFontSize
                     font.bold: true
-                    verticalAlignment: Text.AlignVCenter; height: 30
+                    verticalAlignment: Text.AlignVCenter
+                    height: 30
                     elide: Text.ElideRight
                     width: text !== "" ? Math.min(shellRoot.maxDynamicModuleWidth, implicitWidth) : 0
                     clip: true
-                }
-            }
 
-            MouseArea {
-                anchors.fill: parent
-                acceptedButtons: Qt.LeftButton | Qt.RightButton
-                cursorShape: Qt.PointingHandCursor
-                onClicked: (mouse) => {
-                    if (mouse.button === Qt.RightButton && shellRoot.activePlayersList.length > 1) {
-                        var idx = shellRoot.activePlayersList.indexOf(shellRoot.selectedPlayer);
-                        var nextIdx = (idx + 1) % shellRoot.activePlayersList.length;
-                        shellRoot.selectedPlayer = shellRoot.activePlayersList[nextIdx];
-                        shellRoot.refreshMediaPlayer();
-                    } else {
-                        shellRoot.volumePanelVisible = false;
-                        shellRoot.networkPanelVisible = false;
-                        shellRoot.bluetoothPanelVisible = false;
-                        shellRoot.settingsVisible = false;
-                        shellRoot.powerMenuVisible = false;
-                        shellRoot.themeSelectorVisible = false;
-                        shellRoot.mediaPlayerVisible = !shellRoot.mediaPlayerVisible;
+                    MouseArea {
+                        anchors.fill: parent
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: (mouse) => {
+                            if (mouse.button === Qt.RightButton && shellRoot.activePlayersList.length > 1) {
+                                var idx = shellRoot.activePlayersList.indexOf(shellRoot.selectedPlayer);
+                                var nextIdx = (idx + 1) % shellRoot.activePlayersList.length;
+                                shellRoot.selectedPlayer = shellRoot.activePlayersList[nextIdx];
+                                shellRoot.refreshMediaPlayer();
+                            } else {
+                                shellRoot.dismissPanels();
+                                shellRoot.mediaPlayerVisible = !shellRoot.mediaPlayerVisible;
+                            }
+                        }
                     }
                 }
             }

@@ -855,8 +855,7 @@ PanelWindow {
                                             { key: "workspaces", name: "Workspaces Bar", icon: "󰮯" },
                                             { key: "title", name: "Active Window Title", icon: "󰈈" },
                                             { key: "pinnedApps", name: "Pinned Apps Module", icon: "󰅀" },
-                                            { key: "media", name: "Media Controls", icon: "󰎈" },
-                                            { key: "song", name: "Song Title Card", icon: "󰓇" },
+                                            { key: "song", name: "Media Player & Song Title", icon: "󰎈" },
                                             { key: "updates", name: "Updates Badge", icon: "󰚰" },
                                             { key: "disk", name: "Disk Usage Badge", icon: "󰋊" },
                                             { key: "cpu", name: "CPU Load Badge", icon: "󰍛" },
@@ -1021,16 +1020,6 @@ PanelWindow {
                                                         Row {
                                                             visible: modelData.key === "song" || modelData.key === "media"
                                                             spacing: 12
-
-                                                            Row {
-                                                                spacing: 4
-                                                                Rectangle {
-                                                                    width: 14; height: 14; radius: 3; color: CentralConfig.showSongEqualizer ? "#f1ca93" : "#2a283e"; border.color: "#f1ca93"; border.width: 1
-                                                                    Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showSongEqualizer; color: "#181628"; font.pixelSize: 9; font.bold: true }
-                                                                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showSongEqualizer = !CentralConfig.showSongEqualizer }
-                                                                }
-                                                                Text { text: "Equalizer Bars"; color: "#e0def4"; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
-                                                            }
 
                                                             Row {
                                                                 spacing: 4
