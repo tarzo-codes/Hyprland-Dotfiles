@@ -89,6 +89,18 @@ PanelWindow {
         command: ["bash", "-c", "hyprctl keyword animation \"" + animCmd + "\" 2>/dev/null || true"]
     }
 
+    Process {
+        id: setBorderAnimSpeedProc
+        property real speedVal: CentralConfig.borderAnimSpeed
+        command: ["bash", "-c", "SPEED_INT=$(python3 -c 'print(max(1, int(" + speedVal + " * 10)))'); hyprctl keyword animation \"borderangle, 1, ${SPEED_INT}, linear, loop\" 2>/dev/null || true"]
+    }
+
+    function applyBorderAnimSpeed() {
+        setBorderAnimSpeedProc.speedVal = CentralConfig.borderAnimSpeed;
+        setBorderAnimSpeedProc.running = false;
+        setBorderAnimSpeedProc.running = true;
+    }
+
     Shortcut {
         sequence: "Escape"
         onActivated: {
@@ -753,13 +765,17 @@ PanelWindow {
                                     Slider {
                                         width: parent.width; from: 0.1; to: 60.0; stepSize: 0.5
                                         value: CentralConfig.borderAnimSpeed
-                                        onMoved: { CentralConfig.borderAnimSpeed = value; riceWindow.markChanged(); }
+                                        onMoved: {
+                                            CentralConfig.borderAnimSpeed = value;
+                                            riceWindow.applyBorderAnimSpeed();
+                                            riceWindow.markChanged();
+                                        }
                                     }
                                 }
 
                                 Rectangle { width: parent.width; height: 1; color: "#2a283e" }
 
-                                Text { text: "🔤  Centralized System Typography & Font Size"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true }
+                                Text { text: "🔤  Global Fonts"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true }
 
                                 // Font Family Selection
                                 Column {
