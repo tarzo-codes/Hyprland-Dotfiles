@@ -68,6 +68,10 @@ ShellRoot {
             shellRoot.dismissPanels();
             shellRoot.riceEditorVisible = next;
         }
+        function open() {
+            shellRoot.dismissPanels();
+            shellRoot.riceEditorVisible = true;
+        }
     }
 
     // IPC — Task Switcher

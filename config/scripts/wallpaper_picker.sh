@@ -478,10 +478,15 @@ set_wallpaper() {
 # Used for dark/light/auto mode toggle
 reapply_colors() {
   local image
-  image=$(cat "$HOME/.cache/quickshell/current_wallpaper" 2>/dev/null)
+  image=$(cat "$HOME/.cache/quickshell/current_wallpaper" 2>/dev/null || echo "")
+  if [ -f "$image" ] && [ -f "$(cat "$image" 2>/dev/null || echo "")" ]; then
+    image=$(cat "$image" 2>/dev/null || echo "")
+  fi
   if [ -z "$image" ] || [ ! -f "$image" ]; then
-    notify-send -u critical "Theme" "No cached wallpaper found."
-    exit 1
+    image=$(cat "$HOME/.cache/wallust/current_wallpaper" 2>/dev/null || echo "")
+  fi
+  if [ -z "$image" ] || [ ! -f "$image" ]; then
+    image=$(find "$HOME/Pictures/Wallpapers" "$HOME/wallpaper" "$HOME/anime_wallapaper" -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.jpeg" -o -iname "*.webp" \) 2>/dev/null | head -n 1)
   fi
 
   debug "Reapplying colors from: $image"
