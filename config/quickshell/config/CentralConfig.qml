@@ -190,7 +190,7 @@ Item {
 
     function applyPreset(presetType) {
         if (presetType === "emilia_default" || presetType === "default") {
-            leftModules = "launcher,cpu,ram,disk,media";
+            leftModules = "launcher,cpu,ram,disk";
             centerModules = "workspaces";
             rightModules = "song,network,volume,updates,clock,tray,power";
         } else if (presetType === "minimal") {
@@ -261,5 +261,9 @@ Item {
         leftModules = lefts.join(",");
         centerModules = centers.join(",");
         rightModules = rights.join(",");
+    }
+
+    Component.onCompleted: {
+        deduplicateModules();
     }
 }

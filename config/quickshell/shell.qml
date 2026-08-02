@@ -769,8 +769,7 @@ ShellRoot {
                     {type: "launcher"},
                     {type: "capsule", modules: ["cpu"]},
                     {type: "capsule", modules: ["memory"]},
-                    {type: "capsule", modules: ["filesystem"]},
-                    {type: "capsule", modules: ["mplayer"]}
+                    {type: "capsule", modules: ["filesystem"]}
                 ],
                 center: [
                     {type: "capsule", modules: ["workspaces"]}
