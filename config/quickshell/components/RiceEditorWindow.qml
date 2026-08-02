@@ -46,6 +46,7 @@ PanelWindow {
     property int pendingAppletX: CentralConfig.appletCustomX
     property int pendingAppletY: CentralConfig.appletCustomY
     property string pendingThemeName: CentralConfig.themeName
+    property string pendingModeChoice: CentralConfig.modeChoice
     property string pendingAccentHex: CentralConfig.customAccentColor !== "" ? CentralConfig.customAccentColor : (rootBar ? rootBar._cyn : "#9bced7")
     property bool pendingGradientAnimated: CentralConfig.gradientAnimated
     property bool pendingAutoHide: CentralConfig.autoHideBar
@@ -139,6 +140,8 @@ PanelWindow {
         CentralConfig.appletCustomY = pendingAppletY;
         CentralConfig.themeName = pendingThemeName;
         ThemeManager.themeName = pendingThemeName;
+        CentralConfig.modeChoice = pendingModeChoice;
+        ThemeManager.modeChoice = pendingModeChoice;
         CentralConfig.customAccentColor = pendingAccentHex;
         CentralConfig.gradientAnimated = pendingGradientAnimated;
         CentralConfig.autoHideBar = pendingAutoHide;
@@ -246,7 +249,7 @@ PanelWindow {
 
                             Text {
                                 anchors.centerIn: parent
-                                text: "!"
+                                text: "💀"
                                 font.pixelSize: 32
                             }
                         }
@@ -541,7 +544,7 @@ PanelWindow {
                             Column {
                                 width: parent.width; spacing: 14; visible: activeTab === 0
 
-                                Text { text: "Active Bar / Theme Selection (18 Bars)"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true }
+                                Text { text: "💻  Active Bar / Theme Selection (18 Bars)"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true }
 
                                 // FIXED 18-BAR GRID LAYOUT (Explicit widths prevent text overlapping)
                                 Grid {
@@ -583,9 +586,104 @@ PanelWindow {
                                     }
                                 }
 
+                                 Rectangle { width: parent.width; height: 1; color: "#2a283e" }
+
+                                // Dark / Light / Auto Mode Segmented Toggle
+                                Column {
+                                    width: parent.width; spacing: 8
+
+                                    Text { text: "🌓  Color Mode (Dark / Light / Auto Schedule)"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true }
+
+                                    Row {
+                                        spacing: 8
+                                        width: parent.width
+
+                                        // Dark Button
+                                        Rectangle {
+                                            width: Math.floor((formColumn.width - 40) / 3)
+                                            height: 32; radius: 6
+                                            color: pendingModeChoice === "dark" ? (rootBar ? rootBar._cyn : "#9bced7") : (mDarkMouse.containsMouse ? "#2a283e" : "#1e1e2e")
+                                            border.color: pendingModeChoice === "dark" ? "#ffffff" : "#2a283e"
+                                            border.width: pendingModeChoice === "dark" ? 1.5 : 1
+
+                                            Row {
+                                                anchors.centerIn: parent; spacing: 6
+                                                Text { text: "🌙"; font.pixelSize: 11 }
+                                                Text {
+                                                    text: "Dark"
+                                                    color: pendingModeChoice === "dark" ? "#181628" : "#e0def4"
+                                                    font.pixelSize: 10; font.bold: pendingModeChoice === "dark"
+                                                }
+                                            }
+                                            MouseArea {
+                                                id: mDarkMouse
+                                                anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                                                onClicked: {
+                                                    pendingModeChoice = "dark";
+                                                    riceWindow.markChanged("Color Mode set to Dark");
+                                                }
+                                            }
+                                        }
+
+                                        // Light Button
+                                        Rectangle {
+                                            width: Math.floor((formColumn.width - 40) / 3)
+                                            height: 32; radius: 6
+                                            color: pendingModeChoice === "light" ? (rootBar ? rootBar._cyn : "#9bced7") : (mLightMouse.containsMouse ? "#2a283e" : "#1e1e2e")
+                                            border.color: pendingModeChoice === "light" ? "#ffffff" : "#2a283e"
+                                            border.width: pendingModeChoice === "light" ? 1.5 : 1
+
+                                            Row {
+                                                anchors.centerIn: parent; spacing: 6
+                                                Text { text: "☀️"; font.pixelSize: 11 }
+                                                Text {
+                                                    text: "Light"
+                                                    color: pendingModeChoice === "light" ? "#181628" : "#e0def4"
+                                                    font.pixelSize: 10; font.bold: pendingModeChoice === "light"
+                                                }
+                                            }
+                                            MouseArea {
+                                                id: mLightMouse
+                                                anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                                                onClicked: {
+                                                    pendingModeChoice = "light";
+                                                    riceWindow.markChanged("Color Mode set to Light");
+                                                }
+                                            }
+                                        }
+
+                                        // Auto Button
+                                        Rectangle {
+                                            width: Math.floor((formColumn.width - 40) / 3)
+                                            height: 32; radius: 6
+                                            color: pendingModeChoice === "auto" ? (rootBar ? rootBar._cyn : "#9bced7") : (mAutoMouse.containsMouse ? "#2a283e" : "#1e1e2e")
+                                            border.color: pendingModeChoice === "auto" ? "#ffffff" : "#2a283e"
+                                            border.width: pendingModeChoice === "auto" ? 1.5 : 1
+
+                                            Row {
+                                                anchors.centerIn: parent; spacing: 6
+                                                Text { text: "🔄"; font.pixelSize: 11 }
+                                                Text {
+                                                    text: "Auto"
+                                                    color: pendingModeChoice === "auto" ? "#181628" : "#e0def4"
+                                                    font.pixelSize: 10; font.bold: pendingModeChoice === "auto"
+                                                }
+                                            }
+                                            MouseArea {
+                                                id: mAutoMouse
+                                                anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                                                onClicked: {
+                                                    pendingModeChoice = "auto";
+                                                    riceWindow.markChanged("Color Mode set to Auto (Schedule)");
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
                                 Rectangle { width: parent.width; height: 1; color: "#2a283e" }
 
-                                Text { text: "Bar Dimensions & Shape (Sliders)"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true }
+                                Text { text: "📐  Bar Dimensions & Shape (Sliders)"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true }
 
                                 // Corner Radius Slider
                                 Column {
@@ -775,7 +873,7 @@ PanelWindow {
 
                                 Rectangle { width: parent.width; height: 1; color: "#2a283e" }
 
-                                Text { text: "Global Fonts"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true }
+                                Text { text: "🔤  Global Fonts"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true }
 
                                 // Font Family Selection
                                 Column {
@@ -832,7 +930,7 @@ PanelWindow {
 
                                 Rectangle { width: parent.width; height: 1; color: "#2a283e" }
 
-                                Text { text: "Hardware Defaults Reboot Lock"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true }
+                                Text { text: "🔒  Hardware Defaults Reboot Lock"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true }
 
                                 Row {
                                     width: parent.width
@@ -853,7 +951,7 @@ PanelWindow {
                                     width: parent.width; spacing: 10
                                     Rectangle {
                                         width: 250; height: 28; radius: 6; color: "#312a4a"; border.color: "#f1ca93"; border.width: 1
-                                        Text { anchors.centerIn: parent; text: "Lock Current Vol/Brightness as Boot Default"; color: "#f1ca93"; font.pixelSize: 9; font.bold: true }
+                                        Text { anchors.centerIn: parent; text: "💾 Lock Current Vol/Brightness as Boot Default"; color: "#f1ca93"; font.pixelSize: 9; font.bold: true }
                                         MouseArea {
                                             anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                                             onClicked: {
@@ -953,7 +1051,7 @@ PanelWindow {
                                         Item { Layout.fillWidth: true }
                                         Rectangle {
                                             width: 120; height: 22; radius: 4; color: "#ea6f91"
-                                            Text { anchors.centerIn: parent; text: "Clean Duplicates"; color: "#ffffff"; font.pixelSize: 9; font.bold: true }
+                                            Text { anchors.centerIn: parent; text: "🧹 Clean Duplicates"; color: "#ffffff"; font.pixelSize: 9; font.bold: true }
                                             MouseArea {
                                                 anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                                                 onClicked: {
@@ -973,36 +1071,23 @@ PanelWindow {
                                     // Bar Selection Row for Dual-Bar Themes (like Melissa)
                                     Row {
                                         width: parent.width
+                                        visible: ThemeManager.themeName === "melissa" || ThemeManager.themeName.indexOf("double") !== -1
                                         spacing: 8
 
-                                        Text { text: "Bar Position:"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true; anchors.verticalCenter: parent.verticalCenter }
+                                        Text { text: "Target Bar:"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true; anchors.verticalCenter: parent.verticalCenter }
 
                                         Rectangle {
-                                            width: 80; height: 26; radius: 6
-                                            color: (CentralConfig.activeBarTarget === "top" && CentralConfig.barPosition === "top") ? "#9bced7" : "#2a283e"
-                                            Text { anchors.centerIn: parent; text: "Top"; color: (CentralConfig.activeBarTarget === "top" && CentralConfig.barPosition === "top") ? "#181628" : "#e0def4"; font.pixelSize: 9; font.bold: true }
-                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { CentralConfig.activeBarTarget = "top"; CentralConfig.barPosition = "top"; } }
-                                        }
-
-                                        Rectangle {
-                                            width: 90; height: 26; radius: 6
-                                            color: (CentralConfig.activeBarTarget === "bottom" && CentralConfig.barPosition === "bottom") ? "#c3a5e6" : "#2a283e"
-                                            Text { anchors.centerIn: parent; text: "Bottom"; color: (CentralConfig.activeBarTarget === "bottom" && CentralConfig.barPosition === "bottom") ? "#181628" : "#e0def4"; font.pixelSize: 9; font.bold: true }
-                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { CentralConfig.activeBarTarget = "bottom"; CentralConfig.barPosition = "bottom"; } }
-                                        }
-
-                                        Rectangle {
-                                            width: 105; height: 26; radius: 6
-                                            color: CentralConfig.barPosition === "left" ? "#a6e3a1" : "#2a283e"
-                                            Text { anchors.centerIn: parent; text: "Left Vertical"; color: CentralConfig.barPosition === "left" ? "#181628" : "#e0def4"; font.pixelSize: 9; font.bold: true }
-                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.barPosition = "left" }
+                                            width: 100; height: 26; radius: 6
+                                            color: CentralConfig.activeBarTarget === "top" ? "#9bced7" : "#2a283e"
+                                            Text { anchors.centerIn: parent; text: "🔝 Top Bar"; color: CentralConfig.activeBarTarget === "top" ? "#181628" : "#e0def4"; font.pixelSize: 9; font.bold: true }
+                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.activeBarTarget = "top" }
                                         }
 
                                         Rectangle {
                                             width: 110; height: 26; radius: 6
-                                            color: CentralConfig.barPosition === "right" ? "#f9e2af" : "#2a283e"
-                                            Text { anchors.centerIn: parent; text: "Right Vertical"; color: CentralConfig.barPosition === "right" ? "#181628" : "#e0def4"; font.pixelSize: 9; font.bold: true }
-                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.barPosition = "right" }
+                                            color: CentralConfig.activeBarTarget === "bottom" ? "#c3a5e6" : "#2a283e"
+                                            Text { anchors.centerIn: parent; text: "⬇️ Bottom Bar"; color: CentralConfig.activeBarTarget === "bottom" ? "#181628" : "#e0def4"; font.pixelSize: 9; font.bold: true }
+                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.activeBarTarget = "bottom" }
                                         }
                                     }
 
@@ -1039,7 +1124,7 @@ PanelWindow {
                                         // Save Custom Preset Button
                                         Rectangle {
                                             width: 120; height: 26; radius: 6; color: "#312a4a"; border.color: "#b4befe"; border.width: 1
-                                            Text { anchors.centerIn: parent; text: "Save Custom Preset"; color: "#b4befe"; font.pixelSize: 9; font.bold: true }
+                                            Text { anchors.centerIn: parent; text: "💾 Save Custom Preset"; color: "#b4befe"; font.pixelSize: 9; font.bold: true }
                                             MouseArea {
                                                 anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                                                 onClicked: {
@@ -1150,7 +1235,6 @@ PanelWindow {
                                                             anchors.verticalCenter: parent.verticalCenter
 
                                                             property string currentZone: CentralConfig.getZone(modelData.key)
-                                                            property var allowedZones: CentralConfig.getThemeZones(pendingThemeName, CentralConfig.activeBarTarget)
 
                                                             // Re-order Left Button (◄)
                                                             Rectangle {
@@ -1174,36 +1258,33 @@ PanelWindow {
 
                                                             // Left Zone Button
                                                             Rectangle {
-                                                                visible: zoneRow.allowedZones.indexOf("left") !== -1
-                                                                width: 40; height: 22; radius: 4
-                                                                color: zoneRow.currentZone === "left" ? "#9bced7" : "#2a283e"
-                                                                Text { anchors.centerIn: parent; text: "Left"; color: zoneRow.currentZone === "left" ? "#181628" : "#6e6a86"; font.pixelSize: 9; font.bold: true }
+                                                                width: 44; height: 22; radius: 4
+                                                                color: parent.currentZone === "left" ? "#9bced7" : "#2a283e"
+                                                                Text { anchors.centerIn: parent; text: "Left"; color: parent.parent.currentZone === "left" ? "#181628" : "#6e6a86"; font.pixelSize: 9; font.bold: true }
                                                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: riceWindow.requestZoneChange(modelData.key, modelData.name, "left") }
                                                             }
 
                                                             // Center Zone Button
                                                             Rectangle {
-                                                                visible: zoneRow.allowedZones.indexOf("center") !== -1
                                                                 width: 50; height: 22; radius: 4
-                                                                color: zoneRow.currentZone === "center" ? "#f1ca93" : "#2a283e"
-                                                                Text { anchors.centerIn: parent; text: "Center"; color: zoneRow.currentZone === "center" ? "#181628" : "#6e6a86"; font.pixelSize: 9; font.bold: true }
+                                                                color: parent.currentZone === "center" ? "#f1ca93" : "#2a283e"
+                                                                Text { anchors.centerIn: parent; text: "Center"; color: parent.parent.currentZone === "center" ? "#181628" : "#6e6a86"; font.pixelSize: 9; font.bold: true }
                                                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: riceWindow.requestZoneChange(modelData.key, modelData.name, "center") }
                                                             }
 
                                                             // Right Zone Button
                                                             Rectangle {
-                                                                visible: zoneRow.allowedZones.indexOf("right") !== -1
                                                                 width: 44; height: 22; radius: 4
-                                                                color: zoneRow.currentZone === "right" ? "#c3a5e6" : "#2a283e"
-                                                                Text { anchors.centerIn: parent; text: "Right"; color: zoneRow.currentZone === "right" ? "#181628" : "#6e6a86"; font.pixelSize: 9; font.bold: true }
+                                                                color: parent.currentZone === "right" ? "#c3a5e6" : "#2a283e"
+                                                                Text { anchors.centerIn: parent; text: "Right"; color: parent.parent.currentZone === "right" ? "#181628" : "#6e6a86"; font.pixelSize: 9; font.bold: true }
                                                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: riceWindow.requestZoneChange(modelData.key, modelData.name, "right") }
                                                             }
 
                                                             // Hidden Button
                                                             Rectangle {
                                                                 width: 48; height: 22; radius: 4
-                                                                color: zoneRow.currentZone === "hidden" ? "#ea6f91" : "#2a283e"
-                                                                Text { anchors.centerIn: parent; text: "Hidden"; color: zoneRow.currentZone === "hidden" ? "#ffffff" : "#6e6a86"; font.pixelSize: 9; font.bold: true }
+                                                                color: parent.currentZone === "hidden" ? "#ea6f91" : "#2a283e"
+                                                                Text { anchors.centerIn: parent; text: "Hidden"; color: parent.parent.currentZone === "hidden" ? "#ffffff" : "#6e6a86"; font.pixelSize: 9; font.bold: true }
                                                                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { ensureEditMode(); CentralConfig.setZone(modelData.key, "hidden"); riceWindow.showStatus("Set " + modelData.key + " -> HIDDEN"); } }
                                                             }
                                                         }

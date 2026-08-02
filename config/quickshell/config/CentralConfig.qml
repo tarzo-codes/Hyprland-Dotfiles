@@ -19,13 +19,12 @@ Item {
         // Theme & Bar Basics
         property string themeName: "cristina"
         property string colorMode: "static"
+        property string modeChoice: "dark" // "dark", "light", "auto"
         property int    barHeight: 40
         property real   barWidthPercent: 0.96
         property int    barRadius: 8
         property string globalFontFamily: "JetBrainsMono Nerd Font"
         property int    globalFontSize: 11
-        property string barPosition: "top" // "top", "bottom", "left", "right"
-        readonly property bool isVerticalBar: barPosition === "left" || barPosition === "right"
         property bool   autoHideBar: false
         property string selectedEditModuleKey: ""
         property string customAccentColor: ""
@@ -89,6 +88,7 @@ Item {
     property alias bottomBarModulesRight: cfgStore.bottomBarModulesRight
     property alias themeName:         cfgStore.themeName
     property alias colorMode:         cfgStore.colorMode
+    property alias modeChoice:        cfgStore.modeChoice
     property alias barHeight:         cfgStore.barHeight
     property alias barWidthPercent:   cfgStore.barWidthPercent
     property alias barRadius:         cfgStore.barRadius
@@ -97,6 +97,13 @@ Item {
     property alias autoHideBar:       cfgStore.autoHideBar
     property alias customAccentColor: cfgStore.customAccentColor
     property alias gradientAnimated:  cfgStore.gradientAnimated
+
+    readonly property bool isLightMode: {
+        if (modeChoice === "light") return true;
+        if (modeChoice === "dark") return false;
+        var h = (new Date()).getHours();
+        return h >= 6 && h < 18;
+    }
 
     property alias appletLocation:    cfgStore.appletLocation
     property alias appletScale:       cfgStore.appletScale
@@ -142,17 +149,6 @@ Item {
         centerModules = centers.join(",");
         rightModules = rights.join(",");
         mode = "custom";
-    }
-
-    function getThemeZones(theme, target) {
-        if (theme === "cristina") {
-            return ["left", "right"]; // cristina natively has no center zone!
-        }
-        if (theme === "melissa") {
-            if (target === "bottom") return ["left"]; // melissa bottom bar only has left zone!
-            return ["left", "center", "right"];
-        }
-        return ["left", "center", "right"];
     }
 
     function getZone(moduleKey) {

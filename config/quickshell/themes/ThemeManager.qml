@@ -6,6 +6,8 @@ pragma Singleton
 import QtQuick
 import QtCore
 
+import "../config"
+
 Item {
     id: root
 
@@ -26,8 +28,6 @@ Item {
         property real   barWidthPercent: 0.96
         property int    barRadius: 8
         property int    globalFontSize: 11
-        property bool   isLightMode: false
-        property string modeChoice: "dark"
         property bool   autoHideBar: false
         property string appColorMode: "theme"
         property bool   topBarEnabled: true
@@ -47,8 +47,8 @@ Item {
     property alias barWidthPercent:   stateStore.barWidthPercent
     property alias barRadius:         stateStore.barRadius
     property alias globalFontSize:    stateStore.globalFontSize
-    property alias isLightMode:       stateStore.isLightMode
-    property alias modeChoice:       stateStore.modeChoice
+    readonly property bool isLightMode: CentralConfig.isLightMode
+    property string modeChoice: CentralConfig.modeChoice
     property alias autoHideBar:       stateStore.autoHideBar
     property alias appColorMode:     stateStore.appColorMode
     property alias topBarEnabled:     stateStore.topBarEnabled
