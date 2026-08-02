@@ -2310,7 +2310,7 @@ ShellRoot {
                             anchors.left: topCenterZoneRow.right
                             anchors.leftMargin: 12
                             anchors.verticalCenter: parent.verticalCenter
-                            layoutDirection: Qt.RightToLeft
+                            layoutDirection: Qt.LeftToRight
                             spacing: 6
                             height: parent.height
                             clip: true
@@ -3325,7 +3325,7 @@ ShellRoot {
                             anchors.left: bottomCenterZoneRow.right
                             anchors.leftMargin: 12
                             anchors.verticalCenter: parent.verticalCenter
-                            layoutDirection: Qt.RightToLeft
+                            layoutDirection: Qt.LeftToRight
                             spacing: 6
                             height: parent.height
                             clip: true

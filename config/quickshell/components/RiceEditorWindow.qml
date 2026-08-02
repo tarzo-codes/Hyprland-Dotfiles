@@ -973,23 +973,36 @@ PanelWindow {
                                     // Bar Selection Row for Dual-Bar Themes (like Melissa)
                                     Row {
                                         width: parent.width
-                                        visible: ThemeManager.themeName === "melissa" || ThemeManager.themeName.indexOf("double") !== -1
                                         spacing: 8
 
-                                        Text { text: "Target Bar:"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true; anchors.verticalCenter: parent.verticalCenter }
+                                        Text { text: "📐 Bar Position:"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true; anchors.verticalCenter: parent.verticalCenter }
 
                                         Rectangle {
-                                            width: 100; height: 26; radius: 6
-                                            color: CentralConfig.activeBarTarget === "top" ? "#9bced7" : "#2a283e"
-                                            Text { anchors.centerIn: parent; text: "🔝 Top Bar"; color: CentralConfig.activeBarTarget === "top" ? "#181628" : "#e0def4"; font.pixelSize: 9; font.bold: true }
-                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.activeBarTarget = "top" }
+                                            width: 80; height: 26; radius: 6
+                                            color: (CentralConfig.activeBarTarget === "top" && CentralConfig.barPosition === "top") ? "#9bced7" : "#2a283e"
+                                            Text { anchors.centerIn: parent; text: "🔝 Top"; color: (CentralConfig.activeBarTarget === "top" && CentralConfig.barPosition === "top") ? "#181628" : "#e0def4"; font.pixelSize: 9; font.bold: true }
+                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { CentralConfig.activeBarTarget = "top"; CentralConfig.barPosition = "top"; } }
+                                        }
+
+                                        Rectangle {
+                                            width: 90; height: 26; radius: 6
+                                            color: (CentralConfig.activeBarTarget === "bottom" && CentralConfig.barPosition === "bottom") ? "#c3a5e6" : "#2a283e"
+                                            Text { anchors.centerIn: parent; text: "⬇️ Bottom"; color: (CentralConfig.activeBarTarget === "bottom" && CentralConfig.barPosition === "bottom") ? "#181628" : "#e0def4"; font.pixelSize: 9; font.bold: true }
+                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { CentralConfig.activeBarTarget = "bottom"; CentralConfig.barPosition = "bottom"; } }
+                                        }
+
+                                        Rectangle {
+                                            width: 105; height: 26; radius: 6
+                                            color: CentralConfig.barPosition === "left" ? "#a6e3a1" : "#2a283e"
+                                            Text { anchors.centerIn: parent; text: "⬅️ Left Vertical"; color: CentralConfig.barPosition === "left" ? "#181628" : "#e0def4"; font.pixelSize: 9; font.bold: true }
+                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.barPosition = "left" }
                                         }
 
                                         Rectangle {
                                             width: 110; height: 26; radius: 6
-                                            color: CentralConfig.activeBarTarget === "bottom" ? "#c3a5e6" : "#2a283e"
-                                            Text { anchors.centerIn: parent; text: "⬇️ Bottom Bar"; color: CentralConfig.activeBarTarget === "bottom" ? "#181628" : "#e0def4"; font.pixelSize: 9; font.bold: true }
-                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.activeBarTarget = "bottom" }
+                                            color: CentralConfig.barPosition === "right" ? "#f9e2af" : "#2a283e"
+                                            Text { anchors.centerIn: parent; text: "➡️ Right Vertical"; color: CentralConfig.barPosition === "right" ? "#181628" : "#e0def4"; font.pixelSize: 9; font.bold: true }
+                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.barPosition = "right" }
                                         }
                                     }
 

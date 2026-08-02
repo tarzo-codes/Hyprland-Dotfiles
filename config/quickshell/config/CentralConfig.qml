@@ -24,6 +24,8 @@ Item {
         property int    barRadius: 8
         property string globalFontFamily: "JetBrainsMono Nerd Font"
         property int    globalFontSize: 11
+        property string barPosition: "top" // "top", "bottom", "left", "right"
+        readonly property bool isVerticalBar: barPosition === "left" || barPosition === "right"
         property bool   autoHideBar: false
         property string selectedEditModuleKey: ""
         property string customAccentColor: ""
