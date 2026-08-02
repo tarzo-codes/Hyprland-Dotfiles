@@ -19,7 +19,7 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
 
-    // Transparent window background so the bar and desktop are completely clear and unobscured
+    // Transparent window background so desktop is unobscured
     color: "transparent"
 
     property var colors: null
@@ -35,15 +35,21 @@ PanelWindow {
     property int activeCategory: 0
     property int activeTab: 0
 
-    property int tempRadius: CentralConfig.barRadius
-    property int tempHeight: CentralConfig.barHeight
-    property real tempWidthPct: CentralConfig.barWidthPercent
-    property int tempFontSize: CentralConfig.globalFontSize
-    property int tempAppletW: CentralConfig.appletWidth
-    property int tempAppletH: CentralConfig.appletHeight
-    property int tempAppletX: CentralConfig.appletCustomX
-    property int tempAppletY: CentralConfig.appletCustomY
-    property string tempAccentHex: CentralConfig.customAccentColor !== "" ? CentralConfig.customAccentColor : (rootBar ? rootBar._cyn : "#9bced7")
+    // ── Pending / Buffer State (Nothing updates live until APPLY CHANGES is clicked!) ──
+    property bool hasUnappliedChanges: false
+    property int pendingRadius: CentralConfig.barRadius
+    property int pendingHeight: CentralConfig.barHeight
+    property real pendingWidthPct: CentralConfig.barWidthPercent
+    property int pendingFontSize: CentralConfig.globalFontSize
+    property int pendingAppletW: CentralConfig.appletWidth
+    property int pendingAppletH: CentralConfig.appletHeight
+    property int pendingAppletX: CentralConfig.appletCustomX
+    property int pendingAppletY: CentralConfig.appletCustomY
+    property string pendingThemeName: CentralConfig.themeName
+    property string pendingAccentHex: CentralConfig.customAccentColor !== "" ? CentralConfig.customAccentColor : (rootBar ? rootBar._cyn : "#9bced7")
+    property bool pendingGradientAnimated: CentralConfig.gradientAnimated
+    property bool pendingAutoHide: CentralConfig.autoHideBar
+    property bool pendingCustomAppletSize: CentralConfig.useCustomAppletSize
     property string statusMsg: ""
 
     // Confirmation Modal Properties
@@ -71,7 +77,7 @@ PanelWindow {
 
     Timer {
         id: statusTimer
-        interval: 2500
+        interval: 3000
         onTriggered: statusMsg = ""
     }
 
@@ -80,10 +86,40 @@ PanelWindow {
         statusTimer.restart();
     }
 
+    function markChanged(detailMsg) {
+        hasUnappliedChanges = true;
+        showStatus("⚠️ Change recorded! Click [APPLY CHANGES] to apply.");
+    }
+
+    function applyAllChanges() {
+        // Commit all pending variables to CentralConfig & ThemeManager
+        CentralConfig.barRadius = pendingRadius;
+        CentralConfig.barHeight = pendingHeight;
+        CentralConfig.barWidthPercent = pendingWidthPct;
+        CentralConfig.appletWidth = pendingAppletW;
+        CentralConfig.appletHeight = pendingAppletH;
+        CentralConfig.appletCustomX = pendingAppletX;
+        CentralConfig.appletCustomY = pendingAppletY;
+        CentralConfig.themeName = pendingThemeName;
+        ThemeManager.themeName = pendingThemeName;
+        CentralConfig.customAccentColor = pendingAccentHex;
+        CentralConfig.gradientAnimated = pendingGradientAnimated;
+        CentralConfig.autoHideBar = pendingAutoHide;
+        CentralConfig.useCustomAppletSize = pendingCustomAppletSize;
+
+        if (rootBar) {
+            rootBar.barHeight = pendingHeight;
+            rootBar.barWidthPercent = pendingWidthPct;
+        }
+
+        hasUnappliedChanges = false;
+        showStatus("✓ All changes successfully applied!");
+    }
+
     function ensureEditMode() {
         if (!CentralConfig.editMode) {
             CentralConfig.editMode = true;
-            showStatus("Edit Mode Activated! Live bar unlocked for editing.");
+            showStatus("Edit Mode Activated! Live bar unlocked.");
         }
     }
 
@@ -96,6 +132,12 @@ PanelWindow {
     function confirmPresetOverwrite() {
         if (pendingPresetId !== "") {
             CentralConfig.applyPreset(pendingPresetId);
+            // Sync pending buffers
+            pendingRadius = CentralConfig.barRadius;
+            pendingHeight = CentralConfig.barHeight;
+            pendingWidthPct = CentralConfig.barWidthPercent;
+            pendingThemeName = CentralConfig.themeName;
+            hasUnappliedChanges = false;
             showStatus("Preset '" + pendingPresetName + "' Applied!");
         }
         confirmModalOpen = false;
@@ -115,11 +157,11 @@ PanelWindow {
     Rectangle {
         id: mainCard
         anchors.centerIn: parent
-        width: 960
-        height: 680
+        width: 980
+        height: 700
         color: rootBar ? rootBar._bg : "#161622"
-        border.color: rootBar ? rootBar._acc : "#31748f"
-        border.width: 1.5
+        border.color: hasUnappliedChanges ? (rootBar ? rootBar._yel : "#f1ca93") : (rootBar ? rootBar._acc : "#31748f")
+        border.width: hasUnappliedChanges ? 2.5 : 1.5
         radius: 14
         clip: true
 
@@ -129,15 +171,6 @@ PanelWindow {
             onClicked: (mouse) => mouse.accepted = true
         }
 
-        scale: 0.94
-        opacity: 0
-        Component.onCompleted: {
-            scale = 1.0;
-            opacity = 1.0;
-        }
-        Behavior on scale { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
-        Behavior on opacity { NumberAnimation { duration: 180 } }
-
         RowLayout {
             anchors.fill: parent
             spacing: 0
@@ -146,7 +179,7 @@ PanelWindow {
             // ── LEFT SIDEBAR NAVIGATION ─────────────────────────────────────
             // ═════════════════════════════════════════════════════════════════
             Rectangle {
-                Layout.preferredWidth: 220
+                Layout.preferredWidth: 230
                 Layout.fillHeight: true
                 color: rootBar ? rootBar.alphaColor(rootBar._sur, 0.7) : "#1b192c"
 
@@ -260,7 +293,7 @@ PanelWindow {
                                 Text { text: "󰏘"; color: activeCategory === 0 ? "#181628" : "#e0def4"; font.pixelSize: 11 }
                                 Text { text: "Rice Options"; color: activeCategory === 0 ? "#181628" : "#e0def4"; font.pixelSize: 10; font.bold: activeCategory === 0 }
                             }
-                            MouseArea { id: c0Mouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: activeCategory = 0 }
+                            MouseArea { id: c0Mouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: { activeCategory = 0; activeTab = 0; } }
                         }
 
                         // Category 1: Color & Style
@@ -272,7 +305,7 @@ PanelWindow {
                                 Text { text: "󰄛"; color: activeCategory === 1 ? "#181628" : "#e0def4"; font.pixelSize: 11 }
                                 Text { text: "Color & Style"; color: activeCategory === 1 ? "#181628" : "#e0def4"; font.pixelSize: 10; font.bold: activeCategory === 1 }
                             }
-                            MouseArea { id: c1Mouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: activeCategory = 1 }
+                            MouseArea { id: c1Mouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: { activeCategory = 1; activeTab = 1; } }
                         }
 
                         // Category 2: Modules & Apps
@@ -284,7 +317,7 @@ PanelWindow {
                                 Text { text: "󰅀"; color: activeCategory === 2 ? "#181628" : "#e0def4"; font.pixelSize: 11 }
                                 Text { text: "Modules & Order"; color: activeCategory === 2 ? "#181628" : "#e0def4"; font.pixelSize: 10; font.bold: activeCategory === 2 }
                             }
-                            MouseArea { id: c2Mouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: activeCategory = 2 }
+                            MouseArea { id: c2Mouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: { activeCategory = 2; activeTab = 2; } }
                         }
 
                         // Category 3: Auto-Hide & FX
@@ -296,20 +329,32 @@ PanelWindow {
                                 Text { text: "󰤈"; color: activeCategory === 3 ? "#181628" : "#e0def4"; font.pixelSize: 11 }
                                 Text { text: "Auto-Hide & FX"; color: activeCategory === 3 ? "#181628" : "#e0def4"; font.pixelSize: 10; font.bold: activeCategory === 3 }
                             }
-                            MouseArea { id: c3Mouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: activeCategory = 3 }
+                            MouseArea { id: c3Mouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: { activeCategory = 3; activeTab = 3; } }
                         }
                     }
 
                     Item { Layout.fillHeight: true }
 
-                    // Save Config Button
+                    // ── MAIN GLOBAL "APPLY CHANGES" BUTTON ──
                     Rectangle {
-                        Layout.fillWidth: true; height: 30; radius: 6
-                        color: "#9bced7"
-                        Text { anchors.centerIn: parent; text: "󰆓 Save Central Config"; color: "#181628"; font.pixelSize: 10; font.bold: true }
+                        Layout.fillWidth: true; height: 34; radius: 6
+                        color: hasUnappliedChanges ? (rootBar ? rootBar._yel : "#f1ca93") : (rootBar ? rootBar._cyn : "#9bced7")
+                        border.color: hasUnappliedChanges ? "#ffffff" : "transparent"
+                        border.width: hasUnappliedChanges ? 1.5 : 0
+
+                        Row {
+                            anchors.centerIn: parent; spacing: 6
+                            Text { text: hasUnappliedChanges ? "⚠️" : "󰆓"; font.pixelSize: 12 }
+                            Text {
+                                text: hasUnappliedChanges ? "APPLY CHANGES" : "Apply & Save Config"
+                                color: "#181628"
+                                font.pixelSize: 10
+                                font.bold: true
+                            }
+                        }
                         MouseArea {
                             anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                            onClicked: riceWindow.showStatus("Saved to ~/.config/quickshell/config/!")
+                            onClicked: riceWindow.applyAllChanges()
                         }
                     }
 
@@ -331,7 +376,7 @@ PanelWindow {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 anchors.margins: 18
-                spacing: 12
+                spacing: 10
 
                 // Header Title, Live Preview Toggle & Status Toast
                 RowLayout {
@@ -345,7 +390,7 @@ PanelWindow {
                         font.bold: true
                     }
                     Text {
-                        text: CentralConfig.themeName
+                        text: pendingThemeName
                         color: rootBar ? rootBar._yel : "#f1ca93"
                         font.family: rootBar ? rootBar.globalFontFamily : "JetBrainsMono Nerd Font"
                         font.pixelSize: 15
@@ -354,13 +399,39 @@ PanelWindow {
 
                     Item { Layout.fillWidth: true }
 
+                    // Status Toast
                     Text {
                         text: riceWindow.statusMsg
-                        color: "#8ec07c"
+                        color: hasUnappliedChanges ? "#f1ca93" : "#8ec07c"
                         font.family: rootBar ? rootBar.globalFontFamily : "JetBrainsMono Nerd Font"
                         font.pixelSize: 11
                         font.bold: true
                         visible: riceWindow.statusMsg !== ""
+                    }
+                }
+
+                // ── UNAPPLIED CHANGES WARNING BANNER ──
+                Rectangle {
+                    visible: hasUnappliedChanges
+                    Layout.fillWidth: true; height: 30; radius: 6
+                    color: rootBar ? rootBar.alphaColor(rootBar._yel, 0.22) : "#382e1e"
+                    border.color: rootBar ? rootBar._yel : "#f1ca93"; border.width: 1
+
+                    RowLayout {
+                        anchors.fill: parent; anchors.leftMargin: 10; anchors.rightMargin: 10
+                        spacing: 8
+                        Text { text: "⚠️"; font.pixelSize: 12 }
+                        Text {
+                            text: "Unapplied Changes Pending! Click [APPLY CHANGES] to apply to your desktop."
+                            color: rootBar ? rootBar._yel : "#f1ca93"
+                            font.pixelSize: 10; font.bold: true
+                        }
+                        Item { Layout.fillWidth: true }
+                        Rectangle {
+                            width: 110; height: 22; radius: 4; color: rootBar ? rootBar._yel : "#f1ca93"
+                            Text { anchors.centerIn: parent; text: "APPLY CHANGES"; color: "#181628"; font.pixelSize: 9; font.bold: true }
+                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: riceWindow.applyAllChanges() }
+                        }
                     }
                 }
 
@@ -417,20 +488,25 @@ PanelWindow {
                     clip: true
 
                     ScrollView {
+                        id: formScroll
                         anchors.fill: parent
                         anchors.margins: 14
                         clip: true
 
                         Column {
-                            width: parent.width - 10
-                            spacing: 14
+                            id: formColumn
+                            width: formScroll.width - 24
+                            spacing: 16
 
-                            // ════ TAB 0: LAYOUT & APPLETS ════
+                            // ═════════════════════════════════════════════════
+                            // ── TAB 0: LAYOUT & APPLETS ──────────────────────
+                            // ═════════════════════════════════════════════════
                             Column {
-                                width: parent.width; spacing: 12; visible: activeTab === 0
+                                width: parent.width; spacing: 14; visible: activeTab === 0
 
-                                Text { text: "󰍹  Active Bar / Theme Selection (18 Bars)"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true }
+                                Text { text: "💻  Active Bar / Theme Selection (18 Bars)"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true }
 
+                                // FIXED 18-BAR GRID LAYOUT (Explicit widths prevent text overlapping)
                                 Grid {
                                     columns: 6
                                     columnSpacing: 6
@@ -440,21 +516,20 @@ PanelWindow {
                                     Repeater {
                                         model: ThemeManager.availableThemes
                                         delegate: Rectangle {
-                                            width: (parent.width - 30) / 6
-                                            height: 28
+                                            width: Math.max(95, Math.floor((formColumn.width - 35) / 6))
+                                            height: 32
                                             radius: 6
-                                            color: ThemeManager.themeName === modelData ? (rootBar ? rootBar._cyn : "#9bced7") : (barMouse.containsMouse ? "#2a283e" : "#1e1e2e")
-                                            border.color: ThemeManager.themeName === modelData ? "#ffffff" : "#2a283e"
-                                            border.width: ThemeManager.themeName === modelData ? 1.5 : 1
+                                            color: pendingThemeName === modelData ? (rootBar ? rootBar._cyn : "#9bced7") : (barMouse.containsMouse ? "#2a283e" : "#1e1e2e")
+                                            border.color: pendingThemeName === modelData ? "#ffffff" : "#2a283e"
+                                            border.width: pendingThemeName === modelData ? 1.5 : 1
 
-                                            Row {
-                                                anchors.centerIn: parent; spacing: 4
-                                                Text {
-                                                    text: modelData
-                                                    color: ThemeManager.themeName === modelData ? "#181628" : "#e0def4"
-                                                    font.pixelSize: 10
-                                                    font.bold: ThemeManager.themeName === modelData
-                                                }
+                                            Text {
+                                                anchors.centerIn: parent
+                                                text: modelData
+                                                color: pendingThemeName === modelData ? "#181628" : "#e0def4"
+                                                font.pixelSize: 10
+                                                font.bold: pendingThemeName === modelData
+                                                elide: Text.ElideRight
                                             }
 
                                             MouseArea {
@@ -463,9 +538,8 @@ PanelWindow {
                                                 hoverEnabled: true
                                                 cursorShape: Qt.PointingHandCursor
                                                 onClicked: {
-                                                    ThemeManager.themeName = modelData;
-                                                    CentralConfig.themeName = modelData;
-                                                    riceWindow.showStatus("Switched to Active Bar: " + modelData.toUpperCase());
+                                                    pendingThemeName = modelData;
+                                                    riceWindow.markChanged("Active Bar set to: " + modelData);
                                                 }
                                             }
                                         }
@@ -474,179 +548,147 @@ PanelWindow {
 
                                 Rectangle { width: parent.width; height: 1; color: "#2a283e" }
 
-                                Row {
-                                    width: parent.width
-                                    Text { text: "Corner Radius (" + CentralConfig.barRadius + "px)"; color: "#e0def4"; font.pixelSize: 11; anchors.verticalCenter: parent.verticalCenter }
-                                    Item { width: parent.width - 240 }
-                                    Rectangle {
-                                        width: 70; height: 26; radius: 4; color: "#2a283e"; border.color: rootBar ? rootBar._cyn : "#9bced7"; border.width: 1
-                                        TextInput {
-                                            anchors.centerIn: parent
-                                            text: tempRadius.toString()
-                                            color: rootBar ? rootBar._cyn : "#9bced7"
-                                            font.pixelSize: 11; font.bold: true
-                                            onTextChanged: tempRadius = Math.max(0, Math.min(20, parseInt(text) || 0))
-                                        }
+                                Text { text: "📐  Bar Dimensions & Shape (Sliders)"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true }
+
+                                // Corner Radius Slider
+                                Column {
+                                    width: parent.width; spacing: 4
+                                    Row {
+                                        width: parent.width
+                                        Text { text: "Corner Radius:"; color: "#e0def4"; font.pixelSize: 10; font.bold: true }
+                                        Item { width: 10 }
+                                        Text { text: pendingRadius + " px"; color: rootBar ? rootBar._cyn : "#9bced7"; font.pixelSize: 10; font.bold: true }
                                     }
-                                    Item { width: 8 }
-                                    Rectangle {
-                                        width: 50; height: 26; radius: 4; color: rootBar ? rootBar._cyn : "#9bced7"
-                                        Text { anchors.centerIn: parent; text: "Apply"; color: "#181628"; font.pixelSize: 10; font.bold: true }
-                                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { CentralConfig.barRadius = tempRadius; riceWindow.showStatus("Saved Radius: " + tempRadius + "px"); } }
+                                    Slider {
+                                        width: parent.width; from: 0; to: 30; stepSize: 1
+                                        value: pendingRadius
+                                        onMoved: { pendingRadius = Math.round(value); riceWindow.markChanged(); }
                                     }
                                 }
 
-                                Row {
-                                    width: parent.width
-                                    Text { text: "Bar Height (" + CentralConfig.barHeight + "px)"; color: "#e0def4"; font.pixelSize: 11; anchors.verticalCenter: parent.verticalCenter }
-                                    Item { width: parent.width - 240 }
-                                    Rectangle {
-                                        width: 70; height: 26; radius: 4; color: "#2a283e"; border.color: rootBar ? rootBar._cyn : "#9bced7"; border.width: 1
-                                        TextInput {
-                                            anchors.centerIn: parent
-                                            text: tempHeight.toString()
-                                            color: rootBar ? rootBar._cyn : "#9bced7"
-                                            font.pixelSize: 11; font.bold: true
-                                            onTextChanged: tempHeight = Math.max(32, Math.min(64, parseInt(text) || 40))
-                                        }
+                                // Bar Height Slider
+                                Column {
+                                    width: parent.width; spacing: 4
+                                    Row {
+                                        width: parent.width
+                                        Text { text: "Bar Height:"; color: "#e0def4"; font.pixelSize: 10; font.bold: true }
+                                        Item { width: 10 }
+                                        Text { text: pendingHeight + " px"; color: rootBar ? rootBar._cyn : "#9bced7"; font.pixelSize: 10; font.bold: true }
                                     }
-                                    Item { width: 8 }
-                                    Rectangle {
-                                        width: 50; height: 26; radius: 4; color: rootBar ? rootBar._cyn : "#9bced7"
-                                        Text { anchors.centerIn: parent; text: "Apply"; color: "#181628"; font.pixelSize: 10; font.bold: true }
-                                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { CentralConfig.barHeight = tempHeight; if (rootBar) rootBar.barHeight = tempHeight; riceWindow.showStatus("Saved Height: " + tempHeight + "px"); } }
+                                    Slider {
+                                        width: parent.width; from: 24; to: 64; stepSize: 2
+                                        value: pendingHeight
+                                        onMoved: { pendingHeight = Math.round(value); riceWindow.markChanged(); }
                                     }
                                 }
 
-                                Row {
-                                    width: parent.width
-                                    Text { text: "Bar Width (" + Math.round(CentralConfig.barWidthPercent * 100) + "%)"; color: "#e0def4"; font.pixelSize: 11; anchors.verticalCenter: parent.verticalCenter }
-                                    Item { width: parent.width - 240 }
-                                    Rectangle {
-                                        width: 70; height: 26; radius: 4; color: "#2a283e"; border.color: rootBar ? rootBar._cyn : "#9bced7"; border.width: 1
-                                        TextInput {
-                                            anchors.centerIn: parent
-                                            text: Math.round(tempWidthPct * 100).toString()
-                                            color: rootBar ? rootBar._cyn : "#9bced7"
-                                            font.pixelSize: 11; font.bold: true
-                                            onTextChanged: tempWidthPct = Math.max(0.5, Math.min(1.0, (parseInt(text) || 96) / 100))
-                                        }
+                                // Bar Width Slider
+                                Column {
+                                    width: parent.width; spacing: 4
+                                    Row {
+                                        width: parent.width
+                                        Text { text: "Bar Width (%):"; color: "#e0def4"; font.pixelSize: 10; font.bold: true }
+                                        Item { width: 10 }
+                                        Text { text: Math.round(pendingWidthPct * 100) + " %"; color: rootBar ? rootBar._cyn : "#9bced7"; font.pixelSize: 10; font.bold: true }
                                     }
-                                    Item { width: 8 }
-                                    Rectangle {
-                                        width: 50; height: 26; radius: 4; color: rootBar ? rootBar._cyn : "#9bced7"
-                                        Text { anchors.centerIn: parent; text: "Apply"; color: "#181628"; font.pixelSize: 10; font.bold: true }
-                                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { CentralConfig.barWidthPercent = tempWidthPct; if (rootBar) rootBar.barWidthPercent = tempWidthPct; riceWindow.showStatus("Saved Width: " + Math.round(tempWidthPct * 100) + "%"); } }
+                                    Slider {
+                                        width: parent.width; from: 50; to: 100; stepSize: 1
+                                        value: Math.round(pendingWidthPct * 100)
+                                        onMoved: { pendingWidthPct = Math.round(value) / 100; riceWindow.markChanged(); }
                                     }
                                 }
 
                                 Rectangle { width: parent.width; height: 1; color: "#2a283e" }
 
-                                Text { text: "󰈈  Applet Size & Custom Position"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true }
+                                Text { text: "󰈈  Applet Size & Position Sliders"; color: "#f1ca93"; font.pixelSize: 11; font.bold: true }
 
                                 Row {
                                     width: parent.width
                                     Text { text: "Use Custom Applet Size"; color: "#e0def4"; font.pixelSize: 11; anchors.verticalCenter: parent.verticalCenter }
                                     Item { width: parent.width - 240 }
                                     Rectangle {
-                                        width: 80; height: 26; radius: 4; color: CentralConfig.useCustomAppletSize ? "#8ec07c" : "#2a283e"
-                                        Text { anchors.centerIn: parent; text: CentralConfig.useCustomAppletSize ? "ON" : "OFF"; color: CentralConfig.useCustomAppletSize ? "#181628" : "#e0def4"; font.pixelSize: 10; font.bold: true }
-                                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { CentralConfig.useCustomAppletSize = !CentralConfig.useCustomAppletSize; riceWindow.showStatus("Custom Applet Size " + (CentralConfig.useCustomAppletSize ? "ON" : "OFF")); } }
+                                        width: 80; height: 26; radius: 4; color: pendingCustomAppletSize ? "#8ec07c" : "#2a283e"
+                                        Text { anchors.centerIn: parent; text: pendingCustomAppletSize ? "ON" : "OFF"; color: pendingCustomAppletSize ? "#181628" : "#e0def4"; font.pixelSize: 10; font.bold: true }
+                                        MouseArea {
+                                            anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                            onClicked: {
+                                                pendingCustomAppletSize = !pendingCustomAppletSize;
+                                                riceWindow.markChanged();
+                                            }
+                                        }
                                     }
                                 }
 
-                                Row {
-                                    width: parent.width
-                                    Text { text: "Applet Width (" + CentralConfig.appletWidth + "px)"; color: "#e0def4"; font.pixelSize: 11; anchors.verticalCenter: parent.verticalCenter }
-                                    Item { width: parent.width - 240 }
-                                    Rectangle {
-                                        width: 70; height: 26; radius: 4; color: "#2a283e"; border.color: rootBar ? rootBar._cyn : "#9bced7"; border.width: 1
-                                        TextInput {
-                                            anchors.centerIn: parent
-                                            text: tempAppletW.toString()
-                                            color: rootBar ? rootBar._cyn : "#9bced7"
-                                            font.pixelSize: 11; font.bold: true
-                                            onTextChanged: tempAppletW = Math.max(240, Math.min(600, parseInt(text) || 340))
-                                        }
+                                // Applet Width Slider
+                                Column {
+                                    width: parent.width; spacing: 4
+                                    Row {
+                                        width: parent.width
+                                        Text { text: "Applet Width:"; color: "#e0def4"; font.pixelSize: 10; font.bold: true }
+                                        Item { width: 10 }
+                                        Text { text: pendingAppletW + " px"; color: rootBar ? rootBar._cyn : "#9bced7"; font.pixelSize: 10; font.bold: true }
                                     }
-                                    Item { width: 8 }
-                                    Rectangle {
-                                        width: 50; height: 26; radius: 4; color: rootBar ? rootBar._cyn : "#9bced7"
-                                        Text { anchors.centerIn: parent; text: "Apply"; color: "#181628"; font.pixelSize: 10; font.bold: true }
-                                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { CentralConfig.appletWidth = tempAppletW; riceWindow.showStatus("Saved Applet Width: " + tempAppletW + "px"); } }
+                                    Slider {
+                                        width: parent.width; from: 240; to: 650; stepSize: 10
+                                        value: pendingAppletW
+                                        onMoved: { pendingAppletW = Math.round(value); riceWindow.markChanged(); }
                                     }
                                 }
 
-                                Row {
-                                    width: parent.width
-                                    Text { text: "Applet Height (" + CentralConfig.appletHeight + "px)"; color: "#e0def4"; font.pixelSize: 11; anchors.verticalCenter: parent.verticalCenter }
-                                    Item { width: parent.width - 240 }
-                                    Rectangle {
-                                        width: 70; height: 26; radius: 4; color: "#2a283e"; border.color: rootBar ? rootBar._cyn : "#9bced7"; border.width: 1
-                                        TextInput {
-                                            anchors.centerIn: parent
-                                            text: tempAppletH.toString()
-                                            color: rootBar ? rootBar._cyn : "#9bced7"
-                                            font.pixelSize: 11; font.bold: true
-                                            onTextChanged: tempAppletH = Math.max(240, Math.min(700, parseInt(text) || 440))
-                                        }
+                                // Applet Height Slider
+                                Column {
+                                    width: parent.width; spacing: 4
+                                    Row {
+                                        width: parent.width
+                                        Text { text: "Applet Height:"; color: "#e0def4"; font.pixelSize: 10; font.bold: true }
+                                        Item { width: 10 }
+                                        Text { text: pendingAppletH + " px"; color: rootBar ? rootBar._cyn : "#9bced7"; font.pixelSize: 10; font.bold: true }
                                     }
-                                    Item { width: 8 }
-                                    Rectangle {
-                                        width: 50; height: 26; radius: 4; color: rootBar ? rootBar._cyn : "#9bced7"
-                                        Text { anchors.centerIn: parent; text: "Apply"; color: "#181628"; font.pixelSize: 10; font.bold: true }
-                                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { CentralConfig.appletHeight = tempAppletH; riceWindow.showStatus("Saved Applet Height: " + tempAppletH + "px"); } }
+                                    Slider {
+                                        width: parent.width; from: 240; to: 750; stepSize: 10
+                                        value: pendingAppletH
+                                        onMoved: { pendingAppletH = Math.round(value); riceWindow.markChanged(); }
                                     }
                                 }
 
-                                Row {
-                                    width: parent.width
-                                    Text { text: "Custom Position X (" + CentralConfig.appletCustomX + "px)"; color: "#e0def4"; font.pixelSize: 11; anchors.verticalCenter: parent.verticalCenter }
-                                    Item { width: parent.width - 240 }
-                                    Rectangle {
-                                        width: 70; height: 26; radius: 4; color: "#2a283e"; border.color: rootBar ? rootBar._cyn : "#9bced7"; border.width: 1
-                                        TextInput {
-                                            anchors.centerIn: parent
-                                            text: tempAppletX.toString()
-                                            color: rootBar ? rootBar._cyn : "#9bced7"
-                                            font.pixelSize: 11; font.bold: true
-                                            onTextChanged: tempAppletX = Math.max(0, Math.min(1920, parseInt(text) || 100))
-                                        }
+                                // Applet Custom X Slider
+                                Column {
+                                    width: parent.width; spacing: 4
+                                    Row {
+                                        width: parent.width
+                                        Text { text: "Custom Position X:"; color: "#e0def4"; font.pixelSize: 10; font.bold: true }
+                                        Item { width: 10 }
+                                        Text { text: pendingAppletX + " px"; color: rootBar ? rootBar._cyn : "#9bced7"; font.pixelSize: 10; font.bold: true }
                                     }
-                                    Item { width: 8 }
-                                    Rectangle {
-                                        width: 50; height: 26; radius: 4; color: rootBar ? rootBar._cyn : "#9bced7"
-                                        Text { anchors.centerIn: parent; text: "Apply"; color: "#181628"; font.pixelSize: 10; font.bold: true }
-                                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { CentralConfig.appletCustomX = tempAppletX; riceWindow.showStatus("Saved Custom X: " + tempAppletX + "px"); } }
+                                    Slider {
+                                        width: parent.width; from: 0; to: Math.max(800, riceWindow.screen.width - 200); stepSize: 10
+                                        value: pendingAppletX
+                                        onMoved: { pendingAppletX = Math.round(value); riceWindow.markChanged(); }
                                     }
                                 }
 
-                                Row {
-                                    width: parent.width
-                                    Text { text: "Custom Position Y (" + CentralConfig.appletCustomY + "px)"; color: "#e0def4"; font.pixelSize: 11; anchors.verticalCenter: parent.verticalCenter }
-                                    Item { width: parent.width - 240 }
-                                    Rectangle {
-                                        width: 70; height: 26; radius: 4; color: "#2a283e"; border.color: rootBar ? rootBar._cyn : "#9bced7"; border.width: 1
-                                        TextInput {
-                                            anchors.centerIn: parent
-                                            text: tempAppletY.toString()
-                                            color: rootBar ? rootBar._cyn : "#9bced7"
-                                            font.pixelSize: 11; font.bold: true
-                                            onTextChanged: tempAppletY = Math.max(0, Math.min(1080, parseInt(text) || 100))
-                                        }
+                                // Applet Custom Y Slider
+                                Column {
+                                    width: parent.width; spacing: 4
+                                    Row {
+                                        width: parent.width
+                                        Text { text: "Custom Position Y:"; color: "#e0def4"; font.pixelSize: 10; font.bold: true }
+                                        Item { width: 10 }
+                                        Text { text: pendingAppletY + " px"; color: rootBar ? rootBar._cyn : "#9bced7"; font.pixelSize: 10; font.bold: true }
                                     }
-                                    Item { width: 8 }
-                                    Rectangle {
-                                        width: 50; height: 26; radius: 4; color: rootBar ? rootBar._cyn : "#9bced7"
-                                        Text { anchors.centerIn: parent; text: "Apply"; color: "#181628"; font.pixelSize: 10; font.bold: true }
-                                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { CentralConfig.appletCustomY = tempAppletY; riceWindow.showStatus("Saved Custom Y: " + tempAppletY + "px"); } }
+                                    Slider {
+                                        width: parent.width; from: 0; to: Math.max(600, riceWindow.screen.height - 200); stepSize: 10
+                                        value: pendingAppletY
+                                        onMoved: { pendingAppletY = Math.round(value); riceWindow.markChanged(); }
                                     }
                                 }
                             }
 
-                            // ════ TAB 1: STYLE & HARDWARE SAVED VALUES ════
+                            // ═════════════════════════════════════════════════
+                            // ── TAB 1: STYLE & HARDWARE ──────────────────────
+                            // ═════════════════════════════════════════════════
                             Column {
-                                width: parent.width; spacing: 12; visible: activeTab === 1
+                                width: parent.width; spacing: 14; visible: activeTab === 1
 
                                 Row {
                                     width: parent.width
@@ -654,30 +696,22 @@ PanelWindow {
                                     Item { width: parent.width - 270 }
                                     Rectangle {
                                         width: 140; height: 26; radius: 4
-                                        color: CentralConfig.gradientAnimated ? (rootBar ? rootBar._cyn : "#9bced7") : "#2a283e"
-                                        border.color: CentralConfig.gradientAnimated ? "#ffffff" : "#9bced7"
+                                        color: pendingGradientAnimated ? (rootBar ? rootBar._cyn : "#9bced7") : "#2a283e"
+                                        border.color: pendingGradientAnimated ? "#ffffff" : "#9bced7"
                                         border.width: 1
 
                                         Text {
                                             anchors.centerIn: parent
-                                            text: CentralConfig.gradientAnimated ? "󰔡  ANIMATED (SLOW)" : "󰏘  STATIC (45°)"
-                                            color: CentralConfig.gradientAnimated ? "#181628" : "#e0def4"
+                                            text: pendingGradientAnimated ? "󰔡  ANIMATED (SLOW)" : "󰏘  STATIC (45°)"
+                                            color: pendingGradientAnimated ? "#181628" : "#e0def4"
                                             font.pixelSize: 9; font.bold: true
                                         }
 
                                         MouseArea {
                                             anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                                             onClicked: {
-                                                CentralConfig.gradientAnimated = !CentralConfig.gradientAnimated;
-                                                if (CentralConfig.gradientAnimated) {
-                                                    toggleGradientAnimProc.animCmd = "borderangle, 1, 250, linear, loop";
-                                                    riceWindow.showStatus("Border Gradient: Animated Slow Flow");
-                                                } else {
-                                                    toggleGradientAnimProc.animCmd = "borderangle, 0, 1, default";
-                                                    riceWindow.showStatus("Border Gradient: Static (45°)");
-                                                }
-                                                toggleGradientAnimProc.running = false;
-                                                toggleGradientAnimProc.running = true;
+                                                pendingGradientAnimated = !pendingGradientAnimated;
+                                                riceWindow.markChanged();
                                             }
                                         }
                                     }
@@ -708,29 +742,25 @@ PanelWindow {
                                     Text { text: "Custom Accent Hex"; color: "#e0def4"; font.pixelSize: 11; anchors.verticalCenter: parent.verticalCenter }
                                     Item { width: parent.width - 240 }
                                     Rectangle {
-                                        width: 24; height: 24; radius: 12; color: tempAccentHex; anchors.verticalCenter: parent.verticalCenter
+                                        width: 24; height: 24; radius: 12; color: pendingAccentHex; anchors.verticalCenter: parent.verticalCenter
                                     }
                                     Item { width: 6 }
                                     Rectangle {
-                                        width: 90; height: 26; radius: 4; color: "#2a283e"; border.color: rootBar ? rootBar._cyn : "#9bced7"; border.width: 1
+                                        width: 100; height: 26; radius: 4; color: "#2a283e"; border.color: rootBar ? rootBar._cyn : "#9bced7"; border.width: 1
                                         TextInput {
                                             anchors.centerIn: parent
-                                            text: tempAccentHex
+                                            text: pendingAccentHex
                                             color: rootBar ? rootBar._cyn : "#9bced7"
                                             font.pixelSize: 10; font.bold: true
-                                            onTextChanged: tempAccentHex = text
+                                            onTextChanged: { pendingAccentHex = text; riceWindow.markChanged(); }
                                         }
-                                    }
-                                    Item { width: 8 }
-                                    Rectangle {
-                                        width: 50; height: 26; radius: 4; color: rootBar ? rootBar._cyn : "#9bced7"
-                                        Text { anchors.centerIn: parent; text: "Apply"; color: "#181628"; font.pixelSize: 10; font.bold: true }
-                                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { CentralConfig.customAccentColor = tempAccentHex; riceWindow.showStatus("Applied Accent"); } }
                                     }
                                 }
                             }
 
-                            // ════ TAB 2: MODULES & ORDERING ════
+                            // ═════════════════════════════════════════════════
+                            // ── TAB 2: MODULES & ORDERING ────────────────────
+                            // ═════════════════════════════════════════════════
                             Column {
                                 width: parent.width
                                 spacing: 12
@@ -918,84 +948,84 @@ PanelWindow {
                                                             }
                                                         }
                                                     }
-                                                }
 
-                                                // Inline Sub-Component Options Row (ONLY SHOWN WHEN NOT HIDDEN!)
-                                                Row {
-                                                    visible: parent.parent.hasSubOpts
-                                                    height: 22
-                                                    anchors.left: parent.left; anchors.leftMargin: 28
-                                                    spacing: 16
-
-                                                    // Title Sub-Options
+                                                    // Inline Sub-Component Options Row (ONLY SHOWN WHEN NOT HIDDEN!)
                                                     Row {
-                                                        visible: modelData.key === "title"
-                                                        spacing: 12
+                                                        visible: parent.parent.hasSubOpts
+                                                        height: 22
+                                                        anchors.left: parent.left; anchors.leftMargin: 28
+                                                        spacing: 16
 
+                                                        // Title Sub-Options
                                                         Row {
-                                                            spacing: 4
-                                                            Rectangle {
-                                                                width: 14; height: 14; radius: 3; color: CentralConfig.showTitleLogo ? "#9bced7" : "#2a283e"; border.color: "#9bced7"; border.width: 1
-                                                                Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showTitleLogo; color: "#181628"; font.pixelSize: 9; font.bold: true }
-                                                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showTitleLogo = !CentralConfig.showTitleLogo }
+                                                            visible: modelData.key === "title"
+                                                            spacing: 12
+
+                                                            Row {
+                                                                spacing: 4
+                                                                Rectangle {
+                                                                    width: 14; height: 14; radius: 3; color: CentralConfig.showTitleLogo ? "#9bced7" : "#2a283e"; border.color: "#9bced7"; border.width: 1
+                                                                    Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showTitleLogo; color: "#181628"; font.pixelSize: 9; font.bold: true }
+                                                                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showTitleLogo = !CentralConfig.showTitleLogo }
+                                                                }
+                                                                Text { text: "App Icon"; color: "#e0def4"; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
                                                             }
-                                                            Text { text: "App Icon"; color: "#e0def4"; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
+
+                                                            Row {
+                                                                spacing: 4
+                                                                Rectangle {
+                                                                    width: 14; height: 14; radius: 3; color: CentralConfig.showTitleAppName ? "#9bced7" : "#2a283e"; border.color: "#9bced7"; border.width: 1
+                                                                    Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showTitleAppName; color: "#181628"; font.pixelSize: 9; font.bold: true }
+                                                                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showTitleAppName = !CentralConfig.showTitleAppName }
+                                                                }
+                                                                Text { text: "App Name (Class)"; color: "#e0def4"; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
+                                                            }
+
+                                                            Row {
+                                                                spacing: 4
+                                                                Rectangle {
+                                                                    width: 14; height: 14; radius: 3; color: CentralConfig.showTitleWindowName ? "#9bced7" : "#2a283e"; border.color: "#9bced7"; border.width: 1
+                                                                    Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showTitleWindowName; color: "#181628"; font.pixelSize: 9; font.bold: true }
+                                                                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showTitleWindowName = !CentralConfig.showTitleWindowName }
+                                                                }
+                                                                Text { text: "Window Title"; color: "#e0def4"; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
+                                                            }
                                                         }
 
+                                                        // Song / Media Sub-Options
                                                         Row {
-                                                            spacing: 4
-                                                            Rectangle {
-                                                                width: 14; height: 14; radius: 3; color: CentralConfig.showTitleAppName ? "#9bced7" : "#2a283e"; border.color: "#9bced7"; border.width: 1
-                                                                Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showTitleAppName; color: "#181628"; font.pixelSize: 9; font.bold: true }
-                                                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showTitleAppName = !CentralConfig.showTitleAppName }
-                                                            }
-                                                            Text { text: "App Name (Class)"; color: "#e0def4"; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
-                                                        }
+                                                            visible: modelData.key === "song" || modelData.key === "media"
+                                                            spacing: 12
 
-                                                        Row {
-                                                            spacing: 4
-                                                            Rectangle {
-                                                                width: 14; height: 14; radius: 3; color: CentralConfig.showTitleWindowName ? "#9bced7" : "#2a283e"; border.color: "#9bced7"; border.width: 1
-                                                                Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showTitleWindowName; color: "#181628"; font.pixelSize: 9; font.bold: true }
-                                                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showTitleWindowName = !CentralConfig.showTitleWindowName }
+                                                            Row {
+                                                                spacing: 4
+                                                                Rectangle {
+                                                                    width: 14; height: 14; radius: 3; color: CentralConfig.showSongEqualizer ? "#f1ca93" : "#2a283e"; border.color: "#f1ca93"; border.width: 1
+                                                                    Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showSongEqualizer; color: "#181628"; font.pixelSize: 9; font.bold: true }
+                                                                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showSongEqualizer = !CentralConfig.showSongEqualizer }
+                                                                }
+                                                                Text { text: "Equalizer Bars"; color: "#e0def4"; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
                                                             }
-                                                            Text { text: "Window Title"; color: "#e0def4"; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
-                                                        }
-                                                    }
 
-                                                    // Song / Media Sub-Options
-                                                    Row {
-                                                        visible: modelData.key === "song" || modelData.key === "media"
-                                                        spacing: 12
-
-                                                        Row {
-                                                            spacing: 4
-                                                            Rectangle {
-                                                                width: 14; height: 14; radius: 3; color: CentralConfig.showSongEqualizer ? "#f1ca93" : "#2a283e"; border.color: "#f1ca93"; border.width: 1
-                                                                Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showSongEqualizer; color: "#181628"; font.pixelSize: 9; font.bold: true }
-                                                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showSongEqualizer = !CentralConfig.showSongEqualizer }
+                                                            Row {
+                                                                spacing: 4
+                                                                Rectangle {
+                                                                    width: 14; height: 14; radius: 3; color: CentralConfig.showSongCoverArt ? "#f1ca93" : "#2a283e"; border.color: "#f1ca93"; border.width: 1
+                                                                    Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showSongCoverArt; color: "#181628"; font.pixelSize: 9; font.bold: true }
+                                                                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showSongCoverArt = !CentralConfig.showSongCoverArt }
+                                                                }
+                                                                Text { text: "Album Cover Art"; color: "#e0def4"; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
                                                             }
-                                                            Text { text: "Equalizer Bars"; color: "#e0def4"; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
-                                                        }
 
-                                                        Row {
-                                                            spacing: 4
-                                                            Rectangle {
-                                                                width: 14; height: 14; radius: 3; color: CentralConfig.showSongCoverArt ? "#f1ca93" : "#2a283e"; border.color: "#f1ca93"; border.width: 1
-                                                                Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showSongCoverArt; color: "#181628"; font.pixelSize: 9; font.bold: true }
-                                                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showSongCoverArt = !CentralConfig.showSongCoverArt }
+                                                            Row {
+                                                                spacing: 4
+                                                                Rectangle {
+                                                                    width: 14; height: 14; radius: 3; color: CentralConfig.showSongArtist ? "#f1ca93" : "#2a283e"; border.color: "#f1ca93"; border.width: 1
+                                                                    Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showSongArtist; color: "#181628"; font.pixelSize: 9; font.bold: true }
+                                                                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showSongArtist = !CentralConfig.showSongArtist }
+                                                                }
+                                                                Text { text: "Artist Name"; color: "#e0def4"; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
                                                             }
-                                                            Text { text: "Album Cover Art"; color: "#e0def4"; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
-                                                        }
-
-                                                        Row {
-                                                            spacing: 4
-                                                            Rectangle {
-                                                                width: 14; height: 14; radius: 3; color: CentralConfig.showSongArtist ? "#f1ca93" : "#2a283e"; border.color: "#f1ca93"; border.width: 1
-                                                                Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showSongArtist; color: "#181628"; font.pixelSize: 9; font.bold: true }
-                                                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showSongArtist = !CentralConfig.showSongArtist }
-                                                            }
-                                                            Text { text: "Artist Name"; color: "#e0def4"; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
                                                         }
                                                     }
                                                 }
@@ -1005,7 +1035,9 @@ PanelWindow {
                                 }
                             }
 
-                            // ════ TAB 3: AUTO-HIDE ════
+                            // ═════════════════════════════════════════════════
+                            // ── TAB 3: AUTO-HIDE ─────────────────────────────
+                            // ═════════════════════════════════════════════════
                             Column {
                                 width: parent.width; spacing: 14; visible: activeTab === 3
 
@@ -1014,9 +1046,15 @@ PanelWindow {
                                     Text { text: "Auto-Hide Bar"; color: "#e0def4"; font.pixelSize: 11; anchors.verticalCenter: parent.verticalCenter }
                                     Item { width: parent.width - 240 }
                                     Rectangle {
-                                        width: 80; height: 26; radius: 4; color: CentralConfig.autoHideBar ? (rootBar ? rootBar._cyn : "#9bced7") : "#2a283e"
-                                        Text { anchors.centerIn: parent; text: CentralConfig.autoHideBar ? "ON" : "OFF"; color: CentralConfig.autoHideBar ? "#181628" : "#6e6a86"; font.pixelSize: 10; font.bold: true }
-                                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { CentralConfig.autoHideBar = !CentralConfig.autoHideBar; riceWindow.showStatus(CentralConfig.autoHideBar ? "Auto-Hide ON" : "Auto-Hide OFF"); } }
+                                        width: 80; height: 26; radius: 4; color: pendingAutoHide ? (rootBar ? rootBar._cyn : "#9bced7") : "#2a283e"
+                                        Text { anchors.centerIn: parent; text: pendingAutoHide ? "ON" : "OFF"; color: pendingAutoHide ? "#181628" : "#6e6a86"; font.pixelSize: 10; font.bold: true }
+                                        MouseArea {
+                                            anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                            onClicked: {
+                                                pendingAutoHide = !pendingAutoHide;
+                                                riceWindow.markChanged();
+                                            }
+                                        }
                                     }
                                 }
                             }
