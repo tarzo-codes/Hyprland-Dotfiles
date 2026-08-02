@@ -38,6 +38,56 @@ PanelWindow {
     property string manualIconTheme: "Tela-blue"
     property string activeAppliedIconInfo: "Auto-detecting from wallpaper spectrum"
 
+    property string recommendedIconTheme: "Tela-blue"
+    property string recommendedIconColor: "#3584e4"
+    property string savedIconTheme: ""
+    property string savedBarTheme: ""
+    property bool hasWallpaperMemory: false
+    property bool applyMenuOpen: false
+
+    function getIconHexColor(name) {
+        var map = {
+            "Tela-red": "#e74c3c", "Tela-pink": "#ec407a", "Tela-orange": "#e67e22",
+            "Tela-ubuntu": "#e95420", "Tela-yellow": "#f39c12", "Tela-green": "#2ecc71",
+            "Tela-manjaro": "#16a085", "Tela-nord": "#5e81ac", "Tela-blue": "#3584e4",
+            "Tela-purple": "#9b59b6", "Tela-dracula": "#bd93f9", "Tela-brown": "#8d6e63",
+            "Tela-grey": "#787c99", "Tela-black": "#555b6e"
+        };
+        return map[name] || "#3584e4";
+    }
+
+    onSelectedWallpaperPathChanged: {
+        if (selectedWallpaperPath !== "") {
+            fetchWpMemoryProc.command = ["python3", os.path.expanduser("~/.config/quickshell/scripts/wallpaper_memory.py"), "get", selectedWallpaperPath];
+            fetchWpMemoryProc.running = false;
+            fetchWpMemoryProc.running = true;
+        }
+    }
+
+    Process {
+        id: fetchWpMemoryProc
+        command: ["python3", os.path.expanduser("~/.config/quickshell/scripts/wallpaper_memory.py"), "get", wallpaperWindow.selectedWallpaperPath]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    var obj = JSON.parse(this.text.trim());
+                    wallpaperWindow.recommendedIconTheme = obj.recommendedIcon || "Tela-blue";
+                    wallpaperWindow.recommendedIconColor = wallpaperWindow.getIconHexColor(wallpaperWindow.recommendedIconTheme);
+                    wallpaperWindow.savedIconTheme = obj.savedIcon || "";
+                    wallpaperWindow.savedBarTheme = obj.savedBar || "";
+                    wallpaperWindow.hasWallpaperMemory = obj.hasMemory || false;
+                } catch(e) {}
+            }
+        }
+    }
+
+    Process {
+        id: saveWpMemoryProc
+        property string iconToSave: ""
+        property string barToSave: ""
+        command: ["python3", os.path.expanduser("~/.config/quickshell/scripts/wallpaper_memory.py"), "set", wallpaperWindow.selectedWallpaperPath, iconToSave, barToSave]
+    }
+
     ListModel {
         id: wallpaperModel
     }
@@ -424,7 +474,46 @@ PanelWindow {
                                             wallpaperWindow.manualIconTheme = modelData.name;
                                             applyManualIconProc.targetTheme = modelData.name;
                                             applyManualIconProc.running = true;
+                                            if (wallpaperWindow.selectedWallpaperPath !== "") {
+                                                saveWpMemoryProc.iconToSave = modelData.name;
+                                                saveWpMemoryProc.barToSave = ThemeManager.themeName;
+                                                saveWpMemoryProc.running = false;
+                                                saveWpMemoryProc.running = true;
+                                                wallpaperWindow.savedIconTheme = modelData.name;
+                                                wallpaperWindow.hasWallpaperMemory = true;
+                                            }
                                         }
+                                    }
+                                }
+                            }
+
+                            // 🪄 Auto Recommended Badge
+                            Rectangle {
+                                width: 110; height: 26; radius: 5
+                                color: wallpaperWindow.recommendedIconColor
+                                border.color: "#ffffff"
+                                border.width: 1
+
+                                Row {
+                                    anchors.centerIn: parent
+                                    spacing: 3
+                                    Text { text: "🪄"; font.pixelSize: 9 }
+                                    Text {
+                                        text: "Auto: " + wallpaperWindow.recommendedIconTheme.replace("Tela-", "")
+                                        color: "#ffffff"
+                                        font.family: "JetBrainsMono Nerd Font"
+                                        font.pixelSize: 8
+                                        font.bold: true
+                                    }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        wallpaperWindow.manualIconTheme = wallpaperWindow.recommendedIconTheme;
+                                        applyManualIconProc.targetTheme = wallpaperWindow.recommendedIconTheme;
+                                        applyManualIconProc.running = true;
                                     }
                                 }
                             }
@@ -689,57 +778,214 @@ PanelWindow {
                     }
                 }
 
-                // APPLY WALLPAPER BUTTON
-                Rectangle {
-                    id: applyBtn
-                    width: 135
-                    height: 32
-                    radius: 6
-                    property bool isAlreadyApplied: wallpaperWindow.selectedWallpaperPath === wallpaperWindow.activeWallpaperPath || wallpaperWindow.selectedWallpaperPath === ""
-                    color: isAlreadyApplied ? (rootBar ? rootBar._sur : "#313244") : (applyBtnMouse.containsMouse ? Qt.lighter(rootBar ? rootBar._acc : "#7aa2f7", 1.1) : (rootBar ? rootBar._acc : "#7aa2f7"))
-                    opacity: isAlreadyApplied ? 0.6 : 1.0
+    function doApplyWallpaper(mode) {
+        if (selectedWallpaperPath === "") return;
+        if (syncThemeColors) {
+            ThemeManager.colorMode = "wallust";
+            applyWpProc.command = ["bash", "-c",
+                "mkdir -p ~/.cache/quickshell && " +
+                "touch ~/.cache/quickshell/wp_selector_open && " +
+                "echo '" + (manualIconMode ? "true" : "false") + "' > ~/.cache/quickshell/manual_icon_mode && " +
+                "echo '" + manualIconTheme + "' > ~/.cache/quickshell/manual_icon_theme && " +
+                "bash \"$HOME/.config/scripts/wallpaper_picker.sh\" \"" + selectedWallpaperPath + "\""];
+        } else {
+            applyWpProc.command = ["bash", "-c",
+                "bash \"$HOME/.config/scripts/wallpaper_picker.sh\" --wp-only \"" + selectedWallpaperPath + "\""];
+            activeWallpaperPath = selectedWallpaperPath;
+        }
+        applyWpProc.running = false;
+        applyWpProc.running = true;
+    }
 
-                    Row {
-                        anchors.centerIn: parent
-                        spacing: 6
-                        Text {
-                            text: "\uf00c"
-                            color: applyBtn.isAlreadyApplied ? (rootBar ? rootBar._muted : "#6D8895") : "#ffffff"
-                            font.family: "JetBrainsMono Nerd Font"
-                            font.pixelSize: 11
-                            font.bold: true
+                // SPLIT APPLY WALLPAPER & CUSTOM MODE DROPDOWN BUTTON
+                Row {
+                    spacing: 1
+
+                    // Main Apply Button
+                    Rectangle {
+                        id: applyBtn
+                        width: 110; height: 32
+                        radius: 6
+                        property bool isAlreadyApplied: wallpaperWindow.selectedWallpaperPath === wallpaperWindow.activeWallpaperPath || wallpaperWindow.selectedWallpaperPath === ""
+                        color: isAlreadyApplied ? (rootBar ? rootBar._sur : "#313244") : (applyBtnMouse.containsMouse ? Qt.lighter(rootBar ? rootBar._acc : "#7aa2f7", 1.1) : (rootBar ? rootBar._acc : "#7aa2f7"))
+                        opacity: isAlreadyApplied ? 0.6 : 1.0
+
+                        Row {
+                            anchors.centerIn: parent; spacing: 5
+                            Text {
+                                text: "\uf00c"
+                                color: applyBtn.isAlreadyApplied ? (rootBar ? rootBar._muted : "#6D8895") : "#ffffff"
+                                font.family: "JetBrainsMono Nerd Font"; font.pixelSize: 11; font.bold: true
+                            }
+                            Text {
+                                text: applyBtn.isAlreadyApplied ? "Applied" : "Apply"
+                                color: applyBtn.isAlreadyApplied ? (rootBar ? rootBar._muted : "#6D8895") : "#ffffff"
+                                font.family: "JetBrainsMono Nerd Font"; font.pixelSize: 10; font.bold: true
+                            }
                         }
-                        Text {
-                            text: applyBtn.isAlreadyApplied ? "Applied" : "Apply"
-                            color: applyBtn.isAlreadyApplied ? (rootBar ? rootBar._muted : "#6D8895") : "#ffffff"
-                            font.family: "JetBrainsMono Nerd Font"
-                            font.pixelSize: 10
-                            font.bold: true
+
+                        MouseArea {
+                            id: applyBtnMouse
+                            anchors.fill: parent
+                            hoverEnabled: !applyBtn.isAlreadyApplied
+                            cursorShape: applyBtn.isAlreadyApplied ? Qt.ArrowCursor : Qt.PointingHandCursor
+                            onClicked: {
+                                if (!applyBtn.isAlreadyApplied && wallpaperWindow.selectedWallpaperPath !== "") {
+                                    wallpaperWindow.doApplyWallpaper("auto");
+                                }
+                            }
                         }
                     }
 
-                    MouseArea {
-                        id: applyBtnMouse
-                        anchors.fill: parent
-                        hoverEnabled: !applyBtn.isAlreadyApplied
-                        cursorShape: applyBtn.isAlreadyApplied ? Qt.ArrowCursor : Qt.PointingHandCursor
-                        onClicked: {
-                            if (!applyBtn.isAlreadyApplied && wallpaperWindow.selectedWallpaperPath !== "") {
-                                if (wallpaperWindow.syncThemeColors) {
-                                    ThemeManager.colorMode = "wallust";
-                                    applyWpProc.command = ["bash", "-c",
-                                        // Save flag so startup.sh reopens the picker after restart
-                                        "mkdir -p ~/.cache/quickshell && " +
-                                        "touch ~/.cache/quickshell/wp_selector_open && " +
-                                        "bash \"$HOME/.config/scripts/wallpaper_picker.sh\" \"" + wallpaperWindow.selectedWallpaperPath + "\""];
-                                } else {
-                                    applyWpProc.command = ["bash", "-c",
-                                        "bash \"$HOME/.config/scripts/wallpaper_picker.sh\" --wp-only \"" + wallpaperWindow.selectedWallpaperPath + "\""];
-                                    wallpaperWindow.activeWallpaperPath = wallpaperWindow.selectedWallpaperPath;
-                                }
-                                applyWpProc.running = false;
-                                applyWpProc.running = true;
+                    // Dropdown Arrow Button
+                    Rectangle {
+                        width: 28; height: 32; radius: 6
+                        color: dropdownMouse.containsMouse ? Qt.lighter(rootBar ? rootBar._acc : "#7aa2f7", 1.15) : (rootBar ? rootBar._acc : "#7aa2f7")
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "▾"
+                            color: "#ffffff"
+                            font.pixelSize: 12
+                            font.bold: true
+                        }
+
+                        MouseArea {
+                            id: dropdownMouse
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: wallpaperWindow.applyMenuOpen = !wallpaperWindow.applyMenuOpen
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Apply Options Popup Dropdown Menu
+    Rectangle {
+        id: applyDropdownPopup
+        width: 260; height: dropdownColumn.implicitHeight + 16
+        anchors.bottom: parent.bottom; anchors.right: parent.right
+        anchors.bottomMargin: 48; anchors.rightMargin: 16
+        visible: wallpaperWindow.applyMenuOpen
+        color: rootBar ? rootBar._bg : "#181825"
+        border.color: rootBar ? rootBar._acc : "#7aa2f7"
+        border.width: 1
+        radius: 8
+        z: 999
+
+        ColumnLayout {
+            id: dropdownColumn
+            anchors.fill: parent
+            anchors.margins: 8
+            spacing: 4
+
+            Text {
+                text: "⚡ APPLY OPTIONS"
+                color: rootBar ? rootBar._muted : "#6D8895"
+                font.family: "JetBrainsMono Nerd Font"
+                font.pixelSize: 9; font.bold: true
+            }
+
+            // Option 1: Apply Wallpaper (Auto Spectrum Colors)
+            Rectangle {
+                Layout.fillWidth: true; height: 28; radius: 4
+                color: opt1Mouse.containsMouse ? (rootBar ? rootBar._sur : "#313244") : "transparent"
+                Row {
+                    anchors.verticalCenter: parent.verticalCenter; anchors.left: parent.left; anchors.leftMargin: 6; spacing: 6
+                    Text { text: "🪄"; font.pixelSize: 10 }
+                    Text { text: "Apply with Auto Icon Theme"; color: rootBar ? rootBar._fg : "#c0caf5"; font.family: "JetBrainsMono Nerd Font"; font.pixelSize: 9 }
+                }
+                MouseArea {
+                    id: opt1Mouse; anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        wallpaperWindow.applyMenuOpen = false;
+                        wallpaperWindow.doApplyWallpaper("auto");
+                    }
+                }
+            }
+
+            // Option 2: Apply with Saved Memory Icon Theme
+            Rectangle {
+                Layout.fillWidth: true; height: 28; radius: 4
+                opacity: wallpaperWindow.hasWallpaperMemory && wallpaperWindow.savedIconTheme !== "" ? 1.0 : 0.4
+                color: opt2Mouse.containsMouse && wallpaperWindow.hasWallpaperMemory ? (rootBar ? rootBar._sur : "#313244") : "transparent"
+                Row {
+                    anchors.verticalCenter: parent.verticalCenter; anchors.left: parent.left; anchors.leftMargin: 6; spacing: 6
+                    Text { text: "💾"; font.pixelSize: 10 }
+                    Text {
+                        text: wallpaperWindow.hasWallpaperMemory && wallpaperWindow.savedIconTheme !== "" ? ("Apply with Saved Icon: " + wallpaperWindow.savedIconTheme) : "No Saved Icon Memory"
+                        color: rootBar ? rootBar._fg : "#c0caf5"; font.family: "JetBrainsMono Nerd Font"; font.pixelSize: 9
+                    }
+                }
+                MouseArea {
+                    id: opt2Mouse; anchors.fill: parent
+                    cursorShape: (wallpaperWindow.hasWallpaperMemory && wallpaperWindow.savedIconTheme !== "") ? Qt.PointingHandCursor : Qt.ArrowCursor
+                    onClicked: {
+                        if (wallpaperWindow.hasWallpaperMemory && wallpaperWindow.savedIconTheme !== "") {
+                            wallpaperWindow.applyMenuOpen = false;
+                            wallpaperWindow.manualIconMode = true;
+                            wallpaperWindow.manualIconTheme = wallpaperWindow.savedIconTheme;
+                            wallpaperWindow.doApplyWallpaper("saved_icon");
+                        }
+                    }
+                }
+            }
+
+            // Option 3: Apply with Customized Bar Theme
+            Rectangle {
+                Layout.fillWidth: true; height: 28; radius: 4
+                opacity: wallpaperWindow.hasWallpaperMemory && wallpaperWindow.savedBarTheme !== "" ? 1.0 : 0.4
+                color: opt3Mouse.containsMouse && wallpaperWindow.hasWallpaperMemory ? (rootBar ? rootBar._sur : "#313244") : "transparent"
+                Row {
+                    anchors.verticalCenter: parent.verticalCenter; anchors.left: parent.left; anchors.leftMargin: 6; spacing: 6
+                    Text { text: "🎨"; font.pixelSize: 10 }
+                    Text {
+                        text: wallpaperWindow.hasWallpaperMemory && wallpaperWindow.savedBarTheme !== "" ? ("Apply with Saved Bar: " + wallpaperWindow.savedBarTheme) : "No Saved Bar Memory"
+                        color: rootBar ? rootBar._fg : "#c0caf5"; font.family: "JetBrainsMono Nerd Font"; font.pixelSize: 9
+                    }
+                }
+                MouseArea {
+                    id: opt3Mouse; anchors.fill: parent
+                    cursorShape: (wallpaperWindow.hasWallpaperMemory && wallpaperWindow.savedBarTheme !== "") ? Qt.PointingHandCursor : Qt.ArrowCursor
+                    onClicked: {
+                        if (wallpaperWindow.hasWallpaperMemory && wallpaperWindow.savedBarTheme !== "") {
+                            wallpaperWindow.applyMenuOpen = false;
+                            ThemeManager.themeName = wallpaperWindow.savedBarTheme;
+                            wallpaperWindow.doApplyWallpaper("custom_bar");
+                        }
+                    }
+                }
+            }
+
+            // Option 4: Apply All (Wallpaper + Saved Memory Icon + Saved Custom Bar)
+            Rectangle {
+                Layout.fillWidth: true; height: 28; radius: 4
+                opacity: wallpaperWindow.hasWallpaperMemory ? 1.0 : 0.4
+                color: opt4Mouse.containsMouse && wallpaperWindow.hasWallpaperMemory ? (rootBar ? rootBar._sur : "#313244") : "transparent"
+                Row {
+                    anchors.verticalCenter: parent.verticalCenter; anchors.left: parent.left; anchors.leftMargin: 6; spacing: 6
+                    Text { text: "🌟"; font.pixelSize: 10 }
+                    Text {
+                        text: wallpaperWindow.hasWallpaperMemory ? "Apply All (Wallpaper + Saved Icon + Bar)" : "No Memory Saved"
+                        color: rootBar ? rootBar._acc : "#7aa2f7"; font.family: "JetBrainsMono Nerd Font"; font.pixelSize: 9; font.bold: true
+                    }
+                }
+                MouseArea {
+                    id: opt4Mouse; anchors.fill: parent
+                    cursorShape: wallpaperWindow.hasWallpaperMemory ? Qt.PointingHandCursor : Qt.ArrowCursor
+                    onClicked: {
+                        if (wallpaperWindow.hasWallpaperMemory) {
+                            wallpaperWindow.applyMenuOpen = false;
+                            if (wallpaperWindow.savedIconTheme !== "") {
+                                wallpaperWindow.manualIconMode = true;
+                                wallpaperWindow.manualIconTheme = wallpaperWindow.savedIconTheme;
                             }
+                            if (wallpaperWindow.savedBarTheme !== "") {
+                                ThemeManager.themeName = wallpaperWindow.savedBarTheme;
+                            }
+                            wallpaperWindow.doApplyWallpaper("all");
                         }
                     }
                 }
