@@ -1,5 +1,4 @@
 module themes
 singleton ThemeManager 1.0 ThemeManager.qml
 singleton WallustColors 1.0 WallustColors.qml
-singleton BarModules 1.0 BarModules.qml
 singleton CentralConfig 1.0 ../config/CentralConfig.qml

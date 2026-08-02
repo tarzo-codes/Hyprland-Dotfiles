@@ -170,7 +170,7 @@ ShellRoot {
     onRiceEditorVisibleChanged: {
         if (!riceEditorVisible) {
             CentralConfig.editMode = false;
-            BarModules.editMode = false;
+            CentralConfig.editMode = false;
         }
     }
     property bool taskSwitcherVisible:   false
@@ -1623,7 +1623,7 @@ ShellRoot {
             implicitWidth: visible ? (songRow.implicitWidth + 8) : 0
             implicitHeight: 30
             height: 30
-            visible: shellRoot.songValue !== "" || (CentralConfig.editMode || BarModules.editMode)
+            visible: shellRoot.songValue !== "" || (CentralConfig.editMode)
             anchors.verticalCenter: parent.verticalCenter
 
             Row {
@@ -1955,7 +1955,7 @@ ShellRoot {
             width: visible ? (childRow.implicitWidth + (modelData.type === "capsule" ? 24 : 0)) : 0
             anchors.verticalCenter: parent.verticalCenter
             visible: {
-                if (BarModules.editMode || CentralConfig.editMode) return true;
+                if (CentralConfig.editMode) return true;
                 var mods = modelData.type === "capsule" ? modelData.modules : [modelData.type];
                 var hasActiveModule = false;
                 for (var i = 0; i < mods.length; i++) {
@@ -2042,8 +2042,8 @@ ShellRoot {
                 implicitWidth: screen.width
                 implicitHeight: ThemeManager.barIsTopFloat ? (barHeight + 10) : barHeight
 
-                WlrLayershell.layer: (CentralConfig.autoHideBar || ThemeManager.autoHideBar) ? WlrLayer.Overlay : WlrLayer.Bottom
-                exclusiveZone: (CentralConfig.autoHideBar || ThemeManager.autoHideBar) ? 0 : topBar.implicitHeight
+                WlrLayershell.layer: CentralConfig.autoHideBar ? WlrLayer.Overlay : WlrLayer.Bottom
+                exclusiveZone: CentralConfig.autoHideBar ? 0 : topBar.implicitHeight
 
                 property bool isTopHovered: topHoverArea.containsMouse || shellRoot.settingsVisible || shellRoot.riceEditorVisible || shellRoot.volumePanelVisible || shellRoot.networkPanelVisible || shellRoot.powerMenuVisible
                 property bool topBarShouldHide: false
@@ -2051,7 +2051,7 @@ ShellRoot {
                 Timer {
                     id: topHideTimer
                     interval: 1000
-                    running: (CentralConfig.autoHideBar || ThemeManager.autoHideBar) && !topBar.isTopHovered
+                    running: CentralConfig.autoHideBar && !topBar.isTopHovered
                     repeat: false
                     onTriggered: topBar.topBarShouldHide = true
                 }
@@ -2059,12 +2059,12 @@ ShellRoot {
                 onIsTopHoveredChanged: {
                     if (isTopHovered) {
                         topHideTimer.stop();
-                    } else if (CentralConfig.autoHideBar || ThemeManager.autoHideBar) {
+                    } else if (CentralConfig.autoHideBar) {
                         topHideTimer.restart();
                     }
                 }
 
-                property real autoHideTopOffset: ((CentralConfig.autoHideBar || ThemeManager.autoHideBar) && topBarShouldHide) ? -(topBar.implicitHeight + 16) : 0
+                property real autoHideTopOffset: (CentralConfig.autoHideBar && topBarShouldHide) ? -(topBar.implicitHeight + 16) : 0
                 Behavior on autoHideTopOffset { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
 
                 property real animatedMargin: (ThemeManager.barIsTopFloat && ThemeManager.themeName !== "melissa")
@@ -2080,7 +2080,7 @@ ShellRoot {
                     anchors.right: parent.right
                     height: 3
                     z: 9999
-                    visible: (CentralConfig.autoHideBar || ThemeManager.autoHideBar)
+                    visible: CentralConfig.autoHideBar
 
                     MouseArea {
                         id: topEdgeSensor
@@ -2142,8 +2142,8 @@ ShellRoot {
                         return (ThemeManager.barIsTopFloat || ThemeManager.barIsAndrea || ThemeManager.themeName === "melissa" || ThemeManager.themeName === "marisol") ? "transparent" : shellRoot._bg;
                     }
                     radius: ThemeManager.barRadius
-                    border.color: BarModules.editMode ? "#8ec07c" : (ThemeManager.themeName === "emilia" ? shellRoot._sur : "transparent")
-                    border.width: BarModules.editMode ? 1.5 : (ThemeManager.themeName === "emilia" ? 1 : 0)
+                    border.color: CentralConfig.editMode ? "#8ec07c" : (ThemeManager.themeName === "emilia" ? shellRoot._sur : "transparent")
+                    border.width: CentralConfig.editMode ? 1.5 : (ThemeManager.themeName === "emilia" ? 1 : 0)
 
                     Rectangle {
                         anchors.top: parent.top
@@ -2151,7 +2151,7 @@ ShellRoot {
                         anchors.topMargin: -8
                         height: 16; width: 120; radius: 8
                         color: "#8ec07c"
-                        visible: BarModules.editMode
+                        visible: CentralConfig.editMode
                         z: 99
                         Text {
                             anchors.centerIn: parent
@@ -2179,7 +2179,7 @@ ShellRoot {
                             visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "marisol"
                             
                             Repeater {
-                                model: (BarModules.mode === "custom" || CentralConfig.mode === "custom") ? shellRoot.getModuleArray(CentralConfig.leftModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].top ? themeLayouts[ThemeManager.themeName].top.left : [])
+                                model: (CentralConfig.mode === "custom") ? shellRoot.getModuleArray(CentralConfig.leftModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].top ? themeLayouts[ThemeManager.themeName].top.left : [])
                                 delegate: capsuleDelegate
                             }
                         }
@@ -2193,7 +2193,7 @@ ShellRoot {
                             visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "marisol"
 
                             Repeater {
-                                model: (BarModules.mode === "custom" || CentralConfig.mode === "custom") ? shellRoot.getModuleArray(CentralConfig.centerModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].top ? themeLayouts[ThemeManager.themeName].top.center : [])
+                                model: (CentralConfig.mode === "custom") ? shellRoot.getModuleArray(CentralConfig.centerModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].top ? themeLayouts[ThemeManager.themeName].top.center : [])
                                 delegate: capsuleDelegate
                             }
                         }
@@ -2207,7 +2207,7 @@ ShellRoot {
                             visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "marisol"
 
                             Repeater {
-                                model: (BarModules.mode === "custom" || CentralConfig.mode === "custom") ? shellRoot.getModuleArray(CentralConfig.rightModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].top ? themeLayouts[ThemeManager.themeName].top.right : [])
+                                model: (CentralConfig.mode === "custom") ? shellRoot.getModuleArray(CentralConfig.rightModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].top ? themeLayouts[ThemeManager.themeName].top.right : [])
                                 delegate: capsuleDelegate
                             }
                         }
@@ -3060,8 +3060,8 @@ ShellRoot {
                 implicitWidth: screen.width
                 implicitHeight: (ThemeManager.themeName === "cristina") ? (shellRoot.barHeight + 16) : shellRoot.barHeight
 
-                WlrLayershell.layer: (CentralConfig.autoHideBar || ThemeManager.autoHideBar) ? WlrLayer.Overlay : WlrLayer.Bottom
-                exclusiveZone: (CentralConfig.autoHideBar || ThemeManager.autoHideBar) ? 0 : bottomBar.implicitHeight
+                WlrLayershell.layer: CentralConfig.autoHideBar ? WlrLayer.Overlay : WlrLayer.Bottom
+                exclusiveZone: CentralConfig.autoHideBar ? 0 : bottomBar.implicitHeight
 
                 property bool isBottomHovered: bottomHoverArea.containsMouse || shellRoot.settingsVisible || shellRoot.riceEditorVisible || shellRoot.volumePanelVisible || shellRoot.networkPanelVisible || shellRoot.powerMenuVisible
                 property bool bottomBarShouldHide: false
@@ -3069,7 +3069,7 @@ ShellRoot {
                 Timer {
                     id: bottomHideTimer
                     interval: 1000
-                    running: (CentralConfig.autoHideBar || ThemeManager.autoHideBar) && !bottomBar.isBottomHovered
+                    running: CentralConfig.autoHideBar && !bottomBar.isBottomHovered
                     repeat: false
                     onTriggered: bottomBar.bottomBarShouldHide = true
                 }
@@ -3077,12 +3077,12 @@ ShellRoot {
                 onIsBottomHoveredChanged: {
                     if (isBottomHovered) {
                         bottomHideTimer.stop();
-                    } else if (CentralConfig.autoHideBar || ThemeManager.autoHideBar) {
+                    } else if (CentralConfig.autoHideBar) {
                         bottomHideTimer.restart();
                     }
                 }
 
-                property real autoHideBottomOffset: ((CentralConfig.autoHideBar || ThemeManager.autoHideBar) && bottomBarShouldHide) ? (bottomBar.implicitHeight + 16) : 0
+                property real autoHideBottomOffset: (CentralConfig.autoHideBar && bottomBarShouldHide) ? (bottomBar.implicitHeight + 16) : 0
                 Behavior on autoHideBottomOffset { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
 
                 property real animatedMargin: (ThemeManager.themeName === "cristina")
@@ -3098,7 +3098,7 @@ ShellRoot {
                     anchors.right: parent.right
                     height: 3
                     z: 9999
-                    visible: (CentralConfig.autoHideBar || ThemeManager.autoHideBar)
+                    visible: CentralConfig.autoHideBar
 
                     MouseArea {
                         id: bottomEdgeSensor

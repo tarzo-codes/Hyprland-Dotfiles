@@ -28,7 +28,7 @@ PanelWindow {
     onVisibleChanged: {
         if (!visible) {
             CentralConfig.editMode = false;
-            BarModules.editMode = false;
+            CentralConfig.editMode = false;
         }
     }
 
