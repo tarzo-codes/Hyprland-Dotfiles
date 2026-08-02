@@ -374,6 +374,14 @@ print(best if luma(best)>=0.85 else '#f4f6f8')
         "$HOME/.config/kitty/wallust.conf" 2>/dev/null || true
     fi
     kitty @ set-colors --all --configured "$HOME/.config/kitty/wallust.conf" 2>/dev/null || true
+    kitty @ --to unix:/tmp/kitty set-colors --all "$HOME/.config/kitty/wallust.conf" 2>/dev/null || true
+    if [ -f "$HOME/.cache/wallust/sequences" ]; then
+      for pty in /dev/pts/*; do
+        if [ -w "$pty" ]; then
+          cat "$HOME/.cache/wallust/sequences" > "$pty" 2>/dev/null || true
+        fi
+      done
+    fi
   fi
 }
 
