@@ -2059,7 +2059,6 @@ ShellRoot {
                 onIsTopHoveredChanged: {
                     if (isTopHovered) {
                         topHideTimer.stop();
-                        topBarShouldHide = false;
                     } else if (CentralConfig.autoHideBar || ThemeManager.autoHideBar) {
                         topHideTimer.restart();
                     }
@@ -2073,13 +2072,13 @@ ShellRoot {
                     : 0
                 Behavior on animatedMargin { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
 
-                // ── Hot Edge Sensor & Theme Accent Glow Indicator ──
+                // ── Hot Edge Sensor & Theme Accent Glow Indicator (Extreme 3px Edge & Corner) ──
                 Item {
                     id: topEdgeHotZone
                     anchors.top: parent.top
                     anchors.left: parent.left
                     anchors.right: parent.right
-                    height: 6
+                    height: 3
                     z: 9999
                     visible: (CentralConfig.autoHideBar || ThemeManager.autoHideBar)
 
@@ -3078,7 +3077,6 @@ ShellRoot {
                 onIsBottomHoveredChanged: {
                     if (isBottomHovered) {
                         bottomHideTimer.stop();
-                        bottomBarShouldHide = false;
                     } else if (CentralConfig.autoHideBar || ThemeManager.autoHideBar) {
                         bottomHideTimer.restart();
                     }
@@ -3092,13 +3090,13 @@ ShellRoot {
                     : 0
                 Behavior on animatedMargin { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
 
-                // ── Hot Edge Sensor & Theme Accent Glow Indicator ──
+                // ── Hot Edge Sensor & Theme Accent Glow Indicator (Extreme 3px Edge & Corner) ──
                 Item {
                     id: bottomEdgeHotZone
                     anchors.bottom: parent.bottom
                     anchors.left: parent.left
                     anchors.right: parent.right
-                    height: 6
+                    height: 3
                     z: 9999
                     visible: (CentralConfig.autoHideBar || ThemeManager.autoHideBar)
 
