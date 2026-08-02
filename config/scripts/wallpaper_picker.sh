@@ -201,51 +201,53 @@ if wp_path and os.path.isfile(wp_path):
             for count, (r, g, b) in colors:
                 h, s, v = colorsys.rgb_to_hsv(r/255.0, g/255.0, b/255.0)
                 luma = 0.299*(r/255.0) + 0.587*(g/255.0) + 0.114*(b/255.0)
-                if s >= 0.12 and 0.08 <= luma <= 0.92:
+                if s >= 0.10 and 0.06 <= luma <= 0.94:
                     deg = h * 360.0
-                    weight = count * (s ** 2)
+                    weight = count * (s ** 2.2) # Saturated focal features boost!
 
                     if deg >= 345 or deg < 12:
-                        if s > 0.40 and luma < 0.55: hue_scores['Tela-red'] += weight * 1.4
-                        else: hue_scores['Tela-pink'] += weight * 1.4
+                        if s > 0.35 and luma < 0.60: hue_scores['Tela-red'] += weight * 1.5
+                        else: hue_scores['Tela-pink'] += weight * 1.5
                     elif 12 <= deg < 28:
-                        hue_scores['Tela-ubuntu'] += weight * 1.5
+                        hue_scores['Tela-ubuntu'] += weight * 1.6
                         hue_scores['Tela-orange'] += weight
                     elif 28 <= deg < 48:
-                        hue_scores['Tela-orange'] += weight * 1.5
+                        hue_scores['Tela-orange'] += weight * 1.6
                         hue_scores['Tela-ubuntu'] += weight * 0.8
-                    elif 48 <= deg < 70: hue_scores['Tela-yellow'] += weight * 1.4
-                    elif 70 <= deg < 140: hue_scores['Tela-green'] += weight * 1.4
+                    elif 48 <= deg < 70: hue_scores['Tela-yellow'] += weight * 1.5
+                    elif 70 <= deg < 140: hue_scores['Tela-green'] += weight * 1.5
                     elif 140 <= deg < 175:
-                        hue_scores['Tela-manjaro'] += weight * 1.5
+                        hue_scores['Tela-manjaro'] += weight * 1.6
                         hue_scores['Tela-green'] += weight * 0.8
                     elif 175 <= deg < 205:
-                        hue_scores['Tela-nord'] += weight * 1.5
+                        hue_scores['Tela-nord'] += weight * 1.6
                         hue_scores['Tela-blue'] += weight * 0.8
                     elif 205 <= deg < 255: hue_scores['Tela-blue'] += weight * 1.4
                     elif 255 <= deg < 285:
-                        hue_scores['Tela-dracula'] += weight * 1.5
+                        hue_scores['Tela-dracula'] += weight * 1.6
                         hue_scores['Tela-purple'] += weight * 0.8
                     elif 285 <= deg < 345:
-                        hue_scores['Tela-purple'] += weight * 1.4
+                        hue_scores['Tela-purple'] += weight * 1.5
                         hue_scores['Tela-pink'] += weight * 0.8
+
+        colorful_scores = {k: v for k, v in hue_scores.items() if k not in ['Tela-grey', 'Tela-black', 'Tela-brown']}
+        top_color = max(colorful_scores.items(), key=lambda x: x[1])
 
         is_light_mode = avg_luma > 0.50
         if is_light_mode:
-            # In light mode: NEVER pick dull grey/black/brown icons. Always pick a bright, vibrant colorful icon!
-            colorful_scores = {k: v for k, v in hue_scores.items() if k not in ['Tela-grey', 'Tela-black', 'Tela-brown']}
-            top_color = max(colorful_scores.items(), key=lambda x: x[1])
-            if top_color[1] > 0.2:
+            # Light mode: ALWAYS pick a bright colorful icon!
+            if top_color[1] > 0.15:
                 best_base = top_color[0]
             else:
                 best_base = 'Tela-nord' if avg_luma > 0.70 else 'Tela-blue'
         else:
-            if avg_sat < 0.12:
-                best_base = 'Tela-grey' if avg_luma <= 0.65 else 'Tela-black'
+            # Dark mode: pick matching focal color if available; fallback to grey/black only for pure monochrome
+            if top_color[1] > 0.15:
+                best_base = top_color[0]
+            elif avg_sat < 0.10:
+                best_base = 'Tela-black' if avg_luma < 0.30 else 'Tela-grey'
             else:
-                top_hue = max(hue_scores.items(), key=lambda x: x[1])
-                if top_hue[1] > 0.5:
-                    best_base = top_hue[0]
+                best_base = max(hue_scores.items(), key=lambda x: x[1])[0]
     except Exception:
         pass
 
