@@ -2065,13 +2065,60 @@ ShellRoot {
                     }
                 }
 
-                property real autoHideTopOffset: ((CentralConfig.autoHideBar || ThemeManager.autoHideBar) && topBarShouldHide) ? -(shellRoot.barHeight - 3) : 0
+                property real autoHideTopOffset: ((CentralConfig.autoHideBar || ThemeManager.autoHideBar) && topBarShouldHide) ? -(topBar.implicitHeight + 16) : 0
                 Behavior on autoHideTopOffset { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
 
                 property real animatedMargin: (ThemeManager.barIsTopFloat && ThemeManager.themeName !== "melissa")
                     ? screen.width * (1.0 - shellRoot.barWidthPercent) / 2
                     : 0
                 Behavior on animatedMargin { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
+
+                // ── Hot Edge Sensor & Theme Accent Glow Indicator ──
+                Item {
+                    id: topEdgeHotZone
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    height: 6
+                    z: 9999
+                    visible: (CentralConfig.autoHideBar || ThemeManager.autoHideBar)
+
+                    MouseArea {
+                        id: topEdgeSensor
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onContainsMouseChanged: {
+                            if (containsMouse) {
+                                topBar.topBarShouldHide = false;
+                                topHideTimer.stop();
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        id: topEdgeGlowLine
+                        anchors.top: parent.top
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        width: topEdgeSensor.containsMouse ? (screen.width * 0.55) : (screen.width * 0.22)
+                        height: topEdgeSensor.containsMouse ? 3 : 2
+                        radius: 2
+                        color: topEdgeSensor.containsMouse ? shellRoot._brightCyn : shellRoot.alphaColor(shellRoot._cyn, 0.75)
+                        visible: topBar.topBarShouldHide
+
+                        Behavior on width { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+                        Behavior on height { NumberAnimation { duration: 150 } }
+                        Behavior on color { ColorAnimation { duration: 150 } }
+
+                        Rectangle {
+                            anchors.fill: parent
+                            anchors.margins: -2
+                            radius: 4
+                            color: "transparent"
+                            border.color: shellRoot.alphaColor(shellRoot._acc, topEdgeSensor.containsMouse ? 0.9 : 0.4)
+                            border.width: 1.5
+                        }
+                    }
+                }
 
                 MouseArea {
                     id: topHoverArea
@@ -3037,13 +3084,60 @@ ShellRoot {
                     }
                 }
 
-                property real autoHideBottomOffset: ((CentralConfig.autoHideBar || ThemeManager.autoHideBar) && bottomBarShouldHide) ? (shellRoot.barHeight - 3) : 0
+                property real autoHideBottomOffset: ((CentralConfig.autoHideBar || ThemeManager.autoHideBar) && bottomBarShouldHide) ? (bottomBar.implicitHeight + 16) : 0
                 Behavior on autoHideBottomOffset { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
 
                 property real animatedMargin: (ThemeManager.themeName === "cristina")
                     ? screen.width * (1.0 - shellRoot.barWidthPercent) / 2
                     : 0
                 Behavior on animatedMargin { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
+
+                // ── Hot Edge Sensor & Theme Accent Glow Indicator ──
+                Item {
+                    id: bottomEdgeHotZone
+                    anchors.bottom: parent.bottom
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    height: 6
+                    z: 9999
+                    visible: (CentralConfig.autoHideBar || ThemeManager.autoHideBar)
+
+                    MouseArea {
+                        id: bottomEdgeSensor
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onContainsMouseChanged: {
+                            if (containsMouse) {
+                                bottomBar.bottomBarShouldHide = false;
+                                bottomHideTimer.stop();
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        id: bottomEdgeGlowLine
+                        anchors.bottom: parent.bottom
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        width: bottomEdgeSensor.containsMouse ? (screen.width * 0.55) : (screen.width * 0.22)
+                        height: bottomEdgeSensor.containsMouse ? 3 : 2
+                        radius: 2
+                        color: bottomEdgeSensor.containsMouse ? shellRoot._brightCyn : shellRoot.alphaColor(shellRoot._cyn, 0.75)
+                        visible: bottomBar.bottomBarShouldHide
+
+                        Behavior on width { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+                        Behavior on height { NumberAnimation { duration: 150 } }
+                        Behavior on color { ColorAnimation { duration: 150 } }
+
+                        Rectangle {
+                            anchors.fill: parent
+                            anchors.margins: -2
+                            radius: 4
+                            color: "transparent"
+                            border.color: shellRoot.alphaColor(shellRoot._acc, bottomEdgeSensor.containsMouse ? 0.9 : 0.4)
+                            border.width: 1.5
+                        }
+                    }
+                }
 
                 MouseArea {
                     id: bottomHoverArea
