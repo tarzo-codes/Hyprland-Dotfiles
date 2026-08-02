@@ -531,10 +531,10 @@ PanelWindow {
             // 🎨 EXTRACTED 16 WALLPAPER COLORS PALETTE (Shown when manualIconMode is true)
             Rectangle {
                 Layout.fillWidth: true
-                Layout.preferredHeight: wallpaperWindow.manualIconMode ? 48 : 0
+                Layout.preferredHeight: wallpaperWindow.manualIconMode ? 46 : 0
                 visible: wallpaperWindow.manualIconMode
-                color: rootBar ? rootBar._sur : "#1e1e2e"
-                border.color: rootBar ? rootBar._acc : "#7aa2f7"
+                color: rootBar ? rootBar.alphaColor(rootBar._sur, 0.85) : "#1e1e2e"
+                border.color: rootBar ? rootBar.alphaColor(rootBar._acc, 0.4) : "#7aa2f7"
                 border.width: 1
                 radius: 6
                 clip: true
@@ -568,36 +568,16 @@ PanelWindow {
                             Repeater {
                                 model: wallpaperSwatchesModel
                                 delegate: Rectangle {
-                                    width: isDefaultAccent ? 86 : 72; height: 28; radius: 5
+                                    width: 30; height: 26; radius: 5
                                     color: model.hex
-                                    border.color: (wallpaperWindow.manualIconTheme === model.telaTheme) ? "#ffffff" : "transparent"
-                                    border.width: (wallpaperWindow.manualIconTheme === model.telaTheme) ? 2 : 0
+                                    border.color: (wallpaperWindow.manualIconTheme === model.telaTheme) ? "#ffffff" : (model.isDefaultAccent ? (rootBar ? rootBar._yel : "#f1ca93") : "transparent")
+                                    border.width: (wallpaperWindow.manualIconTheme === model.telaTheme || model.isDefaultAccent) ? 2 : 0
 
-                                    Column {
+                                    Text {
+                                        visible: model.isDefaultAccent
                                         anchors.centerIn: parent
-                                        spacing: 1
-
-                                        Text {
-                                            anchors.horizontalCenter: parent.horizontalCenter
-                                            text: model.isDefaultAccent ? "⭐ C" + model.index : "C" + model.index
-                                            color: "#ffffff"
-                                            font.family: "JetBrainsMono Nerd Font"
-                                            font.pixelSize: 8
-                                            font.bold: true
-                                            style: Text.Outline
-                                            styleColor: "#000000"
-                                        }
-
-                                        Text {
-                                            anchors.horizontalCenter: parent.horizontalCenter
-                                            text: model.telaTheme.replace("Tela-", "")
-                                            color: "#ffffff"
-                                            font.family: "JetBrainsMono Nerd Font"
-                                            font.pixelSize: 8
-                                            font.bold: true
-                                            style: Text.Outline
-                                            styleColor: "#000000"
-                                        }
+                                        text: "⭐"
+                                        font.pixelSize: 9
                                     }
 
                                     MouseArea {
@@ -620,26 +600,17 @@ PanelWindow {
                                 }
                             }
 
-                            // 🪄 Auto Recommended Swatch
+                            // 🪄 Auto Recommended Swatch Pill
                             Rectangle {
-                                width: 95; height: 28; radius: 5
+                                width: 30; height: 26; radius: 5
                                 color: wallpaperWindow.recommendedIconColor
-                                border.color: "#ffffff"
-                                border.width: 1
+                                border.color: (wallpaperWindow.manualIconTheme === wallpaperWindow.recommendedIconTheme) ? "#ffffff" : "transparent"
+                                border.width: (wallpaperWindow.manualIconTheme === wallpaperWindow.recommendedIconTheme) ? 2 : 0
 
-                                Row {
+                                Text {
                                     anchors.centerIn: parent
-                                    spacing: 3
-                                    Text { text: "🪄"; font.pixelSize: 9 }
-                                    Text {
-                                        text: "Auto: " + wallpaperWindow.recommendedIconTheme.replace("Tela-", "")
-                                        color: "#ffffff"
-                                        font.family: "JetBrainsMono Nerd Font"
-                                        font.pixelSize: 8
-                                        font.bold: true
-                                        style: Text.Outline
-                                        styleColor: "#000000"
-                                    }
+                                    text: "🪄"
+                                    font.pixelSize: 10
                                 }
 
                                 MouseArea {

@@ -50,13 +50,19 @@ def main():
         wp_path = sys.argv[2]
         key = get_wp_key(wp_path)
         rec = auto_recommend(wp_path)
+        if key and key not in mem:
+            mem[key] = {
+                "iconTheme": rec,
+                "barTheme": ""
+            }
+            save_memory(mem)
         item = mem.get(key, {})
         result = {
             "key": key,
             "recommendedIcon": rec,
-            "savedIcon": item.get("iconTheme", ""),
+            "savedIcon": item.get("iconTheme", rec),
             "savedBar": item.get("barTheme", ""),
-            "hasMemory": key in mem
+            "hasMemory": True
         }
         print(json.dumps(result))
 
