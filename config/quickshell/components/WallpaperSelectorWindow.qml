@@ -58,11 +58,11 @@ PanelWindow {
 
     onSelectedWallpaperPathChanged: {
         if (selectedWallpaperPath !== "") {
-            fetchWpMemoryProc.command = ["python3", os.path.expanduser("~/.config/quickshell/scripts/wallpaper_memory.py"), "get", selectedWallpaperPath];
+            fetchWpMemoryProc.command = ["bash", "-c", "python3 $HOME/.config/quickshell/scripts/wallpaper_memory.py get \"$1\"", "--", selectedWallpaperPath];
             fetchWpMemoryProc.running = false;
             fetchWpMemoryProc.running = true;
 
-            fetchSwatchesProc.command = ["python3", os.path.expanduser("~/.config/quickshell/scripts/wallpaper_cache_builder.py"), "get_swatches", selectedWallpaperPath];
+            fetchSwatchesProc.command = ["bash", "-c", "python3 $HOME/.config/quickshell/scripts/wallpaper_cache_builder.py get_swatches \"$1\"", "--", selectedWallpaperPath];
             fetchSwatchesProc.running = false;
             fetchSwatchesProc.running = true;
         }
@@ -70,7 +70,7 @@ PanelWindow {
 
     Process {
         id: fetchWpMemoryProc
-        command: ["python3", os.path.expanduser("~/.config/quickshell/scripts/wallpaper_memory.py"), "get", wallpaperWindow.selectedWallpaperPath]
+        command: ["bash", "-c", "python3 $HOME/.config/quickshell/scripts/wallpaper_memory.py get \"$1\"", "--", wallpaperWindow.selectedWallpaperPath]
         stdout: StdioCollector {
             onStreamFinished: {
                 try {
@@ -89,7 +89,7 @@ PanelWindow {
         id: saveWpMemoryProc
         property string iconToSave: ""
         property string barToSave: ""
-        command: ["python3", os.path.expanduser("~/.config/quickshell/scripts/wallpaper_memory.py"), "set", wallpaperWindow.selectedWallpaperPath, iconToSave, barToSave]
+        command: ["bash", "-c", "python3 $HOME/.config/quickshell/scripts/wallpaper_memory.py set \"$1\" \"$2\" \"$3\"", "--", wallpaperWindow.selectedWallpaperPath, iconToSave, barToSave]
     }
 
     function doApplyWallpaper(mode) {
@@ -246,14 +246,14 @@ PanelWindow {
     Process {
         id: scanCacheProc
         property string folderToScan: ""
-        command: ["python3", os.path.expanduser("~/.config/quickshell/scripts/wallpaper_cache_builder.py"), "scan", folderToScan]
+        command: ["bash", "-c", "python3 $HOME/.config/quickshell/scripts/wallpaper_cache_builder.py scan \"$1\"", "--", folderToScan]
     }
 
     ListModel { id: wallpaperSwatchesModel }
 
     Process {
         id: fetchSwatchesProc
-        command: ["python3", os.path.expanduser("~/.config/quickshell/scripts/wallpaper_cache_builder.py"), "get_swatches", wallpaperWindow.selectedWallpaperPath]
+        command: ["bash", "-c", "python3 $HOME/.config/quickshell/scripts/wallpaper_cache_builder.py get_swatches \"$1\"", "--", wallpaperWindow.selectedWallpaperPath]
         stdout: StdioCollector {
             onStreamFinished: {
                 wallpaperSwatchesModel.clear();

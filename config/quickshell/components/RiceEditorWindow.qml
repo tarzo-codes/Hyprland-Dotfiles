@@ -73,7 +73,7 @@ PanelWindow {
 
     Process {
         id: clearCacheProc
-        command: ["python3", os.path.expanduser("~/.config/quickshell/scripts/wallpaper_cache_builder.py"), "clear"]
+        command: ["bash", "-c", "python3 $HOME/.config/quickshell/scripts/wallpaper_cache_builder.py clear"]
     }
 
     Process {
