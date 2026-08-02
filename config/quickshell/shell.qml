@@ -709,36 +709,6 @@ ShellRoot {
         return result;
     }
 
-    function extractModuleKey(m) {
-        if (!m) return "";
-        if (typeof m === "string") return m;
-        if (typeof m === "object") {
-            if (m.modules && m.modules.length > 0) return m.modules[0];
-            if (m.type && m.type !== "capsule") return m.type;
-        }
-        return "";
-    }
-
-    function getCristinaBadgeData(raw) {
-        var m = extractModuleKey(raw);
-        if (m === "updates")    return { icon: "󰚰", text: shellRoot.updatesValue, color: shellRoot._cyn, action: function() { checkUpdatesProc.running = true; } };
-        if (m === "filesystem" || m === "disk") return { icon: "󰋊", text: shellRoot.fsValue, color: shellRoot._mag, action: null };
-        if (m === "cpu")        return { icon: "󰍛", text: shellRoot.cpuValue, color: shellRoot._blu, action: null };
-        if (m === "memory" || m === "ram") return { icon: "󰟜", text: shellRoot.memValue, color: shellRoot._yel, action: null };
-        if (m === "volume")     return { icon: shellRoot.volMuted ? "󰖁" : "󰕾", text: Math.round(shellRoot.volValue * 100).toString(), color: shellRoot._red, action: function() { shellRoot.volumePanelVisible = !shellRoot.volumePanelVisible; } };
-        if (m === "brightness") return { icon: "⚙", text: Math.round(shellRoot.brightnessValue * 100) + "%", color: shellRoot._mag, action: function() { shellRoot.brightnessPanelVisible = !shellRoot.brightnessPanelVisible; } };
-        if (m === "network")    return { icon: shellRoot.networkType === "wifi" ? "󰤨" : "󰖟", text: "2 K", color: shellRoot._cyn, action: function() { shellRoot.networkPanelVisible = !shellRoot.networkPanelVisible; } };
-        if (m === "date" || m === "clock") return { icon: "󰅐", text: shellRoot.dateValue, color: shellRoot._sur, action: null };
-        if (m === "battery")    return { icon: "󰁹", text: shellRoot.batteryPercent + "%", color: shellRoot._grn, action: null };
-        if (m === "weather")    return { icon: "󰖐", text: shellRoot.weatherTemp !== "" ? shellRoot.weatherTemp : "22°", color: shellRoot._yel, action: null };
-        if (m === "power")      return { icon: "󰐥", text: "", color: shellRoot._red, action: function() { shellRoot.powerMenuVisible = !shellRoot.powerMenuVisible; } };
-        if (m === "settings")   return { icon: "󰒓", text: "", color: shellRoot._cyn, action: function() { shellRoot.riceEditorVisible = !shellRoot.riceEditorVisible; } };
-        if (m === "song" || m === "mplayer" || m === "media" || m === "compact_player") return { icon: "󰎈", text: shellRoot.songValue !== "" ? shellRoot.songValue : "Media", color: shellRoot._sur, action: null };
-        if (m === "launcher")   return { icon: "󰣇", text: "", color: shellRoot._cyn, action: null };
-        if (m === "title")      return { icon: "󰖯", text: shellRoot.activeWinTitle, color: shellRoot._sur, action: null };
-        return { icon: "󰄬", text: m, color: shellRoot._sur, action: null };
-    }
-
     // Decoupled Layout configuration (Top / Bottom) mapped directly from polybar dotfiles
     property var themeLayouts: ({
         aline: {
@@ -1620,9 +1590,8 @@ ShellRoot {
         Row {
             spacing: 6
             height: 30
-            visible: CentralConfig.editMode || (shellRoot.weatherTemp !== "" && shellRoot.weatherTemp !== "--°")
             Text { text: "☁"; color: shellRoot._cyn; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
-            Text { text: shellRoot.weatherTemp !== "" ? shellRoot.weatherTemp : "22°"; color: shellRoot._fg; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
+            Text { text: "--°"; color: shellRoot._fg; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
         }
     }
 
@@ -1686,13 +1655,14 @@ ShellRoot {
 
     Component {
         id: compSong
+        // Media Player Capsule with Left-Wall Snapping & Right-Wall Truncation
         Item {
             id: songItem
-            property bool hasActiveSong: shellRoot.songValue !== "" && shellRoot.songValue !== "No media playing" && shellRoot.songValue !== "No player found"
-            visible: songItem.hasActiveSong || CentralConfig.editMode
-            implicitWidth: visible ? (songRow.implicitWidth + 8) : 0
+            clip: true
+            implicitWidth: visible ? Math.min(220, songRow.implicitWidth + 8) : 0
             implicitHeight: 30
             height: 30
+            visible: shellRoot.songValue !== "" || (CentralConfig.editMode)
             anchors.verticalCenter: parent.verticalCenter
 
             // 4-Stage Adaptive Space Pipeline Decision Sensor
@@ -1700,11 +1670,13 @@ ShellRoot {
 
             Row {
                 id: songRow
+                anchors.left: parent.left
+                anchors.leftMargin: 4
+                anchors.verticalCenter: parent.verticalCenter
                 spacing: 6
                 height: 30
-                anchors.verticalCenter: parent.verticalCenter
 
-                // 1. App Logo / Animated Icon (Always Shown)
+                // 1. App Logo / Animated Icon (Always Snapped to Left Wall)
                 Item {
                     width: 20; height: 20
                     anchors.verticalCenter: parent.verticalCenter
@@ -1728,10 +1700,10 @@ ShellRoot {
                     }
                 }
 
-                // 2. Playback Controls (Prev, Play/Pause, Next)
+                // 2. Playback Controls (Prev, Play/Pause, Next) - Shown in Stages 1, 2, 3
                 Row {
                     id: controlsRow
-                    visible: songItem.zoneSpace >= 120 && songItem.hasActiveSong
+                    visible: songItem.zoneSpace >= 120
                     spacing: 6
                     anchors.verticalCenter: parent.verticalCenter
 
@@ -1779,62 +1751,28 @@ ShellRoot {
                     }
                 }
 
-                // 3. Dynamic Responsive Song Title & Artist Text with Sliding Marquee Animation
-                Item {
-                    id: songTextContainer
-                    visible: songItem.zoneSpace >= 120
-                    height: 30
-                    width: songText.text !== "" ? Math.min(220, songText.implicitWidth) : 0
-                    clip: true
-                    anchors.verticalCenter: parent.verticalCenter
-
-                    property bool isOverflowing: songText.implicitWidth > songTextContainer.width
-
-                    Text {
-                        id: songText
-                        x: marqueeAnim.running ? marqueeX : 0
-                        property real maxScrollX: songTextContainer.isOverflowing ? -(implicitWidth - songTextContainer.width + 8) : 0
-                        property real marqueeX: 0
-
-                        text: {
-                            if (!songItem.hasActiveSong) return "[ Media Player ]";
-                            if (songItem.zoneSpace >= 300 && CentralConfig.showSongArtist && shellRoot.artistValue !== "") {
-                                return shellRoot.songValue + " • " + shellRoot.artistValue;
-                            }
-                            return shellRoot.songValue;
+                // 3. Dynamic Responsive Song Title & Artist Text - Shown in Stages 1 & 2
+                Text {
+                    id: songText
+                    visible: songItem.zoneSpace >= 200
+                    text: {
+                        if (shellRoot.songValue === "") return "[ EDIT: Song Title ]";
+                        // Stage 1: Title + Artist if zoneSpace >= 300
+                        if (songItem.zoneSpace >= 300 && CentralConfig.showSongArtist && shellRoot.artistValue !== "") {
+                            return shellRoot.songValue + " • " + shellRoot.artistValue;
                         }
-                        color: shellRoot.contrastFg(shellRoot._sur, shellRoot._fg)
-                        font.family: shellRoot.globalFontFamily
-                        font.pixelSize: shellRoot.globalFontSize
-                        font.bold: true
-                        verticalAlignment: Text.AlignVCenter
-                        height: 30
-
-                        SequentialAnimation {
-                            id: marqueeAnim
-                            running: songTextContainer.isOverflowing && !CentralConfig.editMode
-                            loops: Animation.Infinite
-
-                            PauseAnimation { duration: 1800 }
-                            NumberAnimation {
-                                target: songText
-                                property: "marqueeX"
-                                from: 0
-                                to: songText.maxScrollX
-                                duration: Math.max(3000, Math.abs(songText.maxScrollX) * 40)
-                                easing.type: Easing.InOutQuad
-                            }
-                            PauseAnimation { duration: 1800 }
-                            NumberAnimation {
-                                target: songText
-                                property: "marqueeX"
-                                from: songText.maxScrollX
-                                to: 0
-                                duration: Math.max(3000, Math.abs(songText.maxScrollX) * 40)
-                                easing.type: Easing.InOutQuad
-                            }
-                        }
+                        // Stage 2: Title Only
+                        return shellRoot.songValue;
                     }
+                    color: shellRoot.contrastFg(shellRoot._sur, shellRoot._fg)
+                    font.family: shellRoot.globalFontFamily
+                    font.pixelSize: shellRoot.globalFontSize
+                    font.bold: true
+                    verticalAlignment: Text.AlignVCenter
+                    height: 30
+                    elide: Text.ElideRight
+                    width: text !== "" ? Math.min(200, implicitWidth) : 0
+                    clip: true
 
                     MouseArea {
                         anchors.fill: parent
@@ -1872,7 +1810,7 @@ ShellRoot {
         Row {
             spacing: 12
             height: 30
-            Text { text: "!"; color: shellRoot._acc; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
+            Text { text: "💀"; color: shellRoot._acc; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
             Text { text: ""; color: shellRoot._fg; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
             Text { text: ""; color: shellRoot._yel; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
             Text { text: ""; color: shellRoot._blu; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize; verticalAlignment: Text.AlignVCenter; height: 30 }
@@ -2091,10 +2029,6 @@ ShellRoot {
                         if (CentralConfig.editMode || (shellRoot.updatesValue !== "" && shellRoot.updatesValue !== "0 updates" && shellRoot.updatesValue !== "0" && shellRoot.updatesValue !== "Up to date")) {
                             hasActiveModule = true;
                         }
-                    } else if (m === "weather") {
-                        if (CentralConfig.editMode || (shellRoot.weatherTemp !== "" && shellRoot.weatherTemp !== "--°")) {
-                            hasActiveModule = true;
-                        }
                     } else if (m === "tray") {
                         if (CentralConfig.editMode || shellRoot.trayCount > 0) {
                             hasActiveModule = true;
@@ -2110,53 +2044,12 @@ ShellRoot {
             Rectangle {
                 anchors.fill: parent
                 radius: ThemeManager.themeName === "emilia" ? 4 : 15
-                color: capItem.isSelectedInEdit ? shellRoot.alphaColor("#8ec07c", 0.30) : ((ThemeManager.themeName !== "cristina" && modelData.type === "capsule") ? shellRoot._sur : "transparent")
+                color: capItem.isSelectedInEdit ? shellRoot.alphaColor("#8ec07c", 0.30) : (modelData.type === "capsule" ? shellRoot._sur : "transparent")
                 border.color: capItem.isSelectedInEdit ? "#8ec07c" : "transparent"
                 border.width: capItem.isSelectedInEdit ? 2 : 0
 
                 Behavior on color { ColorAnimation { duration: 150 } }
                 Behavior on border.color { ColorAnimation { duration: 150 } }
-            }
-
-            // Cristina Slanted Powerline Parallelogram Background
-            Row {
-                id: cristinaBadgeRow
-                anchors.fill: parent
-                visible: ThemeManager.themeName === "cristina" && !capItem.isSelectedInEdit
-                spacing: 0
-
-                property color badgeColor: {
-                    var t = modelData.type;
-                    if (t === "updates")    return shellRoot._cyn;
-                    if (t === "filesystem") return shellRoot._mag;
-                    if (t === "cpu")        return shellRoot._blu;
-                    if (t === "memory" || t === "ram") return shellRoot._yel;
-                    if (t === "volume")     return shellRoot._red;
-                    if (t === "brightness") return shellRoot._yel;
-                    if (t === "network")    return shellRoot._cyn;
-                    if (t === "date" || t === "clock") return shellRoot._mag;
-                    return shellRoot._sur;
-                }
-
-                SlantSeparator {
-                    colorLeft: "transparent"
-                    colorRight: cristinaBadgeRow.badgeColor
-                    isRightSlant: true
-                    slantWidth: 8
-                    height: parent.height
-                }
-                Rectangle {
-                    color: cristinaBadgeRow.badgeColor
-                    height: parent.height
-                    width: Math.max(0, parent.width - 16)
-                }
-                SlantSeparator {
-                    colorLeft: cristinaBadgeRow.badgeColor
-                    colorRight: "transparent"
-                    isRightSlant: true
-                    slantWidth: 8
-                    height: parent.height
-                }
             }
 
             // Click Handler to select module in Edit Mode
@@ -2261,6 +2154,7 @@ ShellRoot {
 
                 onIsTopHoveredChanged: {
                     if (isTopHovered) {
+                        topBarShouldHide = false;
                         topHideTimer.stop();
                     } else if (CentralConfig.autoHideBar && !CentralConfig.editMode && !shellRoot.riceEditorVisible) {
                         topHideTimer.restart();
@@ -2322,14 +2216,20 @@ ShellRoot {
                     }
                 }
 
-                // Proximity Distance Buffer Area (Bar stays open until mouse is 85px away from bar)
+                // Proximity Distance Buffer Area (Bar stays open as long as mouse is near bar within 120px)
                 MouseArea {
                     id: topHoverArea
                     anchors.top: parent.top
                     anchors.left: parent.left
                     anchors.right: parent.right
-                    height: topBar.implicitHeight + (CentralConfig.autoHideBar ? 85 : 0)
+                    height: topBar.implicitHeight + (CentralConfig.autoHideBar ? 120 : 0)
                     hoverEnabled: true
+                    onContainsMouseChanged: {
+                        if (containsMouse) {
+                            topBar.topBarShouldHide = false;
+                            topHideTimer.stop();
+                        }
+                    }
                 }
 
                 // ── Theme Native Bar Container ─────────────────────────────────
@@ -2386,7 +2286,7 @@ ShellRoot {
                             spacing: 6
                             height: parent.height
                             z: 10
-                            visible: CentralConfig.mode === "custom" || (ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "marisol")
+                            visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "marisol"
 
                             Repeater {
                                 model: (CentralConfig.mode === "custom") ? shellRoot.getModuleArray(CentralConfig.centerModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].top ? themeLayouts[ThemeManager.themeName].top.center : [])
@@ -2405,7 +2305,7 @@ ShellRoot {
                             spacing: 6
                             height: parent.height
                             clip: true
-                            visible: CentralConfig.mode === "custom" || (ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "marisol")
+                            visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "marisol"
                             
                             Repeater {
                                 model: (CentralConfig.mode === "custom") ? shellRoot.getModuleArray(CentralConfig.leftModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].top ? themeLayouts[ThemeManager.themeName].top.left : [])
@@ -2413,29 +2313,23 @@ ShellRoot {
                             }
                         }
 
-                        // ══ RIGHT ZONE (Snapped to Right Edge) ══
-                        Item {
-                            id: topRightZoneContainer
+                        // ══ RIGHT ZONE ══
+                        Row {
+                            id: topRightZoneRow
+                            objectName: "rightZone"
                             anchors.right: parent.right
                             anchors.left: topCenterZoneRow.right
                             anchors.leftMargin: 12
+                            anchors.verticalCenter: parent.verticalCenter
+                            layoutDirection: Qt.RightToLeft
+                            spacing: 6
                             height: parent.height
                             clip: true
-                            visible: CentralConfig.mode === "custom" || (ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "marisol")
+                            visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "marisol"
 
-                            Row {
-                                id: topRightZoneRow
-                                objectName: "rightZone"
-                                anchors.right: parent.right
-                                anchors.verticalCenter: parent.verticalCenter
-                                layoutDirection: Qt.LeftToRight
-                                spacing: 6
-                                height: parent.height
-
-                                Repeater {
-                                    model: (CentralConfig.mode === "custom") ? shellRoot.getModuleArray(CentralConfig.rightModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].top ? themeLayouts[ThemeManager.themeName].top.right : [])
-                                    delegate: capsuleDelegate
-                                }
+                            Repeater {
+                                model: (CentralConfig.mode === "custom") ? shellRoot.getModuleArray(CentralConfig.rightModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].top ? themeLayouts[ThemeManager.themeName].top.right : [])
+                                delegate: capsuleDelegate
                             }
                         }
 
@@ -2444,7 +2338,7 @@ ShellRoot {
                         // ═════════════════════════════════════════════════════════════════════
                         Item {
                             anchors.fill: parent
-                            visible: CentralConfig.mode !== "custom" && ThemeManager.themeName === "marisol"
+                            visible: ThemeManager.themeName === "marisol"
 
                             // ── GRADIENT SHADOW IN THE GAP (DYNAMIC WALLUST OR STATIC BLUE) ──
                             Rectangle {
@@ -3303,6 +3197,7 @@ ShellRoot {
 
                 onIsBottomHoveredChanged: {
                     if (isBottomHovered) {
+                        bottomBarShouldHide = false;
                         bottomHideTimer.stop();
                     } else if (CentralConfig.autoHideBar && !CentralConfig.editMode && !shellRoot.riceEditorVisible) {
                         bottomHideTimer.restart();
@@ -3364,14 +3259,20 @@ ShellRoot {
                     }
                 }
 
-                // Proximity Distance Buffer Area (Bar stays open until mouse is 85px away from bar)
+                // Proximity Distance Buffer Area (Bar stays open as long as mouse is near bar within 120px)
                 MouseArea {
                     id: bottomHoverArea
                     anchors.bottom: parent.bottom
                     anchors.left: parent.left
                     anchors.right: parent.right
-                    height: bottomBar.implicitHeight + (CentralConfig.autoHideBar ? 85 : 0)
+                    height: bottomBar.implicitHeight + (CentralConfig.autoHideBar ? 120 : 0)
                     hoverEnabled: true
+                    onContainsMouseChanged: {
+                        if (containsMouse) {
+                            bottomBar.bottomBarShouldHide = false;
+                            bottomHideTimer.stop();
+                        }
+                    }
                 }
 
                 Rectangle {
@@ -3410,7 +3311,7 @@ ShellRoot {
                             visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "cristina"
 
                             Repeater {
-                                model: (CentralConfig.mode === "custom") ? shellRoot.getModuleArray(CentralConfig.centerModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].bottom ? themeLayouts[ThemeManager.themeName].bottom.center : [])
+                                model: themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].bottom ? themeLayouts[ThemeManager.themeName].bottom.center : []
                                 delegate: capsuleDelegate
                             }
                         }
@@ -3429,34 +3330,28 @@ ShellRoot {
                             visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "cristina"
 
                             Repeater {
-                                model: (CentralConfig.mode === "custom") ? shellRoot.getModuleArray(CentralConfig.leftModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].bottom ? themeLayouts[ThemeManager.themeName].bottom.left : [])
+                                model: themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].bottom ? themeLayouts[ThemeManager.themeName].bottom.left : []
                                 delegate: capsuleDelegate
                             }
                         }
 
-                        // ══ RIGHT ZONE (Snapped to Right Edge) ══
-                        Item {
-                            id: bottomRightZoneContainer
+                        // ══ RIGHT ZONE ══
+                        Row {
+                            id: bottomRightZoneRow
+                            objectName: "rightZone"
                             anchors.right: parent.right
                             anchors.left: bottomCenterZoneRow.right
                             anchors.leftMargin: 12
+                            anchors.verticalCenter: parent.verticalCenter
+                            layoutDirection: Qt.RightToLeft
+                            spacing: 6
                             height: parent.height
                             clip: true
                             visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "cristina"
 
-                            Row {
-                                id: bottomRightZoneRow
-                                objectName: "rightZone"
-                                anchors.right: parent.right
-                                anchors.verticalCenter: parent.verticalCenter
-                                layoutDirection: Qt.LeftToRight
-                                spacing: 6
-                                height: parent.height
-
-                                Repeater {
-                                    model: (CentralConfig.mode === "custom") ? shellRoot.getModuleArray(CentralConfig.rightModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].bottom ? themeLayouts[ThemeManager.themeName].bottom.right : [])
-                                    delegate: capsuleDelegate
-                                }
+                            Repeater {
+                                model: themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].bottom ? themeLayouts[ThemeManager.themeName].bottom.right : []
+                                delegate: capsuleDelegate
                             }
                         }
 
@@ -3547,89 +3442,198 @@ ShellRoot {
                                 Text { text: "󰎈"; color: shellRoot._fg; font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.iconFontSize - 2; verticalAlignment: Text.AlignVCenter; height: parent.height }
                             }
 
-                            // ── Slanted Parallelogram Badges Row (Dynamic for Rice Editor) ──
+                            // ── Slanted Parallelogram Badges Row ──
                             Row {
                                 spacing: 6
                                 height: parent.height
 
-                                Repeater {
-                                    model: (CentralConfig.mode === "custom") ? shellRoot.getModuleArray(CentralConfig.rightModules) : ["updates", "filesystem", "cpu", "memory", "volume", "network", "date", "brightness"]
-                                    delegate: Item {
-                                        id: cristinaBadgeItem
-                                        height: parent.height - 4
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        width: cristinaContentRow.implicitWidth + 24
-                                        visible: {
-                                            var m = shellRoot.extractModuleKey(modelData);
-                                            if (m === "song" || m === "media" || m === "mplayer" || m === "compact_player") {
-                                                return CentralConfig.editMode || (shellRoot.songValue !== "" && shellRoot.songValue !== "No media playing" && shellRoot.songValue !== "No player found");
-                                            }
-                                            if (m === "title") {
-                                                return CentralConfig.editMode || (shellRoot.activeTitle !== "" && shellRoot.activeTitle !== "Desktop" && shellRoot.activeTitle !== "Hyprland");
-                                            }
-                                            if (m === "updates") {
-                                                return CentralConfig.editMode || (shellRoot.updatesValue !== "" && shellRoot.updatesValue !== "0 updates" && shellRoot.updatesValue !== "0" && shellRoot.updatesValue !== "Up to date");
-                                            }
-                                            return true;
-                                        }
-
-                                        property var moduleInfo: shellRoot.getCristinaBadgeData(modelData)
-
-                                        Row {
-                                            anchors.fill: parent
-                                            spacing: 0
-                                            SlantSeparator { colorLeft: "transparent"; colorRight: cristinaBadgeItem.moduleInfo.color; isRightSlant: true; slantWidth: 10; height: parent.height }
-                                            Rectangle {
-                                                color: cristinaBadgeItem.moduleInfo.color
-                                                height: parent.height
-                                                width: cristinaContentRow.implicitWidth + 8
-                                                Row {
-                                                    id: cristinaContentRow
-                                                    anchors.centerIn: parent
-                                                    spacing: 5
-                                                    Text {
-                                                        text: cristinaBadgeItem.moduleInfo.icon
-                                                        color: shellRoot.contrastFg(cristinaBadgeItem.moduleInfo.color, "#111217")
-                                                        font.family: shellRoot.globalFontFamily
-                                                        font.pixelSize: shellRoot.globalFontSize + 1
-                                                        font.bold: true
-                                                        verticalAlignment: Text.AlignVCenter
-                                                    }
-                                                    Text {
-                                                        visible: cristinaBadgeItem.moduleInfo.text !== ""
-                                                        text: cristinaBadgeItem.moduleInfo.text
-                                                        color: shellRoot.contrastFg(cristinaBadgeItem.moduleInfo.color, "#111217")
-                                                        font.family: shellRoot.globalFontFamily
-                                                        font.pixelSize: shellRoot.globalFontSize
-                                                        font.bold: true
-                                                        verticalAlignment: Text.AlignVCenter
-                                                    }
-                                                }
-                                            }
-                                            SlantSeparator { colorLeft: cristinaBadgeItem.moduleInfo.color; colorRight: "transparent"; isRightSlant: true; slantWidth: 10; height: parent.height }
-                                        }
-
-                                        MouseArea {
-                                            anchors.fill: parent
-                                            cursorShape: Qt.PointingHandCursor
-                                            onClicked: {
-                                                if (cristinaBadgeItem.moduleInfo.action) cristinaBadgeItem.moduleInfo.action();
-                                            }
-                                            onWheel: (wheel) => {
-                                                var key = (typeof modelData === "object") ? modelData.type : modelData;
-                                                if (key === "brightness") {
-                                                    var delta = wheel.angleDelta.y > 0 ? 0.05 : -0.05;
-                                                    shellRoot.isAdjustingBrightness = true;
-                                                    shellRoot.brightnessValue = Math.max(0.05, Math.min(1.0, shellRoot.brightnessValue + delta));
-                                                    brightCooldownTimer.restart();
-                                                } else if (key === "volume") {
-                                                    var deltaV = wheel.angleDelta.y > 0 ? 0.05 : -0.05;
-                                                    shellRoot.isAdjustingVolume = true;
-                                                    shellRoot.volValue = Math.max(0.0, Math.min(1.0, shellRoot.volValue + deltaV));
-                                                    volCooldownTimer.restart();
-                                                }
+                                // Badge 1: Updates (Cyan)
+                                Item {
+                                    height: parent.height - 4
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: updatesBadgeRow.implicitWidth
+                                    Row {
+                                        id: updatesBadgeRow
+                                        anchors.fill: parent
+                                        spacing: 0
+                                        SlantSeparator { colorLeft: "transparent"; colorRight: shellRoot._cyn; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                        Rectangle {
+                                            color: shellRoot._cyn
+                                            height: parent.height
+                                            width: updatesBadgeContent.implicitWidth + 8
+                                            Row {
+                                                id: updatesBadgeContent
+                                                anchors.centerIn: parent
+                                                spacing: 4
+                                                Text { text: "󰚰"; color: shellRoot.contrastFg(shellRoot._cyn, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
+                                                Text { text: shellRoot.updatesValue; color: shellRoot.contrastFg(shellRoot._cyn, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
                                             }
                                         }
+                                        SlantSeparator { colorLeft: shellRoot._cyn; colorRight: "transparent"; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                    }
+                                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: checkUpdatesProc.running = true }
+                                }
+
+                                // Badge 2: Disk (Magenta/Purple)
+                                Item {
+                                    height: parent.height - 4
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: diskBadgeRow.implicitWidth
+                                    Row {
+                                        id: diskBadgeRow
+                                        anchors.fill: parent
+                                        spacing: 0
+                                        SlantSeparator { colorLeft: "transparent"; colorRight: shellRoot._mag; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                        Rectangle {
+                                            color: shellRoot._mag
+                                            height: parent.height
+                                            width: diskBadgeContent.implicitWidth + 8
+                                            Row {
+                                                id: diskBadgeContent
+                                                anchors.centerIn: parent
+                                                spacing: 4
+                                                Text { text: "󰋊"; color: shellRoot.contrastFg(shellRoot._mag, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
+                                                Text { text: shellRoot.fsValue; color: shellRoot.contrastFg(shellRoot._mag, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
+                                            }
+                                        }
+                                        SlantSeparator { colorLeft: shellRoot._mag; colorRight: "transparent"; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                    }
+                                }
+
+                                // Badge 3: CPU (Blue)
+                                Item {
+                                    height: parent.height - 4
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: cpuBadgeRow.implicitWidth
+                                    Row {
+                                        id: cpuBadgeRow
+                                        anchors.fill: parent
+                                        spacing: 0
+                                        SlantSeparator { colorLeft: "transparent"; colorRight: shellRoot._blu; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                        Rectangle {
+                                            color: shellRoot._blu
+                                            height: parent.height
+                                            width: cpuBadgeContent.implicitWidth + 8
+                                            Row {
+                                                id: cpuBadgeContent
+                                                anchors.centerIn: parent
+                                                spacing: 4
+                                                Text { text: "󰍛"; color: shellRoot.contrastFg(shellRoot._blu, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
+                                                Text { text: shellRoot.cpuValue; color: shellRoot.contrastFg(shellRoot._blu, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
+                                            }
+                                        }
+                                        SlantSeparator { colorLeft: shellRoot._blu; colorRight: "transparent"; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                    }
+                                }
+
+                                // Badge 4: RAM (Yellow)
+                                Item {
+                                    height: parent.height - 4
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: memBadgeRow.implicitWidth
+                                    Row {
+                                        id: memBadgeRow
+                                        anchors.fill: parent
+                                        spacing: 0
+                                        SlantSeparator { colorLeft: "transparent"; colorRight: shellRoot._yel; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                        Rectangle {
+                                            color: shellRoot._yel
+                                            height: parent.height
+                                            width: memBadgeContent.implicitWidth + 8
+                                            Row {
+                                                id: memBadgeContent
+                                                anchors.centerIn: parent
+                                                spacing: 4
+                                                Text { text: "󰟜"; color: shellRoot.contrastFg(shellRoot._yel, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
+                                                Text { text: shellRoot.memValue; color: shellRoot.contrastFg(shellRoot._yel, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
+                                            }
+                                        }
+                                        SlantSeparator { colorLeft: shellRoot._yel; colorRight: "transparent"; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                    }
+                                }
+
+                                // Badge 5: Volume (Red/Salmon)
+                                Item {
+                                    height: parent.height - 4
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: volBadgeRow.implicitWidth
+                                    Row {
+                                        id: volBadgeRow
+                                        anchors.fill: parent
+                                        spacing: 0
+                                        SlantSeparator { colorLeft: "transparent"; colorRight: shellRoot._red; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                        Rectangle {
+                                            color: shellRoot._red
+                                            height: parent.height
+                                            width: volBadgeContent.implicitWidth + 8
+                                            Row {
+                                                id: volBadgeContent
+                                                anchors.centerIn: parent
+                                                spacing: 4
+                                                Text { text: shellRoot.volMuted ? "󰖁" : "󰕾"; color: shellRoot.contrastFg(shellRoot._red, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
+                                                Text { text: Math.round(shellRoot.volValue * 100).toString(); color: shellRoot.contrastFg(shellRoot._red, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
+                                            }
+                                        }
+                                        SlantSeparator { colorLeft: shellRoot._red; colorRight: "transparent"; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                    }
+                                    MouseArea {
+                                        anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                        onClicked: shellRoot.volumePanelVisible = !shellRoot.volumePanelVisible
+                                    }
+                                }
+
+                                // Badge 6: Wifi / Network (Cyan/Teal)
+                                Item {
+                                    height: parent.height - 4
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: netBadgeRow.implicitWidth
+                                    Row {
+                                        id: netBadgeRow
+                                        anchors.fill: parent
+                                        spacing: 0
+                                        SlantSeparator { colorLeft: "transparent"; colorRight: shellRoot._cyn; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                        Rectangle {
+                                            color: shellRoot._cyn
+                                            height: parent.height
+                                            width: netBadgeContent.implicitWidth + 8
+                                            Row {
+                                                id: netBadgeContent
+                                                anchors.centerIn: parent
+                                                spacing: 4
+                                                Text { text: shellRoot.networkType === "wifi" ? "󰤨" : "󰖟"; color: shellRoot.contrastFg(shellRoot._cyn, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
+                                                Text { text: "2 K"; color: shellRoot.contrastFg(shellRoot._cyn, "#111217"); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
+                                            }
+                                        }
+                                        SlantSeparator { colorLeft: shellRoot._cyn; colorRight: "transparent"; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                    }
+                                    MouseArea {
+                                        anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                        onClicked: shellRoot.networkPanelVisible = !shellRoot.networkPanelVisible
+                                    }
+                                }
+
+                                // Badge 7: Clock / Time (Dark Surface / Muted)
+                                Item {
+                                    height: parent.height - 4
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: dateBadgeRow.implicitWidth
+                                    Row {
+                                        id: dateBadgeRow
+                                        anchors.fill: parent
+                                        spacing: 0
+                                        SlantSeparator { colorLeft: "transparent"; colorRight: shellRoot._sur; isRightSlant: true; slantWidth: 10; height: parent.height }
+                                        Rectangle {
+                                            color: shellRoot._sur
+                                            height: parent.height
+                                            width: dateBadgeContent.implicitWidth + 8
+                                            Row {
+                                                id: dateBadgeContent
+                                                anchors.centerIn: parent
+                                                spacing: 4
+                                                Text { text: shellRoot.dateValue; color: shellRoot.contrastFg(shellRoot._sur, shellRoot._fg); font.family: shellRoot.globalFontFamily; font.pixelSize: shellRoot.globalFontSize; font.bold: true }
+                                            }
+                                        }
+                                        SlantSeparator { colorLeft: shellRoot._sur; colorRight: "transparent"; isRightSlant: true; slantWidth: 10; height: parent.height }
                                     }
                                 }
                             }
