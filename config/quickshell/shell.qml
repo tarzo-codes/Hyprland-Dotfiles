@@ -257,7 +257,7 @@ ShellRoot {
     property string dateValue:      "--:--"
     property string songValue:      ""
     property string artistValue:    ""
-    readonly property real maxDynamicModuleWidth: Math.max(650, (Quickshell.screens.length > 0 ? Quickshell.screens[0].width : 1920) * 0.65)
+    readonly property real maxDynamicModuleWidth: Math.min(220, Math.max(120, (Quickshell.screens.length > 0 ? Quickshell.screens[0].width : 1920) * 0.16))
     property real   mediaPosition:  0.0
     property real   mediaLength:    1.0
     property string mediaTimeStr:   "0:00 / 0:00"
@@ -2174,26 +2174,14 @@ ShellRoot {
                         anchors.leftMargin: (ThemeManager.themeName !== "emilia" && (ThemeManager.barIsTopFloat || ThemeManager.barIsAndrea || ThemeManager.themeName === "melissa" || ThemeManager.themeName === "marisol")) ? 0 : 12
                         anchors.rightMargin: (ThemeManager.themeName !== "emilia" && (ThemeManager.barIsTopFloat || ThemeManager.barIsAndrea || ThemeManager.themeName === "melissa" || ThemeManager.themeName === "marisol")) ? 0 : 12
 
-                        // ══ LEFT ZONE ══
-                        Row {
-                            anchors.left: parent.left
-                            anchors.verticalCenter: parent.verticalCenter
-                            spacing: 6
-                            height: parent.height
-                            visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "marisol"
-                            
-                            Repeater {
-                                model: (CentralConfig.mode === "custom") ? shellRoot.getModuleArray(CentralConfig.leftModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].top ? themeLayouts[ThemeManager.themeName].top.left : [])
-                                delegate: capsuleDelegate
-                            }
-                        }
-
                         // ══ CENTER ZONE ══
                         Row {
+                            id: topCenterZoneRow
                             anchors.horizontalCenter: parent.horizontalCenter
                             anchors.verticalCenter: parent.verticalCenter
                             spacing: 6
                             height: parent.height
+                            z: 10
                             visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "marisol"
 
                             Repeater {
@@ -2202,12 +2190,35 @@ ShellRoot {
                             }
                         }
 
-                        // ══ RIGHT ZONE ══
+                        // ══ LEFT ZONE ══
                         Row {
-                            anchors.right: parent.right
+                            id: topLeftZoneRow
+                            anchors.left: parent.left
+                            anchors.right: topCenterZoneRow.left
+                            anchors.rightMargin: 12
                             anchors.verticalCenter: parent.verticalCenter
                             spacing: 6
                             height: parent.height
+                            clip: true
+                            visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "marisol"
+                            
+                            Repeater {
+                                model: (CentralConfig.mode === "custom") ? shellRoot.getModuleArray(CentralConfig.leftModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].top ? themeLayouts[ThemeManager.themeName].top.left : [])
+                                delegate: capsuleDelegate
+                            }
+                        }
+
+                        // ══ RIGHT ZONE ══
+                        Row {
+                            id: topRightZoneRow
+                            anchors.right: parent.right
+                            anchors.left: topCenterZoneRow.right
+                            anchors.leftMargin: 12
+                            anchors.verticalCenter: parent.verticalCenter
+                            layoutDirection: Qt.RightToLeft
+                            spacing: 6
+                            height: parent.height
+                            clip: true
                             visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "marisol"
 
                             Repeater {
@@ -3175,26 +3186,14 @@ ShellRoot {
                         anchors.leftMargin: ThemeManager.themeName === "melissa" ? 0 : 12
                         anchors.rightMargin: ThemeManager.themeName === "melissa" ? 0 : 12
 
-                        // ══ LEFT ZONE ══
-                        Row {
-                            anchors.left: parent.left
-                            anchors.verticalCenter: parent.verticalCenter
-                            spacing: 6
-                            height: parent.height
-                            visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "cristina"
-
-                            Repeater {
-                                model: themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].bottom ? themeLayouts[ThemeManager.themeName].bottom.left : []
-                                delegate: capsuleDelegate
-                            }
-                        }
-
                         // ══ CENTER ZONE ══
                         Row {
+                            id: bottomCenterZoneRow
                             anchors.horizontalCenter: parent.horizontalCenter
                             anchors.verticalCenter: parent.verticalCenter
                             spacing: 6
                             height: parent.height
+                            z: 10
                             visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "cristina"
 
                             Repeater {
@@ -3203,12 +3202,35 @@ ShellRoot {
                             }
                         }
 
-                        // ══ RIGHT ZONE ══
+                        // ══ LEFT ZONE ══
                         Row {
-                            anchors.right: parent.right
+                            id: bottomLeftZoneRow
+                            anchors.left: parent.left
+                            anchors.right: bottomCenterZoneRow.left
+                            anchors.rightMargin: 12
                             anchors.verticalCenter: parent.verticalCenter
                             spacing: 6
                             height: parent.height
+                            clip: true
+                            visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "cristina"
+
+                            Repeater {
+                                model: themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].bottom ? themeLayouts[ThemeManager.themeName].bottom.left : []
+                                delegate: capsuleDelegate
+                            }
+                        }
+
+                        // ══ RIGHT ZONE ══
+                        Row {
+                            id: bottomRightZoneRow
+                            anchors.right: parent.right
+                            anchors.left: bottomCenterZoneRow.right
+                            anchors.leftMargin: 12
+                            anchors.verticalCenter: parent.verticalCenter
+                            layoutDirection: Qt.RightToLeft
+                            spacing: 6
+                            height: parent.height
+                            clip: true
                             visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "cristina"
 
                             Repeater {
