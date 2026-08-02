@@ -1663,8 +1663,8 @@ ShellRoot {
             visible: shellRoot.songValue !== "" || (CentralConfig.editMode)
             anchors.verticalCenter: parent.verticalCenter
 
-            // 4-Stage Adaptive Space Pipeline Decision Sensor
-            property real zoneSpace: shellRoot.getAvailableZoneSpace(songItem)
+            // 4-Stage Adaptive Space Pipeline Decision Sensor (Screen-relative to prevent binding loops)
+            property real zoneSpace: (Quickshell.screens.length > 0 ? Quickshell.screens[0].width : 1920) * 0.40
 
             Row {
                 id: songRow
