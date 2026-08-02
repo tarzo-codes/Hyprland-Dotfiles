@@ -2302,23 +2302,29 @@ ShellRoot {
                             }
                         }
 
-                        // ══ RIGHT ZONE ══
-                        Row {
-                            id: topRightZoneRow
-                            objectName: "rightZone"
+                        // ══ RIGHT ZONE (Snapped to Right Edge) ══
+                        Item {
+                            id: topRightZoneContainer
                             anchors.right: parent.right
                             anchors.left: topCenterZoneRow.right
                             anchors.leftMargin: 12
-                            anchors.verticalCenter: parent.verticalCenter
-                            layoutDirection: Qt.LeftToRight
-                            spacing: 6
                             height: parent.height
                             clip: true
                             visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "marisol"
 
-                            Repeater {
-                                model: (CentralConfig.mode === "custom") ? shellRoot.getModuleArray(CentralConfig.rightModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].top ? themeLayouts[ThemeManager.themeName].top.right : [])
-                                delegate: capsuleDelegate
+                            Row {
+                                id: topRightZoneRow
+                                objectName: "rightZone"
+                                anchors.right: parent.right
+                                anchors.verticalCenter: parent.verticalCenter
+                                layoutDirection: Qt.LeftToRight
+                                spacing: 6
+                                height: parent.height
+
+                                Repeater {
+                                    model: (CentralConfig.mode === "custom") ? shellRoot.getModuleArray(CentralConfig.rightModules) : (themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].top ? themeLayouts[ThemeManager.themeName].top.right : [])
+                                    delegate: capsuleDelegate
+                                }
                             }
                         }
 
@@ -3317,23 +3323,29 @@ ShellRoot {
                             }
                         }
 
-                        // ══ RIGHT ZONE ══
-                        Row {
-                            id: bottomRightZoneRow
-                            objectName: "rightZone"
+                        // ══ RIGHT ZONE (Snapped to Right Edge) ══
+                        Item {
+                            id: bottomRightZoneContainer
                             anchors.right: parent.right
                             anchors.left: bottomCenterZoneRow.right
                             anchors.leftMargin: 12
-                            anchors.verticalCenter: parent.verticalCenter
-                            layoutDirection: Qt.LeftToRight
-                            spacing: 6
                             height: parent.height
                             clip: true
                             visible: ThemeManager.themeName !== "melissa" && ThemeManager.themeName !== "cristina"
 
-                            Repeater {
-                                model: themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].bottom ? themeLayouts[ThemeManager.themeName].bottom.right : []
-                                delegate: capsuleDelegate
+                            Row {
+                                id: bottomRightZoneRow
+                                objectName: "rightZone"
+                                anchors.right: parent.right
+                                anchors.verticalCenter: parent.verticalCenter
+                                layoutDirection: Qt.LeftToRight
+                                spacing: 6
+                                height: parent.height
+
+                                Repeater {
+                                    model: themeLayouts[ThemeManager.themeName] && themeLayouts[ThemeManager.themeName].bottom ? themeLayouts[ThemeManager.themeName].bottom.right : []
+                                    delegate: capsuleDelegate
+                                }
                             }
                         }
 
