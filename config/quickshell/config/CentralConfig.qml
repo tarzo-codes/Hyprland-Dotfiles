@@ -180,7 +180,61 @@ Item {
             leftModules = "launcher,workspaces,title,pinnedApps";
             centerModules = "media,updates,weather";
             rightModules = "disk,cpu,ram,gpu,temp,volume,brightness,network,bluetooth,battery,clock,tray,theme,wallpaper,power";
+        } else if (presetType === "custom_user" && savedCustomLeft !== "") {
+            leftModules = savedCustomLeft;
+            centerModules = savedCustomCenter;
+            rightModules = savedCustomRight;
         }
         mode = "custom";
+    }
+
+    // ── CUSTOM USER PRESET STORE ──
+    property string savedCustomLeft: ""
+    property string savedCustomCenter: ""
+    property string savedCustomRight: ""
+    readonly property bool hasCustomPreset: savedCustomLeft !== "" || savedCustomCenter !== "" || savedCustomRight !== ""
+
+    function saveCustomPreset() {
+        savedCustomLeft = leftModules;
+        savedCustomCenter = centerModules;
+        savedCustomRight = rightModules;
+    }
+
+    // ── DUPLICATE MODULE DETECTOR & CLEANER ──
+    function getDuplicateModules() {
+        var all = (leftModules + "," + centerModules + "," + rightModules).split(",");
+        var counts = {};
+        var dups = [];
+        for (var i = 0; i < all.length; i++) {
+            var m = all[i];
+            if (!m) continue;
+            counts[m] = (counts[m] || 0) + 1;
+            if (counts[m] === 2) dups.push(m);
+        }
+        return dups;
+    }
+
+    function getModuleCount(moduleKey) {
+        var all = (leftModules + "," + centerModules + "," + rightModules).split(",");
+        var c = 0;
+        for (var i = 0; i < all.length; i++) {
+            if (all[i] === moduleKey) c++;
+        }
+        return c;
+    }
+
+    function deduplicateModules() {
+        var lefts = (leftModules || "").split(",").filter(Boolean);
+        var centers = (centerModules || "").split(",").filter(Boolean);
+        var rights = (rightModules || "").split(",").filter(Boolean);
+
+        var seen = {};
+        lefts = lefts.filter(function(m) { if (seen[m]) return false; seen[m] = true; return true; });
+        centers = centers.filter(function(m) { if (seen[m]) return false; seen[m] = true; return true; });
+        rights = rights.filter(function(m) { if (seen[m]) return false; seen[m] = true; return true; });
+
+        leftModules = lefts.join(",");
+        centerModules = centers.join(",");
+        rightModules = rights.join(",");
     }
 }

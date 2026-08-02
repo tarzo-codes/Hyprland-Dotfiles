@@ -809,6 +809,39 @@ PanelWindow {
                                     }
                                 }
 
+                                // Duplicate Modules Active Warning Banner
+                                Rectangle {
+                                    property var activeDups: CentralConfig.getDuplicateModules()
+                                    visible: activeDups.length > 0
+                                    width: parent.width; height: 34; radius: 6
+                                    color: "#42202b"
+                                    border.color: "#ea6f91"; border.width: 1.5
+
+                                    RowLayout {
+                                        anchors.fill: parent; anchors.leftMargin: 10; anchors.rightMargin: 10
+                                        spacing: 8
+                                        Text { text: "⚠️"; font.pixelSize: 12 }
+                                        Text {
+                                            text: "Duplicate Modules Active on Bar (" + activeDups.join(", ") + ")!"
+                                            color: "#ea6f91"
+                                            font.pixelSize: 10; font.bold: true
+                                        }
+                                        Item { Layout.fillWidth: true }
+                                        Rectangle {
+                                            width: 120; height: 22; radius: 4; color: "#ea6f91"
+                                            Text { anchors.centerIn: parent; text: "🧹 Clean Duplicates"; color: "#ffffff"; font.pixelSize: 9; font.bold: true }
+                                            MouseArea {
+                                                anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                                onClicked: {
+                                                    ensureEditMode();
+                                                    CentralConfig.deduplicateModules();
+                                                    riceWindow.showStatus("Removed all duplicate modules!");
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
                                 // Presets Bar
                                 Column {
                                     width: parent.width; spacing: 6
@@ -819,27 +852,54 @@ PanelWindow {
                                         width: parent.width
 
                                         Rectangle {
-                                            width: 110; height: 26; radius: 6; color: "#2a283e"; border.color: "#9bced7"; border.width: 1
+                                            width: 100; height: 26; radius: 6; color: "#2a283e"; border.color: "#9bced7"; border.width: 1
                                             Text { anchors.centerIn: parent; text: "Emilia Original"; color: "#e0def4"; font.pixelSize: 9; font.bold: true }
                                             MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { ensureEditMode(); riceWindow.requestPresetConfirmation("emilia_default", "Emilia Original"); } }
                                         }
 
                                         Rectangle {
-                                            width: 110; height: 26; radius: 6; color: "#2a283e"; border.color: "#f1ca93"; border.width: 1
+                                            width: 95; height: 26; radius: 6; color: "#2a283e"; border.color: "#f1ca93"; border.width: 1
                                             Text { anchors.centerIn: parent; text: "Minimal Ricing"; color: "#e0def4"; font.pixelSize: 9; font.bold: true }
                                             MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { ensureEditMode(); riceWindow.requestPresetConfirmation("minimal", "Minimal Ricing"); } }
                                         }
 
                                         Rectangle {
-                                            width: 110; height: 26; radius: 6; color: "#2a283e"; border.color: "#c3a5e6"; border.width: 1
+                                            width: 100; height: 26; radius: 6; color: "#2a283e"; border.color: "#c3a5e6"; border.width: 1
                                             Text { anchors.centerIn: parent; text: "System Monitor"; color: "#e0def4"; font.pixelSize: 9; font.bold: true }
                                             MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { ensureEditMode(); riceWindow.requestPresetConfirmation("sysmon", "System Monitor"); } }
                                         }
 
                                         Rectangle {
-                                            width: 110; height: 26; radius: 6; color: "#2a283e"; border.color: "#8ec07c"; border.width: 1
+                                            width: 100; height: 26; radius: 6; color: "#2a283e"; border.color: "#8ec07c"; border.width: 1
                                             Text { anchors.centerIn: parent; text: "Full Powerhouse"; color: "#e0def4"; font.pixelSize: 9; font.bold: true }
                                             MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { ensureEditMode(); riceWindow.requestPresetConfirmation("full", "Full Powerhouse"); } }
+                                        }
+
+                                        // Save Custom Preset Button
+                                        Rectangle {
+                                            width: 120; height: 26; radius: 6; color: "#312a4a"; border.color: "#b4befe"; border.width: 1
+                                            Text { anchors.centerIn: parent; text: "💾 Save Custom Preset"; color: "#b4befe"; font.pixelSize: 9; font.bold: true }
+                                            MouseArea {
+                                                anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                                onClicked: {
+                                                    CentralConfig.saveCustomPreset();
+                                                    riceWindow.showStatus("Saved active layout as Custom Preset!");
+                                                }
+                                            }
+                                        }
+
+                                        // Load Saved Custom Preset Button
+                                        Rectangle {
+                                            visible: CentralConfig.hasCustomPreset
+                                            width: 90; height: 26; radius: 6; color: "#312a4a"; border.color: "#a6e3a1"; border.width: 1
+                                            Text { anchors.centerIn: parent; text: "⭐ My Preset"; color: "#a6e3a1"; font.pixelSize: 9; font.bold: true }
+                                            MouseArea {
+                                                anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                                onClicked: {
+                                                    ensureEditMode();
+                                                    riceWindow.requestPresetConfirmation("custom_user", "My Custom Preset");
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -879,18 +939,20 @@ PanelWindow {
                                         ]
                                         delegate: Rectangle {
                                             width: parent.width
-                                            height: hasSubOpts ? 62 : 34
+                                            height: hasSubOpts ? 58 : 34
                                             radius: 6
                                             color: "#1e1e2e"
                                             clip: true
 
                                             property bool isHidden: zoneRow.currentZone === "hidden"
-                                            property bool hasSubOpts: !isHidden && (modelData.key === "title" || modelData.key === "song" || modelData.key === "media")
+                                            property bool hasSubOpts: !isHidden && (modelData.key === "title" || modelData.key === "song")
+                                            property int dupCount: CentralConfig.getModuleCount(modelData.key)
 
                                             Column {
                                                 anchors.fill: parent
-                                                spacing: 4
+                                                spacing: 0
 
+                                                // Row 1: Module Info & Zone Controls
                                                 Item {
                                                     width: parent.width; height: 34
 
@@ -910,7 +972,16 @@ PanelWindow {
                                                             Text { anchors.centerIn: parent; text: "#" + (parent.modIdx + 1); color: "#f1ca93"; font.pixelSize: 9; font.bold: true }
                                                         }
 
-                                                        Item { width: parent.width - 240 - zoneRow.implicitWidth }
+                                                        // Duplicate Warning Badge (if active > 1 times)
+                                                        Rectangle {
+                                                            visible: dupCount > 1
+                                                            width: 64; height: 18; radius: 4; color: "#42202b"
+                                                            border.color: "#ea6f91"; border.width: 1
+                                                            anchors.verticalCenter: parent.verticalCenter
+                                                            Text { anchors.centerIn: parent; text: "⚠️ " + dupCount + "x Active"; color: "#ea6f91"; font.pixelSize: 8; font.bold: true }
+                                                        }
+
+                                                        Item { Layout.fillWidth: true }
 
                                                         Row {
                                                             id: zoneRow
@@ -972,12 +1043,17 @@ PanelWindow {
                                                             }
                                                         }
                                                     }
+                                                }
 
-                                                    // Inline Sub-Component Options Row (ONLY SHOWN WHEN NOT HIDDEN!)
+                                                // Row 2: Inline Sub-Component Options Row (Cleanly placed below Row 1)
+                                                Item {
+                                                    visible: hasSubOpts
+                                                    width: parent.width
+                                                    height: 24
+
                                                     Row {
-                                                        visible: parent.parent.hasSubOpts
-                                                        height: 22
-                                                        anchors.left: parent.left; anchors.leftMargin: 28
+                                                        anchors.left: parent.left; anchors.leftMargin: 32
+                                                        anchors.verticalCenter: parent.verticalCenter
                                                         spacing: 16
 
                                                         // Title Sub-Options
@@ -1016,9 +1092,9 @@ PanelWindow {
                                                             }
                                                         }
 
-                                                        // Song / Media Sub-Options
+                                                        // Song Sub-Options
                                                         Row {
-                                                            visible: modelData.key === "song" || modelData.key === "media"
+                                                            visible: modelData.key === "song"
                                                             spacing: 12
 
                                                             Row {
@@ -1028,7 +1104,7 @@ PanelWindow {
                                                                     Text { anchors.centerIn: parent; text: "✓"; visible: CentralConfig.showSongCoverArt; color: "#181628"; font.pixelSize: 9; font.bold: true }
                                                                     MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: CentralConfig.showSongCoverArt = !CentralConfig.showSongCoverArt }
                                                                 }
-                                                                Text { text: "Album Cover Art"; color: "#e0def4"; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
+                                                                Text { text: "App Logo & Cover Art"; color: "#e0def4"; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
                                                             }
 
                                                             Row {
