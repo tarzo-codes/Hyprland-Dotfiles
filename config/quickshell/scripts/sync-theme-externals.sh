@@ -406,7 +406,7 @@ else
 fi
 
 # ──────────────────────────────────────────────────────────────────────────
-# 5. Icon Theme Switcher — Dynamic Tela Icons (Pass 2 & 3 Final Reload)
+# 4. Icon Theme Switcher — Dynamic Tela Icons & Matching Dolphin Accent
 # ──────────────────────────────────────────────────────────────────────────
 ICON_THEME=$(python3 -c "
 import os, colorsys
@@ -535,32 +535,128 @@ else:
     print(best_base)
 ")
 
-# Multi-pass Icon Theme Apply (Pass 2 & 3) for GTK 3, GTK 4, Gnome & KDE
+# Apply Icon Theme
 [ -f "$HOME/.config/gtk-3.0/settings.ini" ] && sed -i "s/gtk-icon-theme-name=.*/gtk-icon-theme-name=$ICON_THEME/" "$HOME/.config/gtk-3.0/settings.ini" 2>/dev/null || true
 [ -f "$HOME/.config/gtk-4.0/settings.ini" ] && sed -i "s/gtk-icon-theme-name=.*/gtk-icon-theme-name=$ICON_THEME/" "$HOME/.config/gtk-4.0/settings.ini" 2>/dev/null || true
 gsettings set org.gnome.desktop.interface icon-theme "$ICON_THEME" 2>/dev/null || true
 kwriteconfig6 --file kdeglobals --group Icons --key Theme "$ICON_THEME" 2>/dev/null
 
-xsettingsd_config="$HOME/.config/xsettingsd/xsettingsd.conf"
-if [ -f "$xsettingsd_config" ]; then
-  sed -i "s#^Net/IconThemeName.*#Net/IconThemeName \"$ICON_THEME\"#g" "$xsettingsd_config"
-  if command -v xsettingsd &> /dev/null; then
-    pkill xsettingsd 2>/dev/null || true
-    sleep 0.1
-    xsettingsd -c "$xsettingsd_config" 2>/dev/null &
-  fi
+# ── 4b. Resolve Dolphin Accent Color matching Tela Icon Theme ─────────────
+ICON_ACCENT=$(python3 -c "
+icon_theme = '$ICON_THEME'
+base = icon_theme.replace('-light','').replace('-dark','')
+accents = {
+    'Tela-blue': '#3584e4',
+    'Tela-nord': '#5e81ac',
+    'Tela-manjaro': '#16a085',
+    'Tela-green': '#2ecc71',
+    'Tela-yellow': '#f39c12',
+    'Tela-orange': '#e67e22',
+    'Tela-ubuntu': '#e95420',
+    'Tela-red': '#e74c3c',
+    'Tela-pink': '#ec407a',
+    'Tela-purple': '#9b59b6',
+    'Tela-dracula': '#bd93f9',
+    'Tela-brown': '#8d6e63',
+    'Tela-grey': '#787c99',
+    'Tela-black': '#555b6e'
+}
+print(accents.get(base, '#3584e4'))
+")
+
+ICON_ACC_RGB=$(hex_to_rgb "$ICON_ACCENT")
+
+# Use Icon Accent for KDE/Dolphin highlight if available
+DOLPHIN_ACC_RGB="$ICON_ACC_RGB"
+
+# KDE Color Scheme (FluxDots)
+KDE_TMP="$(mktemp)"
+cat <<EOF > "$KDE_TMP"
+[General]
+ColorScheme=FluxDots
+Name=FluxDots
+accentColor=$DOLPHIN_ACC_RGB
+LastUsedCustomAccentColor=$DOLPHIN_ACC_RGB
+
+[UiSettings]
+ColorScheme=FluxDots
+
+[KDE]
+LookAndFeelPackage=$KDE_LOOKANDFEEL
+contrast=7
+
+[Colors:Window]
+BackgroundNormal=$BG_RGB
+ForegroundNormal=$FG_RGB
+BackgroundAlternate=$SUR_RGB
+ForegroundInactive=$INACT_RGB
+ForegroundActive=$DOLPHIN_ACC_RGB
+
+[Colors:View]
+BackgroundNormal=$BG_RGB
+ForegroundNormal=$FG_RGB
+BackgroundAlternate=$SUR_RGB
+ForegroundInactive=$INACT_RGB
+ForegroundActive=$DOLPHIN_ACC_RGB
+
+[Colors:Button]
+BackgroundNormal=$SUR_RGB
+ForegroundNormal=$FG_RGB
+BackgroundAlternate=$BG_RGB
+ForegroundInactive=$INACT_RGB
+
+[Colors:Selection]
+BackgroundNormal=$DOLPHIN_ACC_RGB
+ForegroundNormal=255,255,255
+BackgroundAlternate=$DOLPHIN_ACC_RGB
+ForegroundInactive=255,255,255
+
+[Colors:Header]
+BackgroundNormal=$BG_RGB
+ForegroundNormal=$FG_RGB
+
+[Colors:Tooltip]
+BackgroundNormal=$SUR_RGB
+ForegroundNormal=$FG_RGB
+
+[Colors:Complementary]
+BackgroundNormal=$BG_RGB
+ForegroundNormal=$FG_RGB
+BackgroundAlternate=$SUR_RGB
+ForegroundInactive=$INACT_RGB
+ForegroundActive=$DOLPHIN_ACC_RGB
+
+[WM]
+activeBackground=$BG_RGB
+activeBlend=$BG_RGB
+activeForeground=$FG_RGB
+inactiveBackground=$BG_RGB
+inactiveBlend=$BG_RGB
+inactiveForeground=$INACT_RGB
+EOF
+
+mv -f "$KDE_TMP" "$KDE_SCHEME_DIR/FluxDots.colors"
+cp -f "$KDE_SCHEME_DIR/FluxDots.colors" "$HOME/.config/kdeglobals"
+kwriteconfig6 --file kdeglobals --group General --key ColorScheme "FluxDots" 2>/dev/null
+kwriteconfig6 --file kdeglobals --group General --key accentColor "$DOLPHIN_ACC_RGB" 2>/dev/null
+kwriteconfig6 --file kdeglobals --group General --key LastUsedCustomAccentColor "$DOLPHIN_ACC_RGB" 2>/dev/null
+plasma-apply-colorscheme FluxDots 2>/dev/null || true
+kwriteconfig6 --file dolphinrc --group UiSettings --key ColorScheme "FluxDots" 2>/dev/null
+
+if [ "$IS_LIGHT" = "true" ]; then
+    kwriteconfig6 --file plasmarc --group Theme --key name breeze 2>/dev/null
+else
+    kwriteconfig6 --file plasmarc --group Theme --key name breeze-dark 2>/dev/null
 fi
 
-# FINAL Notification — sent only once on the last pass
-if command -v notify-send &> /dev/null; then
-  notify-send -a "Quickshell" -i "preferences-desktop-icons" "Icon Theme Updated" "Icon theme set to $ICON_THEME" 2>/dev/null || true
-fi
-echo "[Quickshell] Final Pass Icon theme applied: $ICON_THEME"
+# Notify KDE & Dolphin of accent change
+dbus-send --session --type=signal /KGlobalSettings org.kde.KGlobalSettings.notifyChange int32:0 int32:0 2>/dev/null || true
 
-
+notify-send -a "Quickshell" -i "preferences-desktop-icons" "Icon Theme & Dolphin Accent" "Icon set to $ICON_THEME | Dolphin Accent $ICON_ACCENT" 2>/dev/null || true
+echo "[Quickshell] Icon theme updated to: $ICON_THEME (Dolphin Accent: $ICON_ACCENT)"
 
 # ──────────────────────────────────────────────────────────────────────────
-# 5. Update Kvantum Theme (FluxDots) for Wallust & Static Theme Modes
+# 5. Update Kvantum Theme (FluxDots) with Matching Icon Accent
 # ──────────────────────────────────────────────────────────────────────────
 KVANTUM_DIR="$HOME/.config/Kvantum/FluxDots"
 mkdir -p "$KVANTUM_DIR"
@@ -585,7 +681,7 @@ window.text.color=$FG
 base.color=$SUR
 alt.base.color=$SUR
 text.color=$FG
-highlight.color=$ACC
+highlight.color=$ICON_ACCENT
 highlight.text.color=#FFFFFF
 button.color=$SUR
 button.text.color=$FG
