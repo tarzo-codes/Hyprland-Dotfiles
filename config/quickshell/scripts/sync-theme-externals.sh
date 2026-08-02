@@ -87,24 +87,16 @@ if wp_path and os.path.isfile(wp_path):
             with open(os.path.expanduser('~/.cache/quickshell/is_light_mode'), 'w') as f:
                 f.write('false')
 
-        # 1. Grayscale / Monochromatic / Gray Wallpapers (S < 0.12)
-        if avg_sat < 0.12:
-            if avg_luma > 0.65:
-                best_base = 'Tela-black'
-            elif avg_luma > 0.35:
-                best_base = 'Tela-grey'
-            else:
-                best_base = 'Tela-grey'
-        elif colors:
-            # 2. Complete 14-Theme Spectrum Resolver
-            hue_scores = {
-                'Tela-red': 0.0, 'Tela-pink': 0.0, 'Tela-ubuntu': 0.0,
-                'Tela-orange': 0.0, 'Tela-yellow': 0.0, 'Tela-green': 0.0,
-                'Tela-manjaro': 0.0, 'Tela-nord': 0.0, 'Tela-blue': 0.0,
-                'Tela-dracula': 0.0, 'Tela-purple': 0.0, 'Tela-brown': 0.0,
-                'Tela-grey': 0.0, 'Tela-black': 0.0
-            }
-            
+        # 1. Complete 14-Theme Spectrum Resolver
+        hue_scores = {
+            'Tela-red': 0.0, 'Tela-pink': 0.0, 'Tela-ubuntu': 0.0,
+            'Tela-orange': 0.0, 'Tela-yellow': 0.0, 'Tela-green': 0.0,
+            'Tela-manjaro': 0.0, 'Tela-nord': 0.0, 'Tela-blue': 0.0,
+            'Tela-dracula': 0.0, 'Tela-purple': 0.0, 'Tela-brown': 0.0,
+            'Tela-grey': 0.0, 'Tela-black': 0.0
+        }
+        
+        if colors:
             for count, (r, g, b) in colors:
                 h, s, v = colorsys.rgb_to_hsv(r/255.0, g/255.0, b/255.0)
                 luma = 0.299*(r/255.0) + 0.587*(g/255.0) + 0.114*(b/255.0)
@@ -137,9 +129,21 @@ if wp_path and os.path.isfile(wp_path):
                         hue_scores['Tela-purple'] += weight * 1.4
                         hue_scores['Tela-pink'] += weight * 0.8
 
-            top_hue = max(hue_scores.items(), key=lambda x: x[1])
-            if top_hue[1] > 1.0:
-                best_base = top_hue[0]
+        if is_light_wp:
+            # In light mode: NEVER pick dull grey/black/brown icons. Always pick a bright, vibrant colorful icon!
+            colorful_scores = {k: v for k, v in hue_scores.items() if k not in ['Tela-grey', 'Tela-black', 'Tela-brown']}
+            top_color = max(colorful_scores.items(), key=lambda x: x[1])
+            if top_color[1] > 0.2:
+                best_base = top_color[0]
+            else:
+                best_base = 'Tela-nord' if avg_luma > 0.70 else 'Tela-blue'
+        else:
+            if avg_sat < 0.12:
+                best_base = 'Tela-grey' if avg_luma <= 0.65 else 'Tela-black'
+            else:
+                top_hue = max(hue_scores.items(), key=lambda x: x[1])
+                if top_hue[1] > 0.5:
+                    best_base = top_hue[0]
     except Exception:
         pass
 
