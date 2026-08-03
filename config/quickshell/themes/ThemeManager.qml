@@ -46,6 +46,7 @@ Item {
     property alias barHeight:         stateStore.barHeight
     property alias barWidthPercent:   stateStore.barWidthPercent
     property alias barRadius:         stateStore.barRadius
+    property int   pillRadius:        CentralConfig.pillRadius
     property alias globalFontSize:    stateStore.globalFontSize
     readonly property bool isLightMode: CentralConfig.isLightMode
     property string modeChoice: CentralConfig.modeChoice

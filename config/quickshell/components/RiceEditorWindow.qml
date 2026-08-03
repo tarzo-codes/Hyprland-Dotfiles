@@ -49,6 +49,7 @@ PanelWindow {
     // ── Pending / Buffer State (Nothing updates live until APPLY CHANGES is clicked!) ──
     property bool hasUnappliedChanges: false
     property int pendingRadius: CentralConfig.barRadius
+    property int pendingPillRadius: CentralConfig.pillRadius
     property int pendingHeight: CentralConfig.barHeight
     property real pendingWidthPct: CentralConfig.barWidthPercent
     property int pendingFontSize: CentralConfig.globalFontSize
@@ -143,6 +144,7 @@ PanelWindow {
     function applyAllChanges() {
         // Commit all pending variables to CentralConfig & ThemeManager
         CentralConfig.barRadius = pendingRadius;
+        CentralConfig.pillRadius = pendingPillRadius;
         CentralConfig.barHeight = pendingHeight;
         CentralConfig.barWidthPercent = pendingWidthPct;
         CentralConfig.appletWidth = pendingAppletW;
@@ -712,7 +714,7 @@ PanelWindow {
                                     width: parent.width; spacing: 4
                                     Row {
                                         width: parent.width
-                                        Text { text: "Corner Radius:"; color: "#e0def4"; font.pixelSize: 10; font.bold: true }
+                                        Text { text: "Bar Corner Radius:"; color: "#e0def4"; font.pixelSize: 10; font.bold: true }
                                         Item { width: 10 }
                                         Text { text: pendingRadius + " px"; color: rootBar ? rootBar._cyn : "#9bced7"; font.pixelSize: 10; font.bold: true }
                                     }
@@ -720,6 +722,22 @@ PanelWindow {
                                         width: parent.width; from: 0; to: 30; stepSize: 1
                                         value: pendingRadius
                                         onMoved: { pendingRadius = Math.round(value); riceWindow.markChanged(); }
+                                    }
+                                }
+
+                                // Module Pill Roundness Slider
+                                Column {
+                                    width: parent.width; spacing: 4
+                                    Row {
+                                        width: parent.width
+                                        Text { text: "Module Pill Roundness:"; color: "#e0def4"; font.pixelSize: 10; font.bold: true }
+                                        Item { width: 10 }
+                                        Text { text: pendingPillRadius + " px"; color: rootBar ? rootBar._cyn : "#9bced7"; font.pixelSize: 10; font.bold: true }
+                                    }
+                                    Slider {
+                                        width: parent.width; from: 0; to: 20; stepSize: 1
+                                        value: pendingPillRadius
+                                        onMoved: { pendingPillRadius = Math.round(value); riceWindow.markChanged(); }
                                     }
                                 }
 
